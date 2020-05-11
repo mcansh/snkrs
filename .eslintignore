@@ -1,0 +1,4 @@
+!.*.js
+coverage
+.next
+src/graphql/generated

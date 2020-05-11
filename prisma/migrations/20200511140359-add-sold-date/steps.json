@@ -1,0 +1,21 @@
+{
+  "version": "0.3.14-fixed",
+  "steps": [
+    {
+      "tag": "UpdateArgument",
+      "location": {
+        "tag": "Source",
+        "source": "postgresql"
+      },
+      "argument": "url",
+      "newValue": "env(\"DATABASE_URL\")"
+    },
+    {
+      "tag": "CreateField",
+      "model": "Sneaker",
+      "field": "soldDate",
+      "type": "DateTime",
+      "arity": "Optional"
+    }
+  ]
+}
