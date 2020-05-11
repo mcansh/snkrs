@@ -1,0 +1,24 @@
+name: build, test, and codecov
+on: push
+jobs:
+  test:
+    name: Test on node ${{ matrix.node_version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node_version: [10, 12, 13, 14]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Use Node.js ${{ matrix.node_version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node_version }}
+
+      - name: install yarn
+        run: npm install -g yarn
+
+      - name: yarn install, build, and validate
+        run: |
+          yarn install
+          yarn build
+          yarn validate

@@ -1,0 +1,16 @@
+query GET_SNEAKER($id: ID!) {
+  getSneaker(id: $id) {
+    id
+    model
+    colorway
+    brand
+    size
+    imagePublicId
+    price
+    retailPrice
+    purchaseDate
+    sold
+    soldDate
+    soldPrice
+  }
+}

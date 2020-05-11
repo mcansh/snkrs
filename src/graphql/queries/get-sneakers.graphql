@@ -1,0 +1,14 @@
+query GET_SNEAKERS {
+  getSneakers {
+    id
+    model
+    colorway
+    brand
+    size
+    imagePublicId
+    price
+    retailPrice
+    purchaseDate
+    sold
+  }
+}

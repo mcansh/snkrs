@@ -1,0 +1,15 @@
+{
+  "name": "App",
+  "short_name": "App",
+  "description": "App",
+  "background_color": "#113B55",
+  "display": "standalone",
+  "theme_color": "#113B55",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "72x72 96x96 128x128 144x144 256x256 512x512",
+      "type": "image/png"
+    }
+  ]
+}
