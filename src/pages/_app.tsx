@@ -11,4 +11,9 @@ const App = ({ Component, pageProps }: AppProps) => (
   </Layout>
 );
 
+export const reportWebVitals = (metric: string) => {
+  // eslint-disable-next-line no-console
+  console.log(metric);
+};
+
 export default App;
