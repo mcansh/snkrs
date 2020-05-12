@@ -4,6 +4,7 @@ import { AppProps } from 'next/app';
 import { Layout } from 'src/components/layout';
 
 import 'src/styles/index.css';
+import { Metric, logMetric } from 'src/utils/log-metric';
 
 const App = ({ Component, pageProps }: AppProps) => {
   React.useEffect(() => {
@@ -23,18 +24,10 @@ const App = ({ Component, pageProps }: AppProps) => {
   );
 };
 
-export const reportWebVitals = (metric: any) => {
-  function logMetric({ name, value }: { name: string; value: number }) {
-    const url = `https://qckm.io?m=${name}&v=${value}&k=${process.env.QUICKMETRICS_API_KEY}`;
-
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon(url);
-    } else {
-      fetch(url, { method: 'POST', keepalive: true });
-    }
+export const reportWebVitals = (metric: Metric) => {
+  if (metric.label === 'web-vital') {
+    logMetric(metric);
   }
-
-  logMetric(metric);
 };
 
 export default App;
