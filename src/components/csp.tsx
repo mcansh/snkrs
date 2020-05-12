@@ -12,10 +12,20 @@ const cspHashOf = (text: string) => {
 const CSP = (props: DocumentProps) => {
   const cspSettings = {
     'default-src': ["'self'"],
-    'script-src': ["'self'", "'unsafe-eval'", "'unsafe-inline'", 'https://kiwi.mcan.sh/script.js'],
-    'connect-src': ["'self'", 'ws://localhost:*'],
+    'script-src': [
+      "'self'",
+      "'unsafe-eval'",
+      "'unsafe-inline'",
+      'https://kiwi.mcan.sh/script.js',
+    ],
+    'connect-src': ["'self'", 'ws://localhost:*', 'https://qckm.io'],
     'style-src': ["'self'", "'unsafe-inline'"],
-    'img-src': ["'self'", 'data:', 'https://res.cloudinary.com', 'https://kiwi.mcan.sh'],
+    'img-src': [
+      "'self'",
+      'data:',
+      'https://res.cloudinary.com',
+      'https://kiwi.mcan.sh',
+    ],
   };
 
   const csp = `${Object.entries(cspSettings)
