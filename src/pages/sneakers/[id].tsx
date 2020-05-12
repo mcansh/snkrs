@@ -2,66 +2,64 @@ import React from 'react';
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next';
 import Link from 'next/link';
 import { NextSeo } from 'next-seo';
-import { PrismaClient, Sneaker } from '@prisma/client';
+import { Sneaker } from '@prisma/client';
+import { NormalizedCacheObject } from '@apollo/client';
 
 import { formatMoney } from 'src/utils/format-money';
 import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatDate } from 'src/utils/format-date';
+import { initApolloClient } from 'src/graphql/apollo';
+import {
+  GetSneakersDocument,
+  GetSneakerDocument,
+  useGetSneakerQuery,
+} from 'src/graphql/generated';
+import { withApollo } from 'src/components/with-apollo';
 
-interface SneakerISODate extends Omit<Sneaker, 'purchaseDate' | 'soldDate'> {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  purchaseDate: string | null;
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  soldDate: string | null;
-}
-
-interface Props {
-  data: {
-    getSneaker?: SneakerISODate;
-  };
-}
-
-export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
-  const prisma = new PrismaClient({ forceTransactions: true });
-  const sneakers = await prisma.sneaker.findMany();
-
+export const getStaticPaths: GetStaticPaths = async () => {
+  const client = initApolloClient();
+  const response = await client.query({ query: GetSneakersDocument });
   return {
-    fallback: false,
-    paths: sneakers.map(sneaker => ({ params: { id: sneaker.id } })),
+    fallback: true,
+    paths: response.data.getSneakers.map((sneaker: Sneaker) => ({
+      params: { id: sneaker.id },
+    })),
   };
 };
 
-export const getStaticProps: GetStaticProps<Props> = async ({
-  params = {},
-}) => {
-  const prisma = new PrismaClient({ forceTransactions: true });
-  const sneaker = await prisma.sneaker.findOne({
-    where: { id: params.id as string },
+export const getStaticProps: GetStaticProps<{
+  apolloStaticCache: NormalizedCacheObject;
+}> = async ({ params = {} }) => {
+  const client = initApolloClient();
+  await client.query({
+    query: GetSneakerDocument,
+    variables: { id: params.id },
   });
-
-  if (!sneaker) {
-    return {
-      // because this data is slightly more dynamic, update it every hour
-      unstable_revalidate: 60 * 60,
-      props: { data: { getSneaker: undefined } },
-    };
-  }
-
-  const sneakerISODate = {
-    ...sneaker,
-    purchaseDate: sneaker?.purchaseDate?.toISOString() ?? null,
-    soldDate: sneaker?.soldDate?.toISOString() ?? null,
-  };
+  /*
+     Because this is using withApollo, the data from this query will be
+     pre-populated in the Apollo cache at build time. When the user first
+     visits this page, we can retrieve the data from the cache like this:
+     const { data } = useGetSneakerQuery({ fetchPolicy: 'cache-and-network' })
+     This preserves the ability for the page to render all bookmarks instantly,
+     then get progressively updated if any new bookmarks come in over the wire.
+   */
+  const apolloStaticCache = client.cache.extract();
 
   return {
     // because this data is slightly more dynamic, update it every hour
     unstable_revalidate: 60 * 60,
-    props: { data: { getSneaker: sneakerISODate } },
+    props: { id: params.id, apolloStaticCache },
   };
 };
 
-const SneakerPage: NextPage<Props> = ({ data }) => {
-  if (!data.getSneaker) return null;
+const SneakerPage: NextPage<{ id: string }> = ({ id }) => {
+  const { data } = useGetSneakerQuery({
+    fetchPolicy: 'cache-and-network',
+    variables: { id },
+  });
+  if (!data) return <p>Loading...</p>;
+  if (!data.getSneaker) return <p>no sneaker for id &quot;{id}&quot;</p>;
+
   const title = `${data.getSneaker.model} by ${data.getSneaker.brand} in the ${data.getSneaker.colorway} colorway`;
 
   return (
@@ -120,4 +118,4 @@ const SneakerPage: NextPage<Props> = ({ data }) => {
   );
 };
 
-export default SneakerPage;
+export default withApollo(SneakerPage);

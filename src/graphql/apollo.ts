@@ -22,7 +22,7 @@ function createIsomorphLink() {
     const { schema } = require('src/graphql/schema');
     // eslint-disable-next-line
     const { PrismaClient } = require('@prisma/client');
-    const db = new PrismaClient();
+    const db = new PrismaClient({ forceTransactions: true });
 
     return new SchemaLink({ schema, context: { db } });
   } else {

@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({ forceTransactions: true });
 
 export interface Context {
   req: NextApiRequest;
