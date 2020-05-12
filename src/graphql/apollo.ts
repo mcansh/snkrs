@@ -10,18 +10,18 @@ import {
 
 let globalApolloClient: ApolloClient<NormalizedCacheObject> | undefined;
 
-const endpoint = 'http://localhost:3000/api/graphql';
+const endpoint = `/api/graphql`;
 
 function createIsomorphLink() {
   if (typeof window === 'undefined') {
     // These have to imported dynamically, instead of at the root of the page,
     // in order to make sure that we're not shipping server-side code to the client
     // eslint-disable-next-line
-    const { SchemaLink } = require("@apollo/link-schema");
+    const { SchemaLink } = require('@apollo/link-schema');
     // eslint-disable-next-line
-    const { schema } = require("src/graphql/schema");
+    const { schema } = require('src/graphql/schema');
     // eslint-disable-next-line
-    const { PrismaClient } = require("@prisma/client");
+    const { PrismaClient } = require('@prisma/client');
     const db = new PrismaClient();
 
     return new SchemaLink({ schema, context: { db } });

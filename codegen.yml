@@ -1,9 +1,9 @@
 overwrite: true
-schema: "./src/graphql/generated/schema.graphql"
-documents: "./src/graphql/**/*.graphql"
+schema: './src/graphql/generated/schema.graphql'
+documents: './src/graphql/**/*.graphql'
 hooks:
   afterOneFileWrite:
-    - eslint --fix
+    - eslint --fix --cache
 generates:
   ./src/graphql/generated/index.ts:
     plugins:
