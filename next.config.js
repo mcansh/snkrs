@@ -22,6 +22,12 @@ const nextConfig = {
     redirects: () => [
       { source: '/shoes/:id', destination: '/sneakers/:id', permanent: true },
     ],
+    rewrites: () => [
+      {
+        source: '/sw.js',
+        destination: '/_next/static/sw.js',
+      },
+    ],
   },
   env: {
     VERSION: require('./package.json').version,
