@@ -19,6 +19,7 @@ const nextConfig = {
   crossOrigin: 'anonymous',
   experimental: {
     modern: true,
+    redirects: () => [{ source: '/shoes/:id', destination: '/sneakers/:id' }],
   },
   env: {
     VERSION: require('./package.json').version,
