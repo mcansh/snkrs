@@ -17,7 +17,6 @@ const nextConfig = {
     ],
   },
   crossOrigin: 'anonymous',
-  target: 'serverless',
   experimental: {
     modern: true,
   },

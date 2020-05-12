@@ -8,8 +8,10 @@ import { formatMoney } from 'src/utils/format-money';
 import { formatDate } from 'src/utils/format-date';
 
 interface SneakerISODate extends Omit<Sneaker, 'purchaseDate' | 'soldDate'> {
-  purchaseDate?: string;
-  soldDate?: string;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  purchaseDate: string | null;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  soldDate: string | null;
 }
 
 interface Props {
@@ -20,7 +22,9 @@ interface Props {
 
 export const getStaticProps: GetStaticProps<Props> = async () => {
   const prisma = new PrismaClient();
-  const sneakers = await prisma.sneaker.findMany();
+  const sneakers = await prisma.sneaker.findMany({
+    orderBy: { purchaseDate: 'desc' },
+  });
 
   const sneakersWithISODates = sneakers.map(sneaker => ({
     ...sneaker,

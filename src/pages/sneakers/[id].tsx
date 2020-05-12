@@ -4,25 +4,26 @@ import Link from 'next/link';
 import { NextSeo } from 'next-seo';
 import { PrismaClient, Sneaker } from '@prisma/client';
 
-import { withApollo } from 'src/components/with-apollo';
 import { formatMoney } from 'src/utils/format-money';
 import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatDate } from 'src/utils/format-date';
 
 interface SneakerISODate extends Omit<Sneaker, 'purchaseDate' | 'soldDate'> {
-  purchaseDate?: string;
-  soldDate?: string;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  purchaseDate: string | null;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  soldDate: string | null;
 }
 
 interface Props {
   data: {
-    getSneaker: SneakerISODate;
+    getSneaker?: SneakerISODate;
   };
 }
 
 export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
   const prisma = new PrismaClient();
-  const sneakers = await prisma.sneaker.findMany({ select: { id: true } });
+  const sneakers = await prisma.sneaker.findMany();
 
   return {
     fallback: false,
@@ -37,6 +38,14 @@ export const getStaticProps: GetStaticProps<Props> = async ({
   const sneaker = await prisma.sneaker.findOne({
     where: { id: params.id as string },
   });
+
+  if (!sneaker) {
+    return {
+      // because this data is slightly more dynamic, update it every hour
+      unstable_revalidate: 60 * 60,
+      props: { data: { getSneaker: undefined } },
+    };
+  }
 
   const sneakerISODate = {
     ...sneaker,
@@ -89,10 +98,7 @@ const SneakerPage: NextPage<Props> = ({ data }) => {
           <p className="text-xl">{formatMoney(data.getSneaker?.price)}</p>
           {data.getSneaker.purchaseDate && (
             <p>
-              <time
-                className="text-md"
-                dateTime={data.getSneaker.purchaseDate.toISOString()}
-              >
+              <time className="text-md" dateTime={data.getSneaker.purchaseDate}>
                 Purchased {formatDate(data.getSneaker.purchaseDate)}
               </time>
             </p>
@@ -100,10 +106,7 @@ const SneakerPage: NextPage<Props> = ({ data }) => {
 
           {data.getSneaker.sold && data.getSneaker.soldDate && (
             <p>
-              <time
-                className="text-md"
-                dateTime={data.getSneaker.soldDate.toISOString()}
-              >
+              <time className="text-md" dateTime={data.getSneaker.soldDate}>
                 Sold {formatDate(data.getSneaker.soldDate)}{' '}
                 {data.getSneaker?.soldPrice && (
                   <>For {formatMoney(data.getSneaker.soldPrice)}</>
@@ -117,4 +120,4 @@ const SneakerPage: NextPage<Props> = ({ data }) => {
   );
 };
 
-export default withApollo(SneakerPage);
+export default SneakerPage;
