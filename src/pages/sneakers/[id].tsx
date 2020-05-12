@@ -2,64 +2,57 @@ import React from 'react';
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next';
 import Link from 'next/link';
 import { NextSeo } from 'next-seo';
+import { PrismaClient, Sneaker } from '@prisma/client';
 
-import {
-  GetSneakersDocument,
-  GetSneakerDocument,
-  Sneaker,
-  useGetSneakerQuery,
-} from 'src/graphql/generated';
-import { initApolloClient } from 'src/graphql/apollo';
 import { withApollo } from 'src/components/with-apollo';
 import { formatMoney } from 'src/utils/format-money';
 import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatDate } from 'src/utils/format-date';
 
-export const getStaticPaths: GetStaticPaths = async () => {
-  const client = initApolloClient({});
-  const response = await client.query({ query: GetSneakersDocument });
+interface SneakerISODate extends Omit<Sneaker, 'purchaseDate' | 'soldDate'> {
+  purchaseDate?: string;
+  soldDate?: string;
+}
+
+interface Props {
+  data: {
+    getSneaker: SneakerISODate;
+  };
+}
+
+export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
+  const prisma = new PrismaClient();
+  const sneakers = await prisma.sneaker.findMany({ select: { id: true } });
 
   return {
     fallback: false,
-    paths: response.data.getSneakers.map((sneaker: Sneaker) => ({
-      params: { id: sneaker.id },
-    })),
+    paths: sneakers.map(sneaker => ({ params: { id: sneaker.id } })),
   };
 };
 
-export const getStaticProps: GetStaticProps = async ({ params = {} }) => {
-  const client = initApolloClient({});
-  await client.query({
-    query: GetSneakerDocument,
-    variables: { id: params.id },
+export const getStaticProps: GetStaticProps<Props> = async ({
+  params = {},
+}) => {
+  const prisma = new PrismaClient();
+  const sneaker = await prisma.sneaker.findOne({
+    where: { id: params.id as string },
   });
-  /*
-    Because this is using withApollo, the data from this query will be
-    pre-populated in the Apollo cache at build time. When the user first
-    visits this page, we can retrieve the data from the cache like this:
-    const { data } = useGetSneakerQuery({ fetchPolicy: 'cache-and-network' })
-    This preserves the ability for the page to render all bookmarks instantly,
-    then get progressively updated if any new bookmarks come in over the wire.
-  */
-  const apolloStaticCache = client.cache.extract();
+
+  const sneakerISODate = {
+    ...sneaker,
+    purchaseDate: sneaker?.purchaseDate?.toISOString() ?? null,
+    soldDate: sneaker?.soldDate?.toISOString() ?? null,
+  };
 
   return {
     // because this data is slightly more dynamic, update it every hour
     unstable_revalidate: 60 * 60,
-    props: { id: params.id, apolloStaticCache },
+    props: { data: { getSneaker: sneakerISODate } },
   };
 };
 
-const SneakerPage: NextPage<{ id: string }> = ({ id }) => {
-  const { data } = useGetSneakerQuery({
-    fetchPolicy: 'cache-and-network',
-    variables: { id },
-  });
-
-  if (!data) return <p>Loading...</p>;
-
-  if (!data.getSneaker) return <p>no sneaker for id &quot;{id}&quot;</p>;
-
+const SneakerPage: NextPage<Props> = ({ data }) => {
+  if (!data.getSneaker) return null;
   const title = `${data.getSneaker.model} by ${data.getSneaker.brand} in the ${data.getSneaker.colorway} colorway`;
 
   return (
@@ -85,7 +78,7 @@ const SneakerPage: NextPage<{ id: string }> = ({ id }) => {
             loading="lazy"
             src={getCloudinaryURL(data.getSneaker.imagePublicId)}
             alt={title}
-            className="overflow-hidden rounded-md object-contain"
+            className="object-contain overflow-hidden rounded-md"
           />
         </div>
         <div>
@@ -94,15 +87,23 @@ const SneakerPage: NextPage<{ id: string }> = ({ id }) => {
             {data.getSneaker.colorway}
           </h1>
           <p className="text-xl">{formatMoney(data.getSneaker?.price)}</p>
-          <p>
-            <time className="text-md" dateTime={data.getSneaker.purchaseDate}>
-              Purchased {formatDate(data.getSneaker.purchaseDate)}
-            </time>
-          </p>
+          {data.getSneaker.purchaseDate && (
+            <p>
+              <time
+                className="text-md"
+                dateTime={data.getSneaker.purchaseDate.toISOString()}
+              >
+                Purchased {formatDate(data.getSneaker.purchaseDate)}
+              </time>
+            </p>
+          )}
 
           {data.getSneaker.sold && data.getSneaker.soldDate && (
             <p>
-              <time className="text-md" dateTime={data.getSneaker.soldDate}>
+              <time
+                className="text-md"
+                dateTime={data.getSneaker.soldDate.toISOString()}
+              >
                 Sold {formatDate(data.getSneaker.soldDate)}{' '}
                 {data.getSneaker?.soldPrice && (
                   <>For {formatMoney(data.getSneaker.soldPrice)}</>
