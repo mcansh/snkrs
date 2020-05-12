@@ -1,9 +1,13 @@
-function getCloudinaryURL(publicId: string, ...transformations: string[]) {
-  const transforms = [
-    ...new Set([...transformations, 'f_auto', 'q_auto']),
-  ].join(',');
+import { Cloudinary, Transformation } from 'cloudinary-core';
 
-  return `https://res.cloudinary.com/dof0zryca/image/upload/${transforms}/v1589065654/${publicId}`;
+const cloudinary = new Cloudinary({ cloud_name: 'dof0zryca', secure: true });
+
+function getCloudinaryURL(publicId: string, ...transformations: string[]) {
+  const transforms: Transformation.Options = [
+    ...new Set([...transformations, 'f_auto', 'q_auto']),
+  ];
+
+  return cloudinary.url(publicId, transforms);
 }
 
 export { getCloudinaryURL };

@@ -29,6 +29,7 @@
     "@svgr/webpack": "5.4.0",
     "@zeit/next-source-maps": "0.0.4-canary.1",
     "apollo-server-micro": "2.13.1",
+    "cloudinary-core": "2.8.2",
     "graphql": "15.0.0",
     "graphql-iso-date": "3.6.1",
     "graphql-playground-html": "1.6.19",
@@ -38,6 +39,7 @@
     "npm": "6.14.5",
     "react": "16.13.1",
     "react-dom": "16.13.1",
+    "react-simple-img": "2.3.9",
     "type-fest": "0.13.1"
   },
   "devDependencies": {

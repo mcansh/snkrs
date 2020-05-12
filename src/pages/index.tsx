@@ -2,6 +2,7 @@ import React from 'react';
 import { GetStaticProps, NextPage } from 'next';
 import Link from 'next/link';
 import { PrismaClient, Sneaker } from '@prisma/client';
+import { SimpleImg } from 'react-simple-img';
 
 import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatMoney } from 'src/utils/format-money';
@@ -51,12 +52,14 @@ const Index: NextPage<Props> = ({ data }) => (
         >
           <Link href="/sneakers/[id]" as={`/sneakers/${sneaker.id}`}>
             <a className="flex flex-col block h-full ">
-              <div className="relative flex items-center justify-center">
-                <img
-                  loading="lazy"
-                  src={getCloudinaryURL(sneaker.imagePublicId, 'f_auto')}
+              <div className="relative flex items-center justify-center flex-grow">
+                <SimpleImg
+                  src={getCloudinaryURL(sneaker.imagePublicId)}
                   alt={`${sneaker.model} by ${sneaker.brand} in the ${sneaker.colorway} colorway`}
-                  className="object-contain w-full h-64"
+                  height={200}
+                  width={200}
+                  applyAspectRatio
+                  className="w-full h-full"
                 />
                 {sneaker.sold && (
                   <div className="absolute w-full p-1 text-xl font-bold text-center text-white transform -translate-x-1/2 -translate-y-1/2 bg-red-400 bg-opacity-75 top-1/2 left-1/2">
