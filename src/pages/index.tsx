@@ -21,7 +21,7 @@ interface Props {
 }
 
 export const getStaticProps: GetStaticProps<Props> = async () => {
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({ forceTransactions: true });
   const sneakers = await prisma.sneaker.findMany({
     orderBy: { purchaseDate: 'desc' },
   });
