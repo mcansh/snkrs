@@ -22,7 +22,7 @@ interface Props {
 }
 
 export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({ forceTransactions: true });
   const sneakers = await prisma.sneaker.findMany();
 
   return {
@@ -34,7 +34,7 @@ export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
 export const getStaticProps: GetStaticProps<Props> = async ({
   params = {},
 }) => {
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient({ forceTransactions: true });
   const sneaker = await prisma.sneaker.findOne({
     where: { id: params.id as string },
   });
