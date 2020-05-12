@@ -12,8 +12,8 @@ const cspHashOf = (text: string) => {
 const CSP = (props: DocumentProps) => {
   const cspSettings = {
     'default-src': ["'self'"],
-    'script-src': ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
-    'connect-src': ["'self'", 'ws://localhost:*', 'https://kiwi.mcan.sh/script.js'],
+    'script-src': ["'self'", "'unsafe-eval'", "'unsafe-inline'", 'https://kiwi.mcan.sh/script.js'],
+    'connect-src': ["'self'", 'ws://localhost:*'],
     'style-src': ["'self'", "'unsafe-inline'"],
     'img-src': ["'self'", 'data:', 'https://res.cloudinary.com', 'https://kiwi.mcan.sh'],
   };
