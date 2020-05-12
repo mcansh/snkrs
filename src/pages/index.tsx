@@ -56,7 +56,7 @@ const Index: NextPage<Props> = ({ data }) => (
                   loading="lazy"
                   src={getCloudinaryURL(sneaker.imagePublicId, 'f_auto')}
                   alt={`${sneaker.model} by ${sneaker.brand} in the ${sneaker.colorway} colorway`}
-                  className="object-cover w-full h-56"
+                  className="object-contain w-full h-64"
                 />
                 {sneaker.sold && (
                   <div className="absolute w-full p-1 text-xl font-bold text-center text-white transform -translate-x-1/2 -translate-y-1/2 bg-red-400 bg-opacity-75 top-1/2 left-1/2">
