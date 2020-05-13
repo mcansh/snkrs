@@ -11,7 +11,6 @@ const Layout: React.FC = ({ children }) => {
     <>
       <DefaultSeo
         title="Home"
-        canonical="https://sneakers.mcan.sh"
         description="Logan McAnsh's sneaker collection"
         titleTemplate="%s | Sneaker Collection"
         openGraph={{ type: 'website', locale: 'en_US' }}
