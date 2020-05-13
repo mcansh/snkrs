@@ -71,18 +71,26 @@ const SneakerPage: NextPage<{
   id: string;
   stockx: Partial<StockXResponse>;
 }> = ({ id, stockx }) => {
-  const { data } = useGetSneakerQuery({
+  const { data, error } = useGetSneakerQuery({
     fetchPolicy: 'cache-and-network',
     variables: { id },
   });
-
-  if (!data) return <p>Loading...</p>;
+  // this can happen if the route is navigated to from the client or if the
+  // cache fails to populate for whatever reason
+  if (!data || !data.getSneaker) {
+    return (
+      <div className="flex items-center justify-center w-full h-full text-lg text-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
   if (!data.getSneaker) return <p>no sneaker for id &quot;{id}&quot;</p>;
+  if (error) return null;
 
   const title = `${data.getSneaker.model} by ${data.getSneaker.brand} in the ${data.getSneaker.colorway} colorway`;
 
   return (
-    <div className="w-11/12 py-4 mx-auto">
+    <div className="w-11/12 h-full py-4 mx-auto">
       <NextSeo
         title={title}
         openGraph={{

@@ -39,11 +39,21 @@ export const getStaticProps: GetStaticProps<Props> = async () => {
 };
 
 const Index: NextPage<Props> = () => {
-  const { data } = useGetSneakersQuery({ fetchPolicy: 'cache-and-network' });
-  if (!data?.getSneakers) return <p>Loading...</p>;
-  if (!data.getSneakers.length) return <p>No sneakers</p>;
+  const { data, error } = useGetSneakersQuery({
+    fetchPolicy: 'cache-and-network',
+  });
+  // this can happen if the route is navigated to from the client or if the
+  // cache fails to populate for whatever reason
+  if (!data || !data.getSneakers) {
+    return (
+      <div className="flex items-center justify-center w-full h-full text-lg text-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+  if (error) return null;
   return (
-    <main className="p-4">
+    <main className="h-full p-4">
       <h1 className="text-4xl">Sneaker Collection</h1>
 
       <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-4">
