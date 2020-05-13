@@ -3,12 +3,14 @@ import { NextPage, GetStaticProps, GetStaticPaths } from 'next';
 import Link from 'next/link';
 import { NextSeo } from 'next-seo';
 import { Sneaker, PrismaClient } from '@prisma/client';
+import useSWR from 'swr';
 
 import { StockXResponse } from '../../../@types/stockx';
 
 import { formatMoney } from 'src/utils/format-money';
 import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatDate } from 'src/utils/format-date';
+import { fetcher } from 'src/utils/fetcher';
 
 export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
   const prisma = new PrismaClient({ forceTransactions: true });
@@ -80,7 +82,11 @@ export const getStaticProps: GetStaticProps<Props> = async ({
 };
 
 const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
-  if (!sneaker) {
+  const { data } = useSWR<SneakerISODate>(() => `/api/sneaker/${id}`, fetcher, {
+    initialData: sneaker,
+  });
+
+  if (!sneaker || !data) {
     return (
       <div className="flex items-center justify-center w-full h-full text-lg text-center">
         <p>No sneaker with id &quot;{id}&quot;</p>
@@ -111,16 +117,16 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
         <div>
           <img
             loading="lazy"
-            src={getCloudinaryURL(sneaker.imagePublicId)}
+            src={getCloudinaryURL(data.imagePublicId)}
             alt={title}
             className="object-contain overflow-hidden rounded-md"
           />
         </div>
         <div>
           <h1 className="text-2xl">
-            {sneaker.brand} {sneaker.model} {sneaker.colorway}
+            {data.brand} {data.model} {data.colorway}
           </h1>
-          <p className="text-xl">{formatMoney(sneaker.price)}</p>
+          <p className="text-xl">{formatMoney(data.price)}</p>
           {stockx?.ProductActivity?.[0].amount && (
             <time
               className="text-xl"
@@ -133,21 +139,19 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
               {formatMoney(stockx.ProductActivity[0].amount * 100)}
             </time>
           )}
-          {sneaker.purchaseDate && (
+          {data.purchaseDate && (
             <p>
-              <time className="text-md" dateTime={sneaker.purchaseDate}>
-                Purchased {formatDate(sneaker.purchaseDate)}
+              <time className="text-md" dateTime={data.purchaseDate}>
+                Purchased {formatDate(data.purchaseDate)}
               </time>
             </p>
           )}
 
-          {sneaker.sold && sneaker.soldDate && (
+          {data.sold && data.soldDate && (
             <p>
-              <time className="text-md" dateTime={sneaker.soldDate}>
-                Sold {formatDate(sneaker.soldDate)}{' '}
-                {sneaker?.soldPrice && (
-                  <>For {formatMoney(sneaker.soldPrice)}</>
-                )}
+              <time className="text-md" dateTime={data.soldDate}>
+                Sold {formatDate(data.soldDate)}{' '}
+                {data?.soldPrice && <>For {formatMoney(data.soldPrice)}</>}
               </time>
             </p>
           )}
