@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { NextSeo } from 'next-seo';
 import { Sneaker, PrismaClient } from '@prisma/client';
 import useSWR from 'swr';
+import { SimpleImg } from 'react-simple-img';
 
 import { StockXResponse } from '../../../@types/stockx';
 
@@ -115,11 +116,13 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
         <a>Back</a>
       </Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
-        <img
-          loading="lazy"
+        <SimpleImg
           src={getCloudinaryURL(data.imagePublicId)}
           alt={title}
-          className="object-contain w-full overflow-hidden rounded-md"
+          height={200}
+          width={200}
+          applyAspectRatio
+          className="w-full h-full overflow-hidden rounded-md"
         />
         <div>
           <h1 className="text-2xl">
