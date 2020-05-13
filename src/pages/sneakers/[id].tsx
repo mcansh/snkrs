@@ -95,6 +95,7 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
   }
 
   const title = `${sneaker.model} by ${sneaker.brand} in the ${sneaker.colorway} colorway`;
+  const year = data.purchaseDate && new Date(data.purchaseDate).getFullYear();
 
   return (
     <main className="container h-full p-4 mx-auto">
@@ -152,6 +153,14 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
                 {data?.soldPrice && <>For {formatMoney(data.soldPrice)}</>}
               </time>
             </p>
+          )}
+
+          {year && (
+            <Link href={`/sneakers/${year}`}>
+              <a className="text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline">
+                See others purchased in {year}
+              </a>
+            </Link>
           )}
         </div>
       </div>
