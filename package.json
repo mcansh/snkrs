@@ -64,6 +64,6 @@
     "shell-quote": "1.7.2",
     "tailwindcss": "1.4.6",
     "ts-node": "8.10.1",
-    "typescript": "3.9.2"
+    "typescript": "3.8.3"
   }
 }
