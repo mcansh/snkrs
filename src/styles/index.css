@@ -2,8 +2,12 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
+html {
+  @apply min-h-full;
+}
+
 body {
-  @apply h-screen;
+  @apply h-full;
   @apply bg-gray-100;
 }
 

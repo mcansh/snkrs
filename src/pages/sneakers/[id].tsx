@@ -97,7 +97,7 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
   const title = `${sneaker.model} by ${sneaker.brand} in the ${sneaker.colorway} colorway`;
 
   return (
-    <div className="w-11/12 h-full py-4 mx-auto">
+    <main className="container h-full p-4 mx-auto">
       <NextSeo
         title={title}
         openGraph={{
@@ -114,14 +114,12 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
         <a>Back</a>
       </Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
-        <div>
-          <img
-            loading="lazy"
-            src={getCloudinaryURL(data.imagePublicId)}
-            alt={title}
-            className="object-contain overflow-hidden rounded-md"
-          />
-        </div>
+        <img
+          loading="lazy"
+          src={getCloudinaryURL(data.imagePublicId)}
+          alt={title}
+          className="object-contain w-full overflow-hidden rounded-md"
+        />
         <div>
           <h1 className="text-2xl">
             {data.brand} {data.model} {data.colorway}
@@ -157,7 +155,7 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

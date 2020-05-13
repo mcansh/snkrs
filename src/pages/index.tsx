@@ -55,7 +55,7 @@ const Index: NextPage<Props> = ({ sneakers }) => {
   }
 
   return (
-    <main className="h-full p-4">
+    <main className="container h-full p-4 mx-auto">
       <h1 className="text-4xl">Sneaker Collection</h1>
 
       <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-4">
