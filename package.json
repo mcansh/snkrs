@@ -8,7 +8,7 @@
   "main": "n/a",
   "prettier": "@mcansh/eslint-config/prettier.config",
   "husky": {
-    "pre-commit": "lint-staged"
+    "pre-commit": "lint-staged && npm run generate"
   },
   "scripts": {
     "dev": "next dev",
@@ -16,7 +16,6 @@
     "start": "next start",
     "generate:schema": "ts-node --project ./tsconfig.schema.json --transpile-only src/graphql/schema",
     "generate:db": "prisma generate",
-    "generate:apollo": "graphql-codegen",
     "generate": "npm-run-all generate:*",
     "lint": "eslint --cache --ext .js,.ts,.tsx .",
     "test": "jest",
@@ -24,17 +23,11 @@
     "validate": "npm-run-all --parallel lint type-check test"
   },
   "dependencies": {
-    "@apollo/client": "3.0.0-beta.46",
-    "@apollo/link-error": "2.0.0-beta.3",
-    "@apollo/link-schema": "2.0.0-beta.3",
     "@nexus/schema": "0.13.1",
     "@prisma/client": "2.0.0-beta.5",
     "@svgr/webpack": "5.4.0",
     "@zeit/next-source-maps": "0.0.4-canary.1",
     "cloudinary-core": "2.8.2",
-    "graphql": "15.0.0",
-    "graphql-iso-date": "3.6.1",
-    "graphql-playground-html": "1.6.19",
     "next": "9.4.0",
     "next-offline": "5.0.2",
     "next-seo": "4.4.0",
@@ -45,11 +38,6 @@
     "type-fest": "0.13.1"
   },
   "devDependencies": {
-    "@graphql-codegen/add": "1.13.5",
-    "@graphql-codegen/cli": "1.13.5",
-    "@graphql-codegen/typescript": "1.13.5",
-    "@graphql-codegen/typescript-operations": "1.13.5",
-    "@graphql-codegen/typescript-react-apollo": "1.13.5",
     "@mcansh/eslint-config": "2.6.1",
     "@prisma/cli": "2.0.0-beta.5",
     "@testing-library/jest-dom": "5.7.0",
