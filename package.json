@@ -7,6 +7,9 @@
   "author": "Logan McAnsh <logan@mcan.sh> (https://mcan.sh)",
   "main": "n/a",
   "prettier": "@mcansh/eslint-config/prettier.config",
+  "husky": {
+    "pre-commit": "lint-staged"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
