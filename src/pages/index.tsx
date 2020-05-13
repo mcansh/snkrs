@@ -49,7 +49,7 @@ const Index: NextPage<Props> = ({ sneakers }) => {
   if (!sneakers || !data) {
     return (
       <div className="flex items-center justify-center w-full h-full text-lg text-center">
-        <p>No sneaker with id &quot;{id}&quot;</p>
+        <p>No sneakers</p>
       </div>
     );
   }
