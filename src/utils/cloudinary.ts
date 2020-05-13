@@ -4,7 +4,7 @@ const cloudinary = new Cloudinary({ cloud_name: 'dof0zryca', secure: true });
 
 function getCloudinaryURL(
   publicId: string,
-  transformations: Transformation.Options
+  transformations: Transformation.Options = {}
 ) {
   const transforms: Transformation.Options = {
     ...transformations,
