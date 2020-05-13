@@ -2,62 +2,64 @@ import React from 'react';
 import { GetStaticProps, NextPage } from 'next';
 import Link from 'next/link';
 import { SimpleImg } from 'react-simple-img';
-import { NormalizedCacheObject } from '@apollo/client';
+import { PrismaClient, Sneaker } from '@prisma/client';
+import useSWR from 'swr';
 
 import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatMoney } from 'src/utils/format-money';
 import { formatDate } from 'src/utils/format-date';
-import { withApollo } from 'src/components/with-apollo';
-import { initApolloClient } from 'src/graphql/apollo';
-import {
-  GetSneakersDocument,
-  useGetSneakersQuery,
-} from 'src/graphql/generated';
+import { fetcher } from 'src/utils/fetcher';
+
+interface SneakerISODate extends Omit<Sneaker, 'purchaseDate' | 'soldDate'> {
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  purchaseDate: string | null;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  soldDate: string | null;
+}
 
 interface Props {
-  apolloStaticCache: NormalizedCacheObject;
+  sneakers: SneakerISODate[];
 }
 
 export const getStaticProps: GetStaticProps<Props> = async () => {
-  const client = initApolloClient({});
-  await client.query({ query: GetSneakersDocument });
-  /*
-     Because this is using withApollo, the data from this query will be
-     pre-populated in the Apollo cache at build time. When the user first
-     visits this page, we can retrieve the data from the cache like this:
-     const { data } = useGetSneakersQuery({ fetchPolicy: 'cache-and-network' })
-     This preserves the ability for the page to render all sneakers instantly,
-     then get progressively updated if any new sneakers come in over the wire.
-   */
-  const apolloStaticCache = client.cache.extract();
+  const prisma = new PrismaClient({ forceTransactions: true });
+
+  const rawSneakers = await prisma.sneaker.findMany({
+    orderBy: { purchaseDate: 'desc' },
+  });
+
+  const sneakers = rawSneakers.map(sneaker => ({
+    ...sneaker,
+    purchaseDate: sneaker.purchaseDate?.toISOString() ?? null,
+    soldDate: sneaker.soldDate?.toISOString() ?? null,
+  }));
 
   return {
     // because this data is slightly more dynamic, update it every hour
     unstable_revalidate: 60 * 60,
-    props: { apolloStaticCache },
+    props: { sneakers },
   };
 };
 
-const Index: NextPage<Props> = () => {
-  const { data, error } = useGetSneakersQuery({
-    fetchPolicy: 'cache-and-network',
+const Index: NextPage<Props> = ({ sneakers }) => {
+  const { data } = useSWR<SneakerISODate[]>('/api/sneakers', fetcher, {
+    initialData: sneakers,
   });
-  // this can happen if the route is navigated to from the client or if the
-  // cache fails to populate for whatever reason
-  if (!data || !data.getSneakers) {
+
+  if (!sneakers || !data) {
     return (
       <div className="flex items-center justify-center w-full h-full text-lg text-center">
-        <p>Loading...</p>
+        <p>No sneakers</p>
       </div>
     );
   }
-  if (error) return null;
+
   return (
-    <main className="h-full p-4">
+    <main className="container h-full p-4 mx-auto">
       <h1 className="text-4xl">Sneaker Collection</h1>
 
       <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-4">
-        {data.getSneakers.map(sneaker => (
+        {data.map(sneaker => (
           <li
             key={sneaker.id}
             className="overflow-hidden transition-shadow duration-200 ease-linear bg-white rounded-lg shadow-md hover:shadow-lg"
@@ -98,4 +100,4 @@ const Index: NextPage<Props> = () => {
   );
 };
 
-export default withApollo(Index);
+export default Index;

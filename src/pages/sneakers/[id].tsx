@@ -2,54 +2,64 @@ import React from 'react';
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next';
 import Link from 'next/link';
 import { NextSeo } from 'next-seo';
-import { Sneaker } from '@prisma/client';
-import { NormalizedCacheObject } from '@apollo/client';
+import { Sneaker, PrismaClient } from '@prisma/client';
+import useSWR from 'swr';
 
 import { StockXResponse } from '../../../@types/stockx';
 
 import { formatMoney } from 'src/utils/format-money';
 import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatDate } from 'src/utils/format-date';
-import { initApolloClient } from 'src/graphql/apollo';
-import {
-  GetSneakersDocument,
-  GetSneakerDocument,
-  useGetSneakerQuery,
-} from 'src/graphql/generated';
-import { withApollo } from 'src/components/with-apollo';
+import { fetcher } from 'src/utils/fetcher';
 
-export const getStaticPaths: GetStaticPaths = async () => {
-  const client = initApolloClient();
-  const response = await client.query({ query: GetSneakersDocument });
+export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
+  const prisma = new PrismaClient({ forceTransactions: true });
+
+  const sneakers = await prisma.sneaker.findMany();
+
   return {
     fallback: true,
-    paths: response.data.getSneakers.map((sneaker: Sneaker) => ({
+    paths: sneakers.map((sneaker: Sneaker) => ({
       params: { id: sneaker.id },
     })),
   };
 };
 
-export const getStaticProps: GetStaticProps<{
-  apolloStaticCache: NormalizedCacheObject;
-}> = async ({ params = {} }) => {
-  const client = initApolloClient();
-  const response = await client.query({
-    query: GetSneakerDocument,
-    variables: { id: params.id },
-  });
-  /*
-     Because this is using withApollo, the data from this query will be
-     pre-populated in the Apollo cache at build time. When the user first
-     visits this page, we can retrieve the data from the cache like this:
-     const { data } = useGetSneakerQuery({ fetchPolicy: 'cache-and-network' })
-     This preserves the ability for the page to render the sneaker instantly,
-     then get progressively updated if updates come in over the wire.
-   */
-  const apolloStaticCache = client.cache.extract();
+interface SneakerISODate extends Omit<Sneaker, 'purchaseDate' | 'soldDate'> {
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  purchaseDate: string | null;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  soldDate: string | null;
+}
 
-  const stockx = response.data.getSneaker.stockxProductId
+interface Props {
+  sneaker?: SneakerISODate;
+  stockx?: StockXResponse;
+  id?: string;
+}
+
+export const getStaticProps: GetStaticProps<Props> = async ({
+  params = {},
+}) => {
+  const prisma = new PrismaClient({ forceTransactions: true });
+
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+
+  const rawSneaker = await prisma.sneaker.findOne({
+    where: { id },
+  });
+
+  const sneaker = rawSneaker
+    ? {
+        ...rawSneaker,
+        purchaseDate: rawSneaker.purchaseDate?.toISOString() ?? null,
+        soldDate: rawSneaker.soldDate?.toISOString() ?? null,
+      }
+    : undefined;
+
+  const stockx = sneaker?.stockxProductId
     ? await fetch(
-        `https://stockx.com/api/products/${response.data.getSneaker.stockxProductId}/activity?state=480&currency=USD&limit=1&page=1&sort=createdAt&order=DESC&country=US`,
+        `https://stockx.com/api/products/${sneaker.stockxProductId}/activity?state=480&currency=USD&limit=1&page=1&sort=createdAt&order=DESC&country=US`,
         {
           headers: {
             accept: 'application/json',
@@ -58,46 +68,43 @@ export const getStaticProps: GetStaticProps<{
           },
         }
       ).then(r => r.json())
-    : {};
+    : null;
 
   return {
     // because this data is slightly more dynamic, update it every hour
     unstable_revalidate: 60 * 60,
-    props: { id: params.id, apolloStaticCache, stockx },
+    props: {
+      id,
+      sneaker,
+      stockx,
+    },
   };
 };
 
-const SneakerPage: NextPage<{
-  id: string;
-  stockx: Partial<StockXResponse>;
-}> = ({ id, stockx }) => {
-  const { data, error } = useGetSneakerQuery({
-    fetchPolicy: 'cache-and-network',
-    variables: { id },
+const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
+  const { data } = useSWR<SneakerISODate>(() => `/api/sneaker/${id}`, fetcher, {
+    initialData: sneaker,
   });
-  // this can happen if the route is navigated to from the client or if the
-  // cache fails to populate for whatever reason
-  if (!data || !data.getSneaker) {
+
+  if (!sneaker || !data) {
     return (
       <div className="flex items-center justify-center w-full h-full text-lg text-center">
-        <p>Loading...</p>
+        <p>No sneaker with id &quot;{id}&quot;</p>
       </div>
     );
   }
-  if (!data.getSneaker) return <p>no sneaker for id &quot;{id}&quot;</p>;
-  if (error) return null;
 
-  const title = `${data.getSneaker.model} by ${data.getSneaker.brand} in the ${data.getSneaker.colorway} colorway`;
+  const title = `${sneaker.model} by ${sneaker.brand} in the ${sneaker.colorway} colorway`;
 
   return (
-    <div className="w-11/12 h-full py-4 mx-auto">
+    <main className="container h-full p-4 mx-auto">
       <NextSeo
         title={title}
         openGraph={{
           title,
           images: [
             {
-              url: getCloudinaryURL(data.getSneaker.imagePublicId),
+              url: getCloudinaryURL(sneaker.imagePublicId),
               alt: title,
             },
           ],
@@ -107,20 +114,17 @@ const SneakerPage: NextPage<{
         <a>Back</a>
       </Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
-        <div>
-          <img
-            loading="lazy"
-            src={getCloudinaryURL(data.getSneaker.imagePublicId)}
-            alt={title}
-            className="object-contain overflow-hidden rounded-md"
-          />
-        </div>
+        <img
+          loading="lazy"
+          src={getCloudinaryURL(data.imagePublicId)}
+          alt={title}
+          className="object-contain w-full overflow-hidden rounded-md"
+        />
         <div>
           <h1 className="text-2xl">
-            {data.getSneaker.brand} {data.getSneaker.model}{' '}
-            {data.getSneaker.colorway}
+            {data.brand} {data.model} {data.colorway}
           </h1>
-          <p className="text-xl">{formatMoney(data.getSneaker.price)}</p>
+          <p className="text-xl">{formatMoney(data.price)}</p>
           {stockx?.ProductActivity?.[0].amount && (
             <time
               className="text-xl"
@@ -133,28 +137,26 @@ const SneakerPage: NextPage<{
               {formatMoney(stockx.ProductActivity[0].amount * 100)}
             </time>
           )}
-          {data.getSneaker.purchaseDate && (
+          {data.purchaseDate && (
             <p>
-              <time className="text-md" dateTime={data.getSneaker.purchaseDate}>
-                Purchased {formatDate(data.getSneaker.purchaseDate)}
+              <time className="text-md" dateTime={data.purchaseDate}>
+                Purchased {formatDate(data.purchaseDate)}
               </time>
             </p>
           )}
 
-          {data.getSneaker.sold && data.getSneaker.soldDate && (
+          {data.sold && data.soldDate && (
             <p>
-              <time className="text-md" dateTime={data.getSneaker.soldDate}>
-                Sold {formatDate(data.getSneaker.soldDate)}{' '}
-                {data.getSneaker?.soldPrice && (
-                  <>For {formatMoney(data.getSneaker.soldPrice)}</>
-                )}
+              <time className="text-md" dateTime={data.soldDate}>
+                Sold {formatDate(data.soldDate)}{' '}
+                {data?.soldPrice && <>For {formatMoney(data.soldPrice)}</>}
               </time>
             </p>
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 
-export default withApollo(SneakerPage);
+export default SneakerPage;
