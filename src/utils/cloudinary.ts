@@ -7,9 +7,9 @@ function getCloudinaryURL(
   transformations: Transformation.Options = {}
 ) {
   const transforms: Transformation.Options = {
-    ...transformations,
     fetchFormat: 'auto',
     quality: 'auto',
+    ...transformations,
   };
 
   return cloudinary.url(publicId, transforms);

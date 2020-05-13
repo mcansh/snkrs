@@ -26,6 +26,9 @@ const Sneaker: React.FC<SneakerISODate> = ({
   sold,
 }) => {
   const alt = `${brand} ${model} – ${colorway}`;
+  const image1x = getCloudinaryURL(imagePublicId, { width: 400, crop: 'pad' });
+  const image2x = getCloudinaryURL(imagePublicId, { width: 800, crop: 'pad' });
+  const image3x = getCloudinaryURL(imagePublicId, { width: 1200, crop: 'pad' });
   return (
     <li
       key={id}
@@ -35,7 +38,8 @@ const Sneaker: React.FC<SneakerISODate> = ({
         <a className="flex flex-col block h-full ">
           <div className="relative flex items-center justify-center flex-grow">
             <SimpleImg
-              src={getCloudinaryURL(imagePublicId)}
+              src={image1x}
+              srcSet={`${image1x} 1x, ${image2x} 2x, ${image3x} 3x`}
               alt={alt}
               height={200}
               width={200}

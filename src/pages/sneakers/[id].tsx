@@ -107,6 +107,11 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
     })}`
   }`;
 
+  const { imagePublicId } = data;
+  const image1x = getCloudinaryURL(imagePublicId, { width: 400, crop: 'pad' });
+  const image2x = getCloudinaryURL(imagePublicId, { width: 800, crop: 'pad' });
+  const image3x = getCloudinaryURL(imagePublicId, { width: 1200, crop: 'pad' });
+
   return (
     <main className="container h-full p-4 mx-auto">
       <NextSeo
@@ -116,8 +121,22 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
           title,
           images: [
             {
-              url: getCloudinaryURL(sneaker.imagePublicId),
+              url: image1x,
               alt: title,
+              width: 400,
+              height: 400,
+            },
+            {
+              url: image2x,
+              alt: title,
+              width: 400,
+              height: 400,
+            },
+            {
+              url: image3x,
+              alt: title,
+              width: 1200,
+              height: 1200,
             },
           ],
         }}
@@ -127,7 +146,8 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
       </Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
         <SimpleImg
-          src={getCloudinaryURL(data.imagePublicId)}
+          src={image1x}
+          srcSet={`${image1x} 1x, ${image2x} 2x, ${image3x} 3x`}
           alt={title}
           height={200}
           width={200}
