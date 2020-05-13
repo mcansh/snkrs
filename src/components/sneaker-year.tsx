@@ -1,6 +1,7 @@
 import React from 'react';
 import { NextPage } from 'next';
 import useSWR from 'swr';
+import { NextSeo } from 'next-seo';
 
 import { fetcher } from 'src/utils/fetcher';
 import { Sneaker, SneakerISODate } from 'src/components/sneaker';
@@ -25,6 +26,13 @@ const SneakerYear: NextPage<SneakerYearProps> = ({ year, sneakers }) => {
 
   return (
     <main className="container h-full p-4 mx-auto">
+      <NextSeo
+        title={String(year)}
+        description={`Logan bought ${data.length} sneakers in ${year}`}
+        openGraph={{
+          title: `${year} | Sneaker Collection`,
+        }}
+      />
       <h1 className="text-xl sm:text-4xl">
         Sneakers bought in {year} – {data.length}
         {new Date().getFullYear() === year && ` and counting`}

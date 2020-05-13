@@ -95,13 +95,23 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
     );
   }
 
-  const title = `${sneaker.model} by ${sneaker.brand} in the ${sneaker.colorway} colorway`;
+  const title = `${data.brand} ${data.model} – ${data.colorway}`;
   const year = data.purchaseDate && new Date(data.purchaseDate).getFullYear();
+
+  const description = `Logan bought the ${data.brand} ${data.model}${
+    data.purchaseDate &&
+    ` on ${formatDate(data.purchaseDate, {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    })}`
+  }`;
 
   return (
     <main className="container h-full p-4 mx-auto">
       <NextSeo
         title={title}
+        description={description}
         openGraph={{
           title,
           images: [
@@ -125,9 +135,7 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
           className="w-full h-full overflow-hidden rounded-md"
         />
         <div>
-          <h1 className="text-2xl">
-            {data.brand} {data.model} {data.colorway}
-          </h1>
+          <h1 className="text-2xl">{title}</h1>
           <p className="text-xl">{formatMoney(data.price)}</p>
           {stockx?.ProductActivity?.[0].amount && (
             <time
