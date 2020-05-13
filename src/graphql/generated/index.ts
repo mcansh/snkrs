@@ -49,6 +49,7 @@ export type Sneaker = {
   sold: Scalars['Boolean'];
   soldDate?: Maybe<Scalars['DateTime']>;
   soldPrice?: Maybe<Scalars['Int']>;
+  stockxProductId?: Maybe<Scalars['ID']>;
 };
 
 export type GetSneakerQueryVariables = {
@@ -56,7 +57,7 @@ export type GetSneakerQueryVariables = {
 };
 
 
-export type GetSneakerQuery = { __typename?: 'Query', getSneaker?: Maybe<{ __typename?: 'Sneaker', id: string, model: string, colorway: string, brand: string, size: number, imagePublicId: string, price: number, retailPrice: number, purchaseDate: any, sold: boolean, soldDate?: Maybe<any>, soldPrice?: Maybe<number> }> };
+export type GetSneakerQuery = { __typename?: 'Query', getSneaker?: Maybe<{ __typename?: 'Sneaker', id: string, model: string, colorway: string, brand: string, size: number, imagePublicId: string, price: number, retailPrice: number, purchaseDate: any, sold: boolean, soldDate?: Maybe<any>, soldPrice?: Maybe<number>, stockxProductId?: Maybe<string> }> };
 
 export type GetSneakersQueryVariables = {};
 
@@ -79,6 +80,7 @@ export const GetSneakerDocument = gql`
     sold
     soldDate
     soldPrice
+    stockxProductId
   }
 }
     `;

@@ -4,7 +4,7 @@
     {
       "tag": "CreateField",
       "model": "Sneaker",
-      "field": "wideImagePubicId",
+      "field": "stockxProductId",
       "type": "String",
       "arity": "Optional"
     }

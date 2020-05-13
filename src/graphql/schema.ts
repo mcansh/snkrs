@@ -22,6 +22,7 @@ const Sneaker = objectType({
     t.boolean('sold');
     t.date('soldDate', { nullable: true });
     t.int('soldPrice', { nullable: true });
+    t.id('stockxProductId', { nullable: true });
   },
 });
 

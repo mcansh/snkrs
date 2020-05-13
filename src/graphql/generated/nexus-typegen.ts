@@ -43,6 +43,7 @@ export interface NexusGenRootTypes {
     sold: boolean; // Boolean!
     soldDate?: any | null; // DateTime
     soldPrice?: number | null; // Int
+    stockxProductId?: string | null; // ID
   }
   String: string;
   Int: number;
@@ -76,6 +77,7 @@ export interface NexusGenFieldTypes {
     sold: boolean; // Boolean!
     soldDate: any | null; // DateTime
     soldPrice: number | null; // Int
+    stockxProductId: string | null; // ID
   }
 }
 

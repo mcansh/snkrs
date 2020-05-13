@@ -12,5 +12,6 @@ query GET_SNEAKER($id: ID!) {
     sold
     soldDate
     soldPrice
+    stockxProductId
   }
 }

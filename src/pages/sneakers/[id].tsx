@@ -15,6 +15,8 @@ import {
   useGetSneakerQuery,
 } from 'src/graphql/generated';
 import { withApollo } from 'src/components/with-apollo';
+// @ts-ignore
+import { StockXResponse } from '@types/stockx';
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const client = initApolloClient();
@@ -31,7 +33,7 @@ export const getStaticProps: GetStaticProps<{
   apolloStaticCache: NormalizedCacheObject;
 }> = async ({ params = {} }) => {
   const client = initApolloClient();
-  await client.query({
+  const response = await client.query({
     query: GetSneakerDocument,
     variables: { id: params.id },
   });
@@ -45,18 +47,35 @@ export const getStaticProps: GetStaticProps<{
    */
   const apolloStaticCache = client.cache.extract();
 
+  const stockx = response.data.getSneaker.stockxProductId
+    ? await fetch(
+        `https://stockx.com/api/products/${response.data.getSneaker.stockxProductId}/activity?state=480&currency=USD&limit=1&page=1&sort=createdAt&order=DESC&country=US`,
+        {
+          headers: {
+            accept: 'application/json',
+            'user-agent':
+              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36',
+          },
+        }
+      ).then(r => r.json())
+    : {};
+
   return {
     // because this data is slightly more dynamic, update it every hour
     unstable_revalidate: 60 * 60,
-    props: { id: params.id, apolloStaticCache },
+    props: { id: params.id, apolloStaticCache, stockx },
   };
 };
 
-const SneakerPage: NextPage<{ id: string }> = ({ id }) => {
+const SneakerPage: NextPage<{
+  id: string;
+  stockx: Partial<StockXResponse>;
+}> = ({ id, stockx }) => {
   const { data } = useGetSneakerQuery({
     fetchPolicy: 'cache-and-network',
     variables: { id },
   });
+
   if (!data) return <p>Loading...</p>;
   if (!data.getSneaker) return <p>no sneaker for id &quot;{id}&quot;</p>;
 
@@ -93,7 +112,19 @@ const SneakerPage: NextPage<{ id: string }> = ({ id }) => {
             {data.getSneaker.brand} {data.getSneaker.model}{' '}
             {data.getSneaker.colorway}
           </h1>
-          <p className="text-xl">{formatMoney(data.getSneaker?.price)}</p>
+          <p className="text-xl">{formatMoney(data.getSneaker.price)}</p>
+          {stockx?.ProductActivity?.[0].amount && (
+            <time
+              className="text-xl"
+              dateTime={formatDate(stockx.ProductActivity[0].createdAt, {
+                hour: 'numeric',
+                minute: 'numeric',
+              })}
+            >
+              Last sale on StockX{' '}
+              {formatMoney(stockx.ProductActivity[0].amount * 100)}
+            </time>
+          )}
           {data.getSneaker.purchaseDate && (
             <p>
               <time className="text-md" dateTime={data.getSneaker.purchaseDate}>

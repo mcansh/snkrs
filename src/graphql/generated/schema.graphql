@@ -29,4 +29,5 @@ type Sneaker {
   sold: Boolean!
   soldDate: DateTime
   soldPrice: Int
+  stockxProductId: ID
 }
