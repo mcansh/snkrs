@@ -5,6 +5,8 @@ import { NextSeo } from 'next-seo';
 import { Sneaker } from '@prisma/client';
 import { NormalizedCacheObject } from '@apollo/client';
 
+import { StockXResponse } from '../../../@types/stockx';
+
 import { formatMoney } from 'src/utils/format-money';
 import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatDate } from 'src/utils/format-date';
@@ -15,8 +17,6 @@ import {
   useGetSneakerQuery,
 } from 'src/graphql/generated';
 import { withApollo } from 'src/components/with-apollo';
-// @ts-ignore
-import { StockXResponse } from '@types/stockx';
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const client = initApolloClient();
