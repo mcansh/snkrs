@@ -25,7 +25,7 @@ const SneakerYear: NextPage<SneakerYearProps> = ({ year, sneakers }) => {
 
   return (
     <main className="container h-full p-4 mx-auto">
-      <h1 className="text-xl text-center sm:text-left sm:text-4xl">
+      <h1 className="text-xl sm:text-4xl">
         Sneakers bought in {year} – {data.length}
         {new Date().getFullYear() === year && ` and counting`}
       </h1>
