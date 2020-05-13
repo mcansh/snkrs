@@ -42,8 +42,8 @@ export const getStaticProps: GetStaticProps<{
      pre-populated in the Apollo cache at build time. When the user first
      visits this page, we can retrieve the data from the cache like this:
      const { data } = useGetSneakerQuery({ fetchPolicy: 'cache-and-network' })
-     This preserves the ability for the page to render all bookmarks instantly,
-     then get progressively updated if any new bookmarks come in over the wire.
+     This preserves the ability for the page to render the sneaker instantly,
+     then get progressively updated if updates come in over the wire.
    */
   const apolloStaticCache = client.cache.extract();
 
