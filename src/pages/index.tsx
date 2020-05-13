@@ -56,7 +56,9 @@ const Index: NextPage<Props> = ({ sneakers }) => {
 
   return (
     <main className="container h-full p-4 mx-auto">
-      <h1 className="text-4xl">Sneaker Collection</h1>
+      <h1 className="text-xl text-center  sm:text-left sm:text-4xl">
+        Sneaker Collection – {data.length} and counting
+      </h1>
 
       <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-4">
         {data.map(sneaker => (
