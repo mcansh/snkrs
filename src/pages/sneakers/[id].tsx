@@ -160,10 +160,7 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
           {stockx?.ProductActivity?.[0].amount && (
             <time
               className="text-xl"
-              dateTime={formatDate(stockx.ProductActivity[0].createdAt, {
-                hour: 'numeric',
-                minute: 'numeric',
-              })}
+              dateTime={stockx.ProductActivity[0].createdAt}
             >
               Last sale on StockX{' '}
               {formatMoney(stockx.ProductActivity[0].amount * 100)}
