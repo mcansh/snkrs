@@ -8,6 +8,7 @@ module.exports = {
           '__tests__/**/*',
           'next.config.js',
           'lint-staged.config.js',
+          'tailwind.config.js',
         ],
       },
     ],

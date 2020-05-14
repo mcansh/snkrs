@@ -24,6 +24,15 @@ const Layout: React.FC = ({ children }) => {
           { name: 'application-name', content: 'Sneakers' },
           { name: 'msapplication-TileColor', content: '#000000' },
           { name: 'theme-color', content: '#f7f7f7' },
+          { name: 'apple-mobile-web-app-capable', content: 'yes' },
+          {
+            name: 'apple-mobile-web-app-status-bar-style',
+            content: 'black',
+          },
+          {
+            name: 'viewport',
+            content: 'width=device-width, initial-scale=1, viewport-fit=cover',
+          },
         ]}
       />
       <Head>
