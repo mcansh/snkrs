@@ -2,7 +2,7 @@ import React from 'react';
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next';
 import Link from 'next/link';
 import { NextSeo } from 'next-seo';
-import { Sneaker, PrismaClient } from '@prisma/client';
+import { Sneaker } from '@prisma/client';
 import useSWR from 'swr';
 import { SimpleImg } from 'react-simple-img';
 
@@ -12,10 +12,9 @@ import { formatMoney } from 'src/utils/format-money';
 import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatDate } from 'src/utils/format-date';
 import { fetcher } from 'src/utils/fetcher';
+import { prisma } from 'prisma';
 
 export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
-  const prisma = new PrismaClient({ forceTransactions: true });
-
   const sneakers = await prisma.sneaker.findMany();
 
   return {
@@ -42,8 +41,6 @@ interface Props {
 export const getStaticProps: GetStaticProps<Props> = async ({
   params = {},
 }) => {
-  const prisma = new PrismaClient({ forceTransactions: true });
-
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const rawSneaker = await prisma.sneaker.findOne({

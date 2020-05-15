@@ -29,7 +29,8 @@ export const getStaticProps: GetStaticProps<Props> = async () => {
 };
 
 const Index: NextPage<Props> = ({ sneakers }) => {
-  const { data } = useSWR<SneakerISODate[]>('/api/sneakers', fetcher, {
+  const { data } = useSWR<SneakerISODate[]>('/api/sneakers/loganmcansh', {
+    fetcher,
     initialData: sneakers,
   });
 
