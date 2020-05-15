@@ -1,18 +1,16 @@
 import React from 'react';
 import { GetStaticProps, NextPage } from 'next';
-import { PrismaClient } from '@prisma/client';
 import useSWR from 'swr';
 
 import { fetcher } from 'src/utils/fetcher';
 import { Sneaker, SneakerISODate } from 'src/components/sneaker';
+import { prisma } from 'prisma';
 
 interface Props {
   sneakers: SneakerISODate[];
 }
 
 export const getStaticProps: GetStaticProps<Props> = async () => {
-  const prisma = new PrismaClient({ forceTransactions: true });
-
   const rawSneakers = await prisma.sneaker.findMany({
     orderBy: { purchaseDate: 'desc' },
   });
