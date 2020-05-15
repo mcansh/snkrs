@@ -13,6 +13,7 @@ const App = ({ Component, pageProps }: AppProps) => {
     tracker.defer = true;
     tracker.setAttribute('site', 'HIUAENVC');
     tracker.setAttribute('spa', 'auto');
+    tracker.setAttribute('excluded-domains', 'localhost');
     tracker.src = 'https://kiwi.mcan.sh/script.js';
     firstScript.parentNode?.insertBefore(tracker, firstScript);
   }, []);
