@@ -20,9 +20,11 @@ const handler: NextApiHandlerSession = async (req, res) => {
     ? new Date(req.body.purchaseDate)
     : null;
 
+  const soldDate = req.body.soldDate ? new Date(req.body.soldDate) : null;
+
   const sneaker = await prisma.sneaker.update({
     where: { id },
-    data: { ...req.body, purchaseDate },
+    data: { ...req.body, soldDate, purchaseDate },
   });
 
   return res.status(200).json(sneaker);

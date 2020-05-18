@@ -75,6 +75,7 @@ const SneakerPage: NextPage<Props> = ({ sneaker, id }) => {
     onSubmit: async values => {
       const promise = await fetch(`/api/sneakers/${id}/edit`, {
         method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
         body: JSON.stringify(values),
       });
 
