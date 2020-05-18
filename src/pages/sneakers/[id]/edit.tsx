@@ -1,3 +1,5 @@
+import { ServerResponse } from 'http';
+
 import React from 'react';
 import { NextPage, GetServerSideProps } from 'next';
 import Link from 'next/link';
@@ -25,6 +27,13 @@ interface Props {
   id?: string;
 }
 
+function redirect(res: ServerResponse, path: string) {
+  res.setHeader('location', path);
+  res.statusCode = 302;
+  res.end();
+  return { props: {} };
+}
+
 export const getServerSideProps: GetServerSideProps<Props> = async ({
   req,
   res,
@@ -32,19 +41,21 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({
 }) => {
   await applySession(req, res);
 
-  const user = (req as ServerRequestSession).session.get('userId');
+  const userId = (req as ServerRequestSession).session.get('userId');
 
-  if (!user) {
+  if (!userId) {
     const continuePath = req.url;
-    res.setHeader('location', `/login?continue=${continuePath}`);
-    res.statusCode = 302;
-    res.end();
-    return { props: {} };
+    return redirect(res, `/login?continue=${continuePath}`);
   }
 
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const rawSneaker = await prisma.sneaker.findOne({ where: { id } });
+
+  if (rawSneaker?.userId !== userId) {
+    const continuePath = req.url;
+    return redirect(res, `/login?continue=${continuePath}`);
+  }
 
   const sneaker = rawSneaker
     ? {
