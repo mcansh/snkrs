@@ -6,7 +6,7 @@ import { Sneaker } from '@prisma/client';
 import useSWR from 'swr';
 import { SimpleImg } from 'react-simple-img';
 
-import { StockXResponse } from '../../../@types/stockx';
+import { StockXResponse } from '../../../../@types/stockx';
 
 import { formatMoney } from 'src/utils/format-money';
 import { getCloudinaryURL } from 'src/utils/cloudinary';
