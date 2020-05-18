@@ -1,4 +1,3 @@
-const withSourceMaps = require('@zeit/next-source-maps')();
 const withOffline = require('next-offline');
 
 const nextConfig = {
@@ -19,6 +18,7 @@ const nextConfig = {
   crossOrigin: 'anonymous',
   experimental: {
     modern: true,
+    productionBrowserSourceMaps: true,
     redirects: () => [
       { source: '/shoes/:id', destination: '/sneakers/:id', permanent: true },
     ],
@@ -62,4 +62,4 @@ const nextConfig = {
   },
 };
 
-module.exports = withSourceMaps(withOffline(nextConfig));
+module.exports = withOffline(nextConfig);
