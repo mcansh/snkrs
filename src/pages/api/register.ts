@@ -36,7 +36,7 @@ const handler: NextApiHandlerSession = async (req, res) => {
 
   const { error, errors } = schema.validate(req.body);
   if (errors ?? error) {
-    return res.status(422).json(errors ? { errors } : { error });
+    return res.status(422).json(errors ? { errors } : { errors: error });
   }
 
   const hashedPassword = await argon2.hash(req.body.password);
