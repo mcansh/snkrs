@@ -8,7 +8,10 @@
   "main": "n/a",
   "prettier": "@mcansh/eslint-config/prettier.config",
   "husky": {
-    "pre-commit": "lint-staged && npm run generate"
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-commit": "lint-staged && npm run generate"
+    }
   },
   "scripts": {
     "dev": "next dev",
@@ -37,6 +40,8 @@
     "type-fest": "0.13.1"
   },
   "devDependencies": {
+    "@commitlint/cli": "8.3.5",
+    "@commitlint/config-conventional": "8.3.4",
     "@mcansh/eslint-config": "2.6.1",
     "@prisma/cli": "2.0.0-beta.5",
     "@testing-library/jest-dom": "5.7.0",
