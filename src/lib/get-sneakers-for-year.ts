@@ -1,8 +1,8 @@
-import { PrismaClient, OrderByArg } from '@prisma/client';
+import { OrderByArg } from '@prisma/client';
+
+import { prisma } from 'prisma/db';
 
 async function getYearInSneakers(year: number, order: OrderByArg = 'asc') {
-  const prisma = new PrismaClient({ forceTransactions: true });
-
   const rawSneakers = await prisma.sneaker.findMany({
     orderBy: { purchaseDate: order },
     where: {

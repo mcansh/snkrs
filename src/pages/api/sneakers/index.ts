@@ -1,9 +1,8 @@
 import { NextApiHandler } from 'next';
-import { PrismaClient } from '@prisma/client';
+
+import { prisma } from 'prisma/db';
 
 const handler: NextApiHandler = async (_req, res) => {
-  const prisma = new PrismaClient({ forceTransactions: true });
-
   const sneakers = await prisma.sneaker.findMany({
     orderBy: { purchaseDate: 'desc' },
   });

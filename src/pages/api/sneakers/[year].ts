@@ -1,9 +1,8 @@
 import { NextApiHandler } from 'next';
-import { PrismaClient } from '@prisma/client';
+
+import { prisma } from 'prisma/db';
 
 const handler: NextApiHandler = async (req, res) => {
-  const prisma = new PrismaClient({ forceTransactions: true });
-
   const year = parseInt(req.query.year as string, 10);
 
   const sneakers = await prisma.sneaker.findMany({
