@@ -24,13 +24,18 @@ const CSP = (props: DocumentProps) => {
       'https://qckm.io',
       'https://stockx.com',
     ],
-    'style-src': ["'self'", "'unsafe-inline'"],
+    'style-src': [
+      "'self'",
+      "'unsafe-inline'",
+      'https://rsms.me/inter/inter.css',
+    ],
     'img-src': [
       "'self'",
       'data:',
       'https://res.cloudinary.com',
       'https://kiwi.mcan.sh',
     ],
+    'font-src': ['https://rsms.me/inter/'],
   };
 
   const csp = `${Object.entries(cspSettings)
