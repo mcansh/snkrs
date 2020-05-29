@@ -12,7 +12,7 @@ import { useRouter } from 'next/router';
 import { formatMoney } from 'src/utils/format-money';
 import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatDate } from 'src/utils/format-date';
-import { prisma } from 'prisma';
+import { prisma } from 'prisma/db';
 import { applySession, ServerRequestSession } from 'src/utils/with-session';
 
 interface SneakerISODate extends Omit<Sneaker, 'purchaseDate' | 'soldDate'> {

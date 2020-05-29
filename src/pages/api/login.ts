@@ -2,7 +2,7 @@ import argon2 from 'argon2';
 
 import { withMethods } from 'src/utils/with-methods';
 import { withSession, NextApiHandlerSession } from 'src/utils/with-session';
-import { prisma } from 'prisma';
+import { prisma } from 'prisma/db';
 
 const handler: NextApiHandlerSession = async (req, res) => {
   const [user] = await prisma.user.findMany({

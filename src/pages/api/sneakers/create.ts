@@ -1,6 +1,6 @@
 import { NextApiHandlerSession, withSession } from 'src/utils/with-session';
 import { withMethods } from 'src/utils/with-methods';
-import { prisma } from 'prisma';
+import { prisma } from 'prisma/db';
 
 const handler: NextApiHandlerSession = async (req, res) => {
   const userId = req.session.get('userId');

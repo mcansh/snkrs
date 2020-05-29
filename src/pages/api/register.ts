@@ -3,7 +3,7 @@ import Joi from '@hapi/joi';
 
 import { withMethods } from 'src/utils/with-methods';
 import { withSession, NextApiHandlerSession } from 'src/utils/with-session';
-import { prisma } from 'prisma';
+import { prisma } from 'prisma/db';
 
 const schema = Joi.object({
   email: Joi.string().email().required(),
