@@ -21,7 +21,7 @@ const handler: NextApiHandlerSession = async (req, res) => {
   });
 
   if (!sneaker) {
-    return res.status(400).json({ error: 'No sneaker with that id' });
+    return res.status(404).json({ error: 'No sneaker with that id' });
   }
 
   if (sneaker.userId !== userId) {

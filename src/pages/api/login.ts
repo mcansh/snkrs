@@ -12,13 +12,13 @@ const handler: NextApiHandlerSession = async (req, res) => {
   });
 
   if (!user) {
-    return res.status(400).json({ error: 'No user found' });
+    return res.status(404).json({ error: 'No user found' });
   }
 
   const validPassword = await argon2.verify(user.password, req.body.password);
 
   if (!validPassword) {
-    return res.status(400).json({ error: 'Invalid auth' });
+    return res.status(422).json({ error: 'Invalid auth' });
   }
 
   req.session.set('userId', user.id);

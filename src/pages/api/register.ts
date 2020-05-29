@@ -19,7 +19,7 @@ const handler: NextApiHandlerSession = async (req, res) => {
   });
 
   if (existingUserEmail) {
-    return res.status(400).json({
+    return res.status(422).json({
       error: `User with email ${req.body.email} already exists`,
     });
   }
@@ -29,7 +29,7 @@ const handler: NextApiHandlerSession = async (req, res) => {
   });
 
   if (existingUserUsername) {
-    return res.status(400).json({
+    return res.status(422).json({
       error: `User with username ${req.body.username} already exists`,
     });
   }
