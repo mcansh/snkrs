@@ -30,10 +30,14 @@ const Login: NextPage = () => {
   });
 
   return (
-    <form onSubmit={form.handleSubmit}>
+    <form
+      onSubmit={form.handleSubmit}
+      className="flex flex-col justify-center w-11/12 max-w-lg py-8 mx-auto space-y-4"
+    >
       <label htmlFor="email">
-        <span>Email: </span>
+        <span>Email:</span>
         <input
+          className="w-full px-2 py-1 border border-gray-400 rounded"
           onChange={form.handleChange}
           value={form.values.email}
           type="email"
@@ -43,8 +47,9 @@ const Login: NextPage = () => {
         />
       </label>
       <label htmlFor="password">
-        <span>Password: </span>
+        <span>Password:</span>
         <input
+          className="w-full px-2 py-1 border border-gray-400 rounded"
           onChange={form.handleChange}
           value={form.values.password}
           type="password"
@@ -52,7 +57,13 @@ const Login: NextPage = () => {
           id="password"
         />
       </label>
-      <button type="submit">Login</button>
+      <button
+        disabled={form.isSubmitting}
+        className="self-start w-auto px-4 py-2 text-left text-white bg-blue-500 rounded"
+        type="submit"
+      >
+        Log{form.isSubmitting && 'ging'} in
+      </button>
     </form>
   );
 };
