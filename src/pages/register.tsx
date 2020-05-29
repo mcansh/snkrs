@@ -81,10 +81,11 @@ const Register: NextPage = () => {
         />
       </label>
       <button
+        disabled={form.isSubmitting}
         className="self-start w-auto px-4 py-2 text-left text-white bg-blue-500 rounded"
         type="submit"
       >
-        Register
+        Register{form.isSubmitting && 'ing'}
       </button>
     </form>
   );
