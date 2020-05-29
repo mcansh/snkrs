@@ -77,6 +77,7 @@ const Register: NextPage = () => {
           type="password"
           name="password"
           id="password"
+          autoComplete="new-password"
         />
       </label>
       <button
