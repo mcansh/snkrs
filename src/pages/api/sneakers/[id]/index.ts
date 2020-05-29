@@ -1,5 +1,6 @@
 import { NextApiHandler } from 'next';
 
+import { withMethods } from 'src/utils/with-methods';
 import { prisma } from 'prisma/db';
 
 const handler: NextApiHandler = async (req, res) => {
@@ -10,4 +11,4 @@ const handler: NextApiHandler = async (req, res) => {
   return res.json(sneaker);
 };
 
-export default handler;
+export default withMethods(handler, ['GET']);

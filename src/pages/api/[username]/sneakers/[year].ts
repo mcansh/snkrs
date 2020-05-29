@@ -8,10 +8,15 @@ const handler: NextApiHandler = async (req, res) => {
   const sneakers = await prisma.sneaker.findMany({
     orderBy: { purchaseDate: 'asc' },
     where: {
-      purchaseDate: {
-        gte: new Date(year, 0, 1),
-        lte: new Date(year, 11, 31),
-      },
+      AND: [
+        { User: { username: req.query.username as string } },
+        {
+          purchaseDate: {
+            gte: new Date(year, 0, 1),
+            lte: new Date(year, 11, 31),
+          },
+        },
+      ],
     },
   });
 
