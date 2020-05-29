@@ -4,7 +4,7 @@ import useSWR from 'swr';
 
 import { fetcher } from 'src/utils/fetcher';
 import { Sneaker, SneakerISODate } from 'src/components/sneaker';
-import { prisma } from 'prisma';
+import { prisma } from 'prisma/db';
 
 interface Props {
   sneakers: SneakerISODate[];

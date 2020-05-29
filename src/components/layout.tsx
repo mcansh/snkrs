@@ -59,6 +59,7 @@ const Layout: React.FC = ({ children }) => {
         />
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
+        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
       </Head>
       {children}
     </>

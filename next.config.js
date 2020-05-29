@@ -20,6 +20,7 @@ const nextConfig = {
     modern: true,
     productionBrowserSourceMaps: true,
     redirects: () => [
+      { source: '/shoes', destination: '/', permanent: true },
       { source: '/shoes/:id', destination: '/sneakers/:id', permanent: true },
     ],
     rewrites: () => [

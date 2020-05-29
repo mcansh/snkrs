@@ -1,6 +1,6 @@
 import { OrderByArg } from '@prisma/client';
 
-import { prisma } from 'prisma';
+import { prisma } from 'prisma/db';
 
 async function getYearInSneakers(year: number, order: OrderByArg = 'asc') {
   const rawSneakers = await prisma.sneaker.findMany({

@@ -1,6 +1,6 @@
 import { NextApiHandler } from 'next';
 
-import { prisma } from 'prisma';
+import { prisma } from 'prisma/db';
 
 const handler: NextApiHandler = async (req, res) => {
   const year = parseInt(req.query.year as string, 10);

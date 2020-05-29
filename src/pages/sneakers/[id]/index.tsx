@@ -12,7 +12,7 @@ import { formatMoney } from 'src/utils/format-money';
 import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatDate } from 'src/utils/format-date';
 import { fetcher } from 'src/utils/fetcher';
-import { prisma } from 'prisma';
+import { prisma } from 'prisma/db';
 
 export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
   const sneakers = await prisma.sneaker.findMany();

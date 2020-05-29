@@ -16,6 +16,7 @@ const withMethods = (
   methods: Method[]
 ): NextApiHandlerSession => (req, res) => {
   if (!req.method || !methods.includes(req.method as Method)) {
+    res.setHeader('Allow', methods);
     return res.status(405).json({
       error: `Route only accepts ${methods.join(', ')} requests`,
     });
