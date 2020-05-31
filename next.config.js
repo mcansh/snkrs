@@ -1,5 +1,7 @@
 const withOffline = require('next-offline');
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const nextConfig = {
   dontAutoRegisterSw: true,
   workboxOpts: {
@@ -20,8 +22,46 @@ const nextConfig = {
     modern: true,
     productionBrowserSourceMaps: true,
     redirects: () => [
-      { source: '/shoes', destination: '/', permanent: true },
-      { source: '/shoes/:id', destination: '/sneakers/:id', permanent: true },
+      {
+        source: '/shoes',
+        destination: '/',
+        permanent: isProd,
+      },
+      {
+        source: '/shoes/:id',
+        destination: '/sneakers/:id',
+        permanent: isProd,
+      },
+      {
+        source: '/sneakers/2015',
+        destination: '/sneakers/yir/2015',
+        permanent: isProd,
+      },
+      {
+        source: '/sneakers/2016',
+        destination: '/sneakers/yir/2016',
+        permanent: isProd,
+      },
+      {
+        source: '/sneakers/2017',
+        destination: '/sneakers/yir/2017',
+        permanent: isProd,
+      },
+      {
+        source: '/sneakers/2018',
+        destination: '/sneakers/yir/2018',
+        permanent: isProd,
+      },
+      {
+        source: '/sneakers/2019',
+        destination: '/sneakers/yir/2019',
+        permanent: isProd,
+      },
+      {
+        source: '/sneakers/2020',
+        destination: '/sneakers/yir/2020',
+        permanent: isProd,
+      },
     ],
     rewrites: () => [
       {
