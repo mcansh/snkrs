@@ -1,17 +1,9 @@
 import argon2 from 'argon2';
-import Joi from '@hapi/joi';
 
 import { withMethods } from 'src/utils/with-methods';
 import { withSession, NextApiHandlerSession } from 'src/utils/with-session';
 import { prisma } from 'prisma/db';
-
-const schema = Joi.object({
-  email: Joi.string().email().required(),
-  name: Joi.string().required(),
-  password: Joi.string().alphanum().min(12).required(),
-  repeat_password: Joi.ref('password'),
-  username: Joi.string().alphanum().min(5).required(),
-});
+import { registerSchema } from 'src/lib/schemas/register';
 
 const handler: NextApiHandlerSession = async (req, res) => {
   const existingUserEmail = await prisma.user.findOne({
@@ -34,9 +26,10 @@ const handler: NextApiHandlerSession = async (req, res) => {
     });
   }
 
-  const { error, errors } = schema.validate(req.body);
-  if (errors ?? error) {
-    return res.status(422).json(errors ? { errors } : { errors: error });
+  try {
+    await registerSchema.validate(req.body);
+  } catch (error) {
+    return res.status(422).json({ error });
   }
 
   const hashedPassword = await argon2.hash(req.body.password);
