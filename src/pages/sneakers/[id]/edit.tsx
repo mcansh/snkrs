@@ -1,5 +1,3 @@
-import { ServerResponse } from 'http';
-
 import React from 'react';
 import { NextPage, GetServerSideProps } from 'next';
 import Link from 'next/link';
@@ -14,6 +12,7 @@ import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatDate } from 'src/utils/format-date';
 import { prisma } from 'prisma/db';
 import { applySession, ServerRequestSession } from 'src/utils/with-session';
+import { redirect } from 'src/utils/redirect';
 
 interface SneakerISODate extends Omit<Sneaker, 'purchaseDate' | 'soldDate'> {
   // eslint-disable-next-line @typescript-eslint/ban-types
@@ -27,13 +26,6 @@ interface Props {
   id?: string;
 }
 
-function redirect(res: ServerResponse, path: string) {
-  res.setHeader('location', path);
-  res.statusCode = 302;
-  res.end();
-  return { props: {} };
-}
-
 export const getServerSideProps: GetServerSideProps<Props> = async ({
   req,
   res,
@@ -44,6 +36,13 @@ export const getServerSideProps: GetServerSideProps<Props> = async ({
   const userId = (req as ServerRequestSession).session.get('userId');
 
   if (!userId) {
+    const continuePath = req.url;
+    return redirect(res, `/login?continue=${continuePath}`);
+  }
+
+  const user = prisma.user.findOne({ where: { id: userId } });
+
+  if (!user) {
     const continuePath = req.url;
     return redirect(res, `/login?continue=${continuePath}`);
   }
