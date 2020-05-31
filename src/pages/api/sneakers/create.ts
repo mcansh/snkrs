@@ -1,3 +1,5 @@
+import { parseISO } from 'date-fns';
+
 import { NextApiHandlerSession, withSession } from 'src/utils/with-session';
 import { withMethods } from 'src/utils/with-methods';
 import { prisma } from 'prisma/db';
@@ -18,6 +20,8 @@ const handler: NextApiHandlerSession = async (req, res) => {
   const sneaker = await prisma.sneaker.create({
     data: {
       ...req.body,
+      purchaseDate: parseISO(req.body.purchaseDate),
+      size: parseInt(req.body.size, 10),
       User: {
         connect: { id: userId },
       },
