@@ -1,8 +1,10 @@
 import React from 'react';
 import { DefaultSeo } from 'next-seo';
 import Head from 'next/head';
+import { SWRConfig } from 'swr';
 
 import { useServiceWorker } from 'src/hooks/use-service-worker';
+import { fetcher } from 'src/utils/fetcher';
 
 const Layout: React.FC = ({ children }) => {
   useServiceWorker();
@@ -61,7 +63,7 @@ const Layout: React.FC = ({ children }) => {
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
       </Head>
-      {children}
+      <SWRConfig value={{ fetcher }}>{children}</SWRConfig>
     </>
   );
 };

@@ -1,18 +1,17 @@
 import React from 'react';
-import { NextPage, GetServerSideProps } from 'next';
+import { NextPage } from 'next';
 import Link from 'next/link';
 import { NextSeo } from 'next-seo';
 import { Sneaker } from '@prisma/client';
 import { SimpleImg } from 'react-simple-img';
 import { useFormik } from 'formik';
 import { useRouter } from 'next/router';
+import useSWR from 'swr';
 
 import { formatMoney } from 'src/utils/format-money';
 import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatDate } from 'src/utils/format-date';
-import { prisma } from 'prisma/db';
-import { applySession, ServerRequestSession } from 'src/utils/with-session';
-import { redirect } from 'src/utils/redirect';
+import { useUser } from 'src/hooks/use-user';
 
 interface SneakerISODate extends Omit<Sneaker, 'purchaseDate' | 'soldDate'> {
   // eslint-disable-next-line @typescript-eslint/ban-types
@@ -26,52 +25,16 @@ interface Props {
   id?: string;
 }
 
-export const getServerSideProps: GetServerSideProps<Props> = async ({
-  req,
-  res,
-  params = {},
-}) => {
-  await applySession(req, res);
-
-  const userId = (req as ServerRequestSession).session.get('userId');
-
-  if (!userId) {
-    const continuePath = req.url;
-    return redirect(res, `/login?continue=${continuePath}`);
-  }
-
-  const user = prisma.user.findOne({ where: { id: userId } });
-
-  if (!user) {
-    const continuePath = req.url;
-    return redirect(res, `/login?continue=${continuePath}`);
-  }
-
-  const id = Array.isArray(params.id) ? params.id[0] : params.id;
-
-  const rawSneaker = await prisma.sneaker.findOne({ where: { id } });
-
-  if (rawSneaker?.userId !== userId) {
-    const continuePath = req.url;
-    return redirect(res, `/login?continue=${continuePath}`);
-  }
-
-  const sneaker = rawSneaker
-    ? {
-        ...rawSneaker,
-        purchaseDate: rawSneaker.purchaseDate?.toISOString() ?? null,
-        soldDate: rawSneaker.soldDate?.toISOString() ?? null,
-      }
-    : undefined;
-
-  return {
-    props: { sneaker, id },
-  };
-};
-
-const SneakerPage: NextPage<Props> = ({ sneaker, id }) => {
+const SneakerPage: NextPage<Props> = () => {
   const router = useRouter();
+  const { user } = useUser({ redirectTo: `/login?continue=${router.asPath}` });
+  const { id } = router.query;
+  const { data: sneaker } = useSWR<SneakerISODate>(
+    id ? `/api/sneakers/${id}` : null
+  );
+
   const form = useFormik({
+    enableReinitialize: true,
     initialValues: {
       model: sneaker?.model,
       colorway: sneaker?.colorway,
@@ -94,6 +57,14 @@ const SneakerPage: NextPage<Props> = ({ sneaker, id }) => {
       }
     },
   });
+
+  if (!user || user.isLoggedIn === false) {
+    return (
+      <div className="flex items-center justify-center w-full h-full text-lg text-center">
+        loading...
+      </div>
+    );
+  }
 
   if (!sneaker) {
     return (
@@ -229,7 +200,7 @@ const SneakerPage: NextPage<Props> = ({ sneaker, id }) => {
           <button
             disabled={!form.isValid || form.isSubmitting}
             type="submit"
-            className="w-full p-1 text-white bg-blue-500 border border-2 border-gray-200 rounded sm:w-auto"
+            className="self-start w-auto px-4 py-2 text-left text-white bg-blue-500 rounded disabled:bg-blue-200 disabled:cursor-not-allowed"
           >
             Sav{form.isSubmitting ? 'ing' : 'e'} Changes
           </button>

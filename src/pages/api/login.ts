@@ -29,7 +29,7 @@ const handler: NextApiHandlerSession = async (req, res) => {
   req.session.set('userId', user.id);
   await req.session.save();
   delete user.password;
-  return res.json(user);
+  return res.json({ ...user, isLoggedIn: true });
 };
 
 export default withSession(withMethods(handler, ['POST']));
