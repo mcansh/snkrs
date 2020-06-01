@@ -180,7 +180,7 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
           )}
 
           {year && (
-            <Link href={`/sneakers/yir/${year}`}>
+            <Link href="/sneakers/yir/[year]" as={`/sneakers/yir/${year}`}>
               <a className="text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline">
                 See others purchased in {year}
               </a>
