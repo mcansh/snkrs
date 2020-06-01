@@ -15,7 +15,7 @@ const SneakerYear: NextPage<SneakerYearProps> = ({ year, sneakers }) => {
     initialData: sneakers,
   });
 
-  if (!sneakers.length || !data?.length) {
+  if (!sneakers?.length || !data?.length) {
     return (
       <div className="flex items-center justify-center w-full h-full text-lg text-center">
         <p>No sneakers</p>
