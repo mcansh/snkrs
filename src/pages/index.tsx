@@ -2,7 +2,6 @@ import React from 'react';
 import { GetStaticProps, NextPage } from 'next';
 import useSWR from 'swr';
 
-import { fetcher } from 'src/utils/fetcher';
 import { Sneaker, SneakerISODate } from 'src/components/sneaker';
 import { prisma } from 'prisma/db';
 
@@ -30,7 +29,6 @@ export const getStaticProps: GetStaticProps<Props> = async () => {
 
 const Index: NextPage<Props> = ({ sneakers }) => {
   const { data } = useSWR<SneakerISODate[]>('/api/loganmcansh/sneakers', {
-    fetcher,
     initialData: sneakers,
   });
 

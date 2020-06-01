@@ -3,7 +3,6 @@ import { NextPage } from 'next';
 import useSWR from 'swr';
 import { NextSeo } from 'next-seo';
 
-import { fetcher } from 'src/utils/fetcher';
 import { Sneaker, SneakerISODate } from 'src/components/sneaker';
 
 export interface SneakerYearProps {
@@ -12,7 +11,7 @@ export interface SneakerYearProps {
 }
 
 const SneakerYear: NextPage<SneakerYearProps> = ({ year, sneakers }) => {
-  const { data } = useSWR<SneakerISODate[]>(`/api/sneakers/${year}`, fetcher, {
+  const { data } = useSWR<SneakerISODate[]>(`/api/sneakers/${year}`, {
     initialData: sneakers,
   });
 

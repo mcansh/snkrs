@@ -11,7 +11,6 @@ import { StockXResponse } from '../../../../@types/stockx';
 import { formatMoney } from 'src/utils/format-money';
 import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatDate } from 'src/utils/format-date';
-import { fetcher } from 'src/utils/fetcher';
 import { prisma } from 'prisma/db';
 
 export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
@@ -80,7 +79,7 @@ export const getStaticProps: GetStaticProps<Props> = async ({
 };
 
 const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
-  const { data } = useSWR<SneakerISODate>(() => `/api/sneaker/${id}`, fetcher, {
+  const { data } = useSWR<SneakerISODate>(() => `/api/sneakers/${id}`, {
     initialData: sneaker,
   });
 
@@ -181,7 +180,7 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
           )}
 
           {year && (
-            <Link href={`/sneakers/${year}`}>
+            <Link href={`/sneakers/yir/${year}`}>
               <a className="text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline">
                 See others purchased in {year}
               </a>

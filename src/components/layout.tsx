@@ -4,7 +4,7 @@ import Head from 'next/head';
 import { SWRConfig } from 'swr';
 
 import { useServiceWorker } from 'src/hooks/use-service-worker';
-import { fetcher } from 'src/utils/fetcher';
+import { fetcher } from 'src/lib/fetcher';
 
 const Layout: React.FC = ({ children }) => {
   useServiceWorker();
