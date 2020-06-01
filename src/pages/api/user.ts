@@ -14,7 +14,7 @@ const handler: NextApiHandlerSession<UserResponse> = async (req, res) => {
   const userId = req.session.get('userId');
 
   if (!userId) {
-    return res.status(401).json({ isLoggedIn: false });
+    return res.status(200).json({ isLoggedIn: false });
   }
 
   const user = await prisma.user.findOne({
@@ -30,7 +30,7 @@ const handler: NextApiHandlerSession<UserResponse> = async (req, res) => {
   });
 
   if (!user) {
-    return res.status(401).json({ isLoggedIn: false });
+    return res.status(200).json({ isLoggedIn: false });
   }
 
   return res.status(200).json({ ...user, isLoggedIn: true });
