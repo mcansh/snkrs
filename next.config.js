@@ -73,6 +73,7 @@ const nextConfig = {
   env: {
     VERSION: require('./package.json').version,
     QUICKMETRICS_API_KEY: process.env.QUICKMETRICS_API_KEY,
+    SESSION_PASSWORD: process.env.SESSION_PASSWORD,
   },
   webpack: config => {
     config.module.rules.push({

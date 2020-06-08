@@ -18,14 +18,20 @@ export interface ServerRequestSession extends IncomingMessage {
 }
 
 const sessionOptions: SessionOptions = {
-  // The password in this example is in plain text (inside `now.json`) for ease of deployment and understanding.
-  // ⚠️ Do not reuse the same password, create a different password for you and store it in a secret management system
-  // Example for Vercel: https://vercel.com/docs/v2/serverless-functions/env-and-secrets
-  password: 'ucmj4ir-I5JDbl2yJMPQ1C633dn4tE7a',
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore types for next-iron-session arent right
+  password: [
+    {
+      id: 2,
+      password: process.env.SESSION_PASSWORD,
+    },
+    {
+      id: 1,
+      password: 'ucmj4ir-I5JDbl2yJMPQ1C633dn4tE7a',
+    },
+  ],
   cookieName: 'sid',
   cookieOptions: {
-    // the next line allows to use the session in non-https environments like
-    // Next.js dev mode (http://localhost:3000)
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     path: '/',
