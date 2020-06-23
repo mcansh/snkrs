@@ -1,7 +1,4 @@
-# IF THERE'S A GIT CONFLICT IN THIS FILE, DON'T SOLVE IT MANUALLY!
-# INSTEAD EXECUTE `prisma migrate fix`
 # Prisma Migrate lockfile v1
-# Read more about conflict resolution here: TODO
 
 20200511104515-init
 20200511140359-add-sold-date
@@ -10,3 +7,4 @@
 20200512125428-add-wide-image
 20200512205536-add-stockx-productid
 20200514202608-add-users
+20200623123536-make-purchase-date-required
