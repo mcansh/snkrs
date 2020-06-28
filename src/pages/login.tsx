@@ -69,7 +69,6 @@ const Login: NextPage = () => {
               type="password"
               name="password"
               id="password"
-              autoComplete="password"
             />
           </label>
         </fieldset>

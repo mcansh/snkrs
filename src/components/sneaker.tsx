@@ -35,7 +35,7 @@ const Sneaker: React.FC<SneakerISODate> = ({
       className="overflow-hidden transition-shadow duration-200 ease-linear bg-white rounded-lg shadow-md hover:shadow-lg"
     >
       <Link href="/sneakers/[id]" as={`/sneakers/${id}`}>
-        <a className="flex flex-col h-full ">
+        <a className="flex flex-col h-full">
           <div className="relative flex items-center justify-center flex-grow">
             <SimpleImg
               src={image1x}
