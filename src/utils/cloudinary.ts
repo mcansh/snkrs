@@ -4,12 +4,12 @@ const cloudinary = new Cloudinary({ cloud_name: 'dof0zryca', secure: true });
 
 function getCloudinaryURL(
   publicId: string,
-  transformations: Transformation.Options = {}
+  transformOptions: Transformation.Options = {}
 ) {
   const transforms: Transformation.Options = {
     fetchFormat: 'auto',
     quality: 'auto',
-    ...transformations,
+    ...transformOptions,
   };
 
   return cloudinary.url(publicId, transforms);
