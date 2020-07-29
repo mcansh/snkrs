@@ -69,7 +69,7 @@ export const getStaticProps: GetStaticProps<Props> = async ({
 
   return {
     // because this data is slightly more dynamic, update it every hour
-    unstable_revalidate: 60 * 60,
+    revalidate: 60 * 60,
     props: {
       id,
       sneaker,
