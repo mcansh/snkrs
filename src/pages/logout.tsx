@@ -2,6 +2,7 @@ import React from 'react';
 import { NextPage } from 'next';
 import useSWR from 'swr';
 import Router from 'next/router';
+import Link from 'next/link';
 
 const Logout: NextPage = () => {
   const { data, error } = useSWR('/api/logout');
@@ -14,7 +15,9 @@ const Logout: NextPage = () => {
     return (
       <div className="flex items-center justify-center w-full h-full text-lg text-center">
         if you&apos; not automatically redirected,{' '}
-        <a href="/api/logout">click here</a>
+        <Link href="/api/logout" prefetch={false}>
+          <a>click here</a>
+        </Link>
       </div>
     );
   }
