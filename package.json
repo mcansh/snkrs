@@ -26,7 +26,8 @@
     "db:up": "prisma migrate up --experimental",
     "db:generate": "prisma generate",
     "db:migrate": "npm-run-all db:*",
-    "find:unused": "mkdir pages && next-unused && rm -r pages"
+    "find:unused": "mkdir pages && next-unused && rm -r pages",
+    "postinstall": "npx npm-force-resolutions"
   },
   "next-unused": {
     "alias": {},
@@ -93,5 +94,8 @@
     "tailwindcss": "1.6.0",
     "ts-node": "8.10.2",
     "typescript": "3.9.7"
+  },
+  "resolutions": {
+    "webpack": "^5.0.0-beta.22"
   }
 }
