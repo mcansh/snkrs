@@ -1,8 +1,8 @@
 import React from 'react';
-import { AppProps } from 'next/app';
+import { AppProps, NextWebVitalsMetric } from 'next/app';
 
 import { Layout } from 'src/components/layout';
-import { Metric, logMetric } from 'src/utils/log-metric';
+import { logMetric } from 'src/utils/log-metric';
 
 import 'src/styles/index.css';
 
@@ -25,7 +25,7 @@ const App = ({ Component, pageProps }: AppProps) => {
   );
 };
 
-export const reportWebVitals = (metric: Metric) => {
+export const reportWebVitals = (metric: NextWebVitalsMetric) => {
   if (metric.label === 'web-vital') {
     logMetric(metric);
   }
