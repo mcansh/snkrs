@@ -72,14 +72,14 @@ const SneakerPage: NextPage<Props> = () => {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-full max-w-screen-sm mx-auto font-mono text-lg text-center">
-        <p>
+      <div className="flex flex-col items-center justify-center h-full max-w-screen-sm mx-auto space-y-2 text-lg text-center">
+        <pre>
           Bad news: an error occurred{' '}
           <span role="img" aria-label="sad face">
             😞
           </span>
-        </p>
-        <p>Good news: we&apos;ve been notified and are working on a fix</p>
+        </pre>
+        <pre>Good news: we&apos;ve been notified and are working on a fix</pre>
       </div>
     );
   }
