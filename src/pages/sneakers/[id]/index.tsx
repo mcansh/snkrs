@@ -17,7 +17,7 @@ export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
   const sneakers = await prisma.sneaker.findMany();
 
   return {
-    fallback: true,
+    fallback: 'unstable_blocking',
     paths: sneakers.map((sneaker: Sneaker) => ({
       params: { id: sneaker.id },
     })),

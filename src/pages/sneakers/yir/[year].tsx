@@ -14,7 +14,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   const years = [...new Set(allYears)];
 
   return {
-    fallback: true,
+    fallback: 'unstable_blocking',
     paths: years.map(year => ({
       params: { year: String(year) },
     })),
