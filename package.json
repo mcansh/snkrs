@@ -26,7 +26,7 @@
     "db:up": "prisma migrate up --experimental",
     "db:generate": "prisma generate",
     "db:migrate": "npm-run-all db:*",
-    "find:unused": "mkdir pages && next-unused && rm -r pages"
+    "find:unused": "next-unused"
   },
   "next-unused": {
     "alias": {},
