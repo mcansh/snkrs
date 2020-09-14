@@ -7,6 +7,7 @@ import { SimpleImg } from 'react-simple-img';
 import { useFormik } from 'formik';
 import { useRouter } from 'next/router';
 import useSWR from 'swr';
+import { dequal } from 'dequal';
 
 import { formatMoney } from 'src/utils/format-money';
 import { getCloudinaryURL } from 'src/utils/cloudinary';
@@ -44,6 +45,9 @@ const SneakerPage: NextPage<Props> = () => {
       price: sneaker?.price,
       retailPrice: sneaker?.retailPrice,
       purchaseDate: sneaker?.purchaseDate?.slice(0, 16),
+      sold: sneaker?.sold,
+      soldDate: sneaker?.soldDate?.slice(0, 16),
+      soldPrice: sneaker?.soldPrice,
     },
     onSubmit: async values => {
       const promise = await fetch(`/api/sneakers/${id}/edit`, {
@@ -104,6 +108,20 @@ const SneakerPage: NextPage<Props> = () => {
   const image2x = getCloudinaryURL(imagePublicId, { width: 800, crop: 'pad' });
   const image3x = getCloudinaryURL(imagePublicId, { width: 1200, crop: 'pad' });
 
+  const valuesAreEqual = dequal(form.values, {
+    model: sneaker.model,
+    colorway: sneaker.colorway,
+    brand: sneaker.brand,
+    size: sneaker.size,
+    imagePublicId: sneaker.imagePublicId,
+    price: sneaker.price,
+    retailPrice: sneaker.retailPrice,
+    purchaseDate: sneaker.purchaseDate?.slice(0, 16),
+    sold: sneaker.sold,
+    soldDate: sneaker.soldDate?.slice(0, 16),
+    soldPrice: sneaker.soldPrice,
+  });
+
   return (
     <main className="container min-h-full p-4 mx-auto">
       <NextSeo
@@ -112,24 +130,9 @@ const SneakerPage: NextPage<Props> = () => {
         openGraph={{
           title,
           images: [
-            {
-              url: image1x,
-              alt: title,
-              width: 400,
-              height: 400,
-            },
-            {
-              url: image2x,
-              alt: title,
-              width: 400,
-              height: 400,
-            },
-            {
-              url: image3x,
-              alt: title,
-              width: 1200,
-              height: 1200,
-            },
+            { url: image1x, alt: title, width: 400, height: 400 },
+            { url: image2x, alt: title, width: 800, height: 800 },
+            { url: image3x, alt: title, width: 1200, height: 1200 },
           ],
         }}
       />
@@ -161,7 +164,7 @@ const SneakerPage: NextPage<Props> = () => {
       <div>
         <h2 className="py-4 text-lg">Edit Sneaker:</h2>
         <form className="space-y-4" onSubmit={form.handleSubmit}>
-          <div className="grid items-start gap-2 sm:grid-cols-2">
+          <div className="grid items-center gap-2 sm:grid-cols-2">
             <input
               className="p-1 border-2 border-gray-200 rounded appearance-none"
               type="text"
@@ -210,9 +213,46 @@ const SneakerPage: NextPage<Props> = () => {
               placeholder="Purchase Date"
               name="purchaseDate"
             />
+            <div
+              className="grid items-center w-full gap-2 sm:grid-cols-2 grid-col"
+              style={{
+                gridColumn: '1/3',
+                paddingTop: !form.values.sold ? 6 : undefined,
+              }}
+            >
+              <label className="flex items-center justify-between">
+                <span className="">Sold?</span>
+                <input
+                  type="checkbox"
+                  checked={form.values.sold}
+                  name="sold"
+                  onChange={form.handleChange}
+                />
+              </label>
+              {form.values.sold && (
+                <>
+                  <input
+                    className="p-1 border-2 border-gray-200 rounded appearance-none"
+                    type="datetime-local"
+                    value={form.values.soldDate}
+                    onChange={form.handleChange}
+                    placeholder="Sold Date"
+                    name="soldDate"
+                  />
+                  <input
+                    className="p-1 border-2 border-gray-200 rounded appearance-none"
+                    type="number"
+                    value={form.values.soldPrice ?? sneaker.price}
+                    onChange={form.handleChange}
+                    placeholder="Sold Price"
+                    name="soldPrice"
+                  />
+                </>
+              )}
+            </div>
           </div>
           <button
-            disabled={!form.isValid || form.isSubmitting}
+            disabled={!form.isValid || form.isSubmitting || valuesAreEqual}
             type="submit"
             className="self-start w-auto px-4 py-2 text-left text-white bg-blue-500 rounded disabled:bg-blue-200 disabled:cursor-not-allowed"
           >
