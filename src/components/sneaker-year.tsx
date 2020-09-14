@@ -24,7 +24,7 @@ const SneakerYear: NextPage<SneakerYearProps> = ({ year, sneakers }) => {
   }
 
   return (
-    <main className="container h-full p-4 mx-auto">
+    <main className="container min-h-full p-4 mx-auto">
       <NextSeo
         title={String(year)}
         description={`Logan bought ${data.length} sneakers in ${year}`}

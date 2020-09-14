@@ -111,7 +111,7 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
   const image3x = getCloudinaryURL(imagePublicId, { width: 1200, crop: 'pad' });
 
   return (
-    <main className="container h-full p-4 mx-auto">
+    <main className="container min-h-full p-4 mx-auto">
       <NextSeo
         title={title}
         description={description}

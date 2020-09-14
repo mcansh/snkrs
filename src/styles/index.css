@@ -2,15 +2,23 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-html {
-  @apply min-h-full;
+html,
+body {
+  @apply h-full;
 }
 
 body {
-  @apply h-full;
   @apply bg-gray-100;
 }
 
 #__next {
+  /** This doesn't work for `height` in Firefox */
+  min-height: -moz-available;
+  /*
+    * This does work for `height` in Chrome and Safari,
+    * but Safari has some weird redraw issue
+    * (open and close devtools and you will see).
+  */
+  min-height: -webkit-fill-available;
   @apply h-full;
 }
