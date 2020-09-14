@@ -2,16 +2,17 @@ import React from 'react';
 import { NextPage } from 'next';
 import useSWR from 'swr';
 import { NextSeo } from 'next-seo';
+import { Sneaker as SneakerType } from '@prisma/client';
 
-import { Sneaker, SneakerISODate } from 'src/components/sneaker';
+import { Sneaker } from 'src/components/sneaker';
 
 export interface SneakerYearProps {
-  sneakers: SneakerISODate[];
+  sneakers: SneakerType[];
   year: number;
 }
 
 const SneakerYear: NextPage<SneakerYearProps> = ({ year, sneakers }) => {
-  const { data } = useSWR<SneakerISODate[]>(`/api/sneakers/${year}`, {
+  const { data } = useSWR<SneakerType[]>(`/api/sneakers/${year}`, {
     initialData: sneakers,
   });
 

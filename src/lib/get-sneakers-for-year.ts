@@ -2,8 +2,8 @@ import { SortOrder } from '@prisma/client';
 
 import { prisma } from 'prisma/db';
 
-async function getYearInSneakers(year: number, order: SortOrder = 'asc') {
-  const rawSneakers = await prisma.sneaker.findMany({
+function getYearInSneakers(year: number, order: SortOrder = 'asc') {
+  return prisma.sneaker.findMany({
     orderBy: { purchaseDate: order },
     where: {
       purchaseDate: {
@@ -12,14 +12,6 @@ async function getYearInSneakers(year: number, order: SortOrder = 'asc') {
       },
     },
   });
-
-  const sneakers = rawSneakers.map(sneaker => ({
-    ...sneaker,
-    purchaseDate: sneaker.purchaseDate?.toISOString() ?? null,
-    soldDate: sneaker.soldDate?.toISOString() ?? null,
-  }));
-
-  return sneakers;
 }
 
 export { getYearInSneakers };

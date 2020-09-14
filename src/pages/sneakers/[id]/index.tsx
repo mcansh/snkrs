@@ -2,7 +2,7 @@ import React from 'react';
 import { NextPage, GetStaticProps, GetStaticPaths } from 'next';
 import Link from 'next/link';
 import { NextSeo } from 'next-seo';
-import { Sneaker } from '@prisma/client';
+import { Sneaker as SneakerType } from '@prisma/client';
 import useSWR from 'swr';
 import { SimpleImg } from 'react-simple-img';
 
@@ -19,21 +19,14 @@ export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
 
   return {
     fallback: 'unstable_blocking',
-    paths: sneakers.map((sneaker: Sneaker) => ({
+    paths: sneakers.map(sneaker => ({
       params: { id: sneaker.id },
     })),
   };
 };
 
-interface SneakerISODate extends Omit<Sneaker, 'purchaseDate' | 'soldDate'> {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  purchaseDate: string | null;
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  soldDate: string | null;
-}
-
 interface Props {
-  sneaker?: SneakerISODate;
+  sneaker?: SneakerType;
   stockx?: StockXResponse;
   id?: string;
 }
@@ -43,17 +36,10 @@ export const getStaticProps: GetStaticProps<Props> = async ({
 }) => {
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
-  const rawSneaker = await prisma.sneaker.findOne({
-    where: { id },
-  });
-
-  const sneaker = rawSneaker
-    ? {
-        ...rawSneaker,
-        purchaseDate: rawSneaker.purchaseDate?.toISOString() ?? null,
-        soldDate: rawSneaker.soldDate?.toISOString() ?? null,
-      }
-    : undefined;
+  const sneaker =
+    (await prisma.sneaker.findOne({
+      where: { id },
+    })) ?? undefined;
 
   const stockx = sneaker?.stockxProductId
     ? await fetch(
@@ -80,7 +66,7 @@ export const getStaticProps: GetStaticProps<Props> = async ({
 };
 
 const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
-  const { data } = useSWR<SneakerISODate>(() => `/api/sneakers/${id}`, {
+  const { data } = useSWR<SneakerType>(() => `/api/sneakers/${id}`, {
     initialData: sneaker,
   });
   const user = useUser();
@@ -166,7 +152,10 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
           )}
           {data.purchaseDate && (
             <p>
-              <time className="text-md" dateTime={data.purchaseDate}>
+              <time
+                className="text-md"
+                dateTime={data.purchaseDate.toISOString()}
+              >
                 Purchased {formatDate(data.purchaseDate)}
               </time>
             </p>
@@ -174,7 +163,7 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
 
           {data.sold && data.soldDate && (
             <p>
-              <time className="text-md" dateTime={data.soldDate}>
+              <time className="text-md" dateTime={data.soldDate.toISOString()}>
                 Sold {formatDate(data.soldDate)}{' '}
                 {data?.soldPrice && <>For {formatMoney(data.soldPrice)}</>}
               </time>

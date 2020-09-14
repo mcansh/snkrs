@@ -42,6 +42,7 @@
     "@prisma/client": "2.6.2",
     "@svgr/webpack": "5.4.0",
     "argon2": "0.27.0",
+    "babel-plugin-superjson-next": "0.1.4",
     "cloudinary-core": "2.11.2",
     "clsx": "1.1.1",
     "date-fns": "2.16.1",
@@ -55,6 +56,7 @@
     "react": "16.13.1",
     "react-dom": "16.13.1",
     "react-simple-img": "2.3.9",
+    "superjson": "1.2.1",
     "swr": "0.3.2",
     "type-fest": "0.16.0",
     "yup": "0.29.3"

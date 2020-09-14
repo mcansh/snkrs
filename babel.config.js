@@ -2,7 +2,7 @@ module.exports = api => {
   api.cache(true);
 
   const presets = ['next/babel'];
-  const plugins = [];
+  const plugins = ['superjson-next'];
 
   return { presets, plugins };
 };
