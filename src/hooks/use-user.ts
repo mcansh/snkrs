@@ -9,7 +9,7 @@ interface Options {
   redirectIfFound?: string;
 }
 
-function useUser({ redirectTo, redirectIfFound }: Options) {
+function useUser({ redirectTo, redirectIfFound }: Options = {}) {
   const { data: user, mutate: mutateUser } = useSWR<UserResponse>('/api/user');
 
   React.useEffect(() => {

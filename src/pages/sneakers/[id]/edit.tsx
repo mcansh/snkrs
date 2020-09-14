@@ -149,7 +149,7 @@ const SneakerPage: NextPage<Props> = () => {
         <form className="space-y-4" onSubmit={form.handleSubmit}>
           <div className="grid items-start gap-2 sm:grid-cols-2">
             <input
-              className="p-1 border border-2 border-gray-200 rounded appearance-none"
+              className="p-1 border-2 border-gray-200 rounded appearance-none"
               type="text"
               value={form.values.brand}
               onChange={form.handleChange}
@@ -157,7 +157,7 @@ const SneakerPage: NextPage<Props> = () => {
               name="brand"
             />
             <input
-              className="p-1 border border-2 border-gray-200 rounded appearance-none"
+              className="p-1 border-2 border-gray-200 rounded appearance-none"
               type="text"
               value={form.values.model}
               onChange={form.handleChange}
@@ -165,7 +165,7 @@ const SneakerPage: NextPage<Props> = () => {
               name="model"
             />
             <input
-              className="p-1 border border-2 border-gray-200 rounded appearance-none"
+              className="p-1 border-2 border-gray-200 rounded appearance-none"
               type="text"
               value={form.values.colorway}
               onChange={form.handleChange}
@@ -173,7 +173,7 @@ const SneakerPage: NextPage<Props> = () => {
               name="colorway"
             />
             <input
-              className="p-1 border border-2 border-gray-200 rounded appearance-none"
+              className="p-1 border-2 border-gray-200 rounded appearance-none"
               type="number"
               value={form.values.price}
               onChange={form.handleChange}
@@ -181,7 +181,7 @@ const SneakerPage: NextPage<Props> = () => {
               name="price"
             />
             <input
-              className="p-1 border border-2 border-gray-200 rounded appearance-none"
+              className="p-1 border-2 border-gray-200 rounded appearance-none"
               type="number"
               value={form.values.retailPrice}
               onChange={form.handleChange}
@@ -189,7 +189,7 @@ const SneakerPage: NextPage<Props> = () => {
               name="retailPrice"
             />
             <input
-              className="p-1 border border-2 border-gray-200 rounded appearance-none"
+              className="p-1 border-2 border-gray-200 rounded appearance-none"
               type="datetime-local"
               value={form.values.purchaseDate}
               onChange={form.handleChange}

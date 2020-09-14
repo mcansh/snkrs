@@ -12,6 +12,7 @@ import { formatMoney } from 'src/utils/format-money';
 import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatDate } from 'src/utils/format-date';
 import { prisma } from 'prisma/db';
+import { useUser } from 'src/hooks/use-user';
 
 export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
   const sneakers = await prisma.sneaker.findMany();
@@ -82,6 +83,7 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
   const { data } = useSWR<SneakerISODate>(() => `/api/sneakers/${id}`, {
     initialData: sneaker,
   });
+  const user = useUser();
 
   if (!sneaker || !data) {
     return (
@@ -150,7 +152,7 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
           applyAspectRatio
           className="w-full h-full overflow-hidden rounded-md"
         />
-        <div>
+        <div className="flex flex-col">
           <h1 className="text-2xl">{title}</h1>
           <p className="text-xl">{formatMoney(data.price)}</p>
           {stockx?.ProductActivity?.[0].amount && (
@@ -181,8 +183,16 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
 
           {year && (
             <Link href="/sneakers/yir/[year]" as={`/sneakers/yir/${year}`}>
-              <a className="text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline">
+              <a className="block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline">
                 See others purchased in {year}
+              </a>
+            </Link>
+          )}
+
+          {user && (
+            <Link href={`/sneakers/${id}/edit`}>
+              <a className="block mt-auto text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline">
+                Edit Sneaker
               </a>
             </Link>
           )}
