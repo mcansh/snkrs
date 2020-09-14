@@ -29,7 +29,7 @@ const SneakerPage: NextPage<Props> = () => {
   const router = useRouter();
   const { user } = useUser({ redirectTo: `/login?continue=${router.asPath}` });
   const { id } = router.query;
-  const { data: sneaker } = useSWR<SneakerISODate>(
+  const { data: sneaker, error } = useSWR<SneakerISODate>(
     id ? `/api/sneakers/${id}` : null
   );
 
@@ -58,10 +58,24 @@ const SneakerPage: NextPage<Props> = () => {
     },
   });
 
-  if (!user || user.isLoggedIn === false) {
+  if (!user || (!sneaker && !error)) {
     return (
-      <div className="flex items-center justify-center w-full h-full text-lg text-center">
+      <div className="flex items-center justify-center w-full h-full font-mono text-lg text-center">
         loading...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full max-w-screen-sm mx-auto font-mono text-lg text-center">
+        <p>
+          Bad news: an error occurred{' '}
+          <span role="img" aria-label="sad face">
+            😞
+          </span>
+        </p>
+        <p>Good news: we&apos;ve been notified and are working on a fix</p>
       </div>
     );
   }
