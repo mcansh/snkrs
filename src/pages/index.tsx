@@ -1,24 +1,19 @@
 import React from 'react';
+import { Sneaker as SneakerType } from '@prisma/client';
 import { GetStaticProps, NextPage } from 'next';
 import useSWR from 'swr';
 
-import { Sneaker, SneakerISODate } from 'src/components/sneaker';
+import { Sneaker } from 'src/components/sneaker';
 import { prisma } from 'prisma/db';
 
 interface Props {
-  sneakers: SneakerISODate[];
+  sneakers: SneakerType[];
 }
 
 export const getStaticProps: GetStaticProps<Props> = async () => {
-  const rawSneakers = await prisma.sneaker.findMany({
+  const sneakers = await prisma.sneaker.findMany({
     orderBy: { purchaseDate: 'desc' },
   });
-
-  const sneakers = rawSneakers.map(sneaker => ({
-    ...sneaker,
-    purchaseDate: sneaker.purchaseDate?.toISOString() ?? null,
-    soldDate: sneaker.soldDate?.toISOString() ?? null,
-  }));
 
   return {
     // because this data is slightly more dynamic, update it every hour
@@ -28,7 +23,7 @@ export const getStaticProps: GetStaticProps<Props> = async () => {
 };
 
 const Index: NextPage<Props> = ({ sneakers }) => {
-  const { data } = useSWR<SneakerISODate[]>('/api/loganmcansh/sneakers', {
+  const { data } = useSWR<SneakerType[]>('/api/loganmcansh/sneakers', {
     initialData: sneakers,
   });
 

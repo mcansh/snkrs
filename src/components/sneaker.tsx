@@ -7,15 +7,7 @@ import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatMoney } from 'src/utils/format-money';
 import { formatDate } from 'src/utils/format-date';
 
-export interface SneakerISODate
-  extends Omit<SneakerType, 'purchaseDate' | 'soldDate'> {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  purchaseDate: string | null;
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  soldDate: string | null;
-}
-
-const Sneaker: React.FC<SneakerISODate> = ({
+const Sneaker: React.FC<SneakerType> = ({
   id,
   model,
   colorway,
