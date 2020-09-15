@@ -13,6 +13,7 @@ import { formatDate } from 'src/utils/format-date';
 import { prisma } from 'prisma/db';
 import { useUser } from 'src/hooks/use-user';
 import { useSneaker } from 'src/hooks/use-sneakers';
+import { getParam } from 'src/utils/get-params';
 
 export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
   const sneakers = await prisma.sneaker.findMany();
@@ -26,7 +27,14 @@ export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
 };
 
 interface Props {
-  sneaker?: SneakerType;
+  sneaker:
+    | (SneakerType & {
+        User: {
+          name: string;
+        };
+      })
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    | null;
   stockx?: StockXResponse;
   id?: string;
 }
@@ -34,12 +42,12 @@ interface Props {
 export const getStaticProps: GetStaticProps<Props> = async ({
   params = {},
 }) => {
-  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const id = getParam(params.id);
 
-  const sneaker =
-    (await prisma.sneaker.findOne({
-      where: { id },
-    })) ?? undefined;
+  const sneaker = await prisma.sneaker.findOne({
+    where: { id },
+    include: { User: { select: { name: true } } },
+  });
 
   const stockx = sneaker?.stockxProductId
     ? await fetch(
@@ -66,7 +74,7 @@ export const getStaticProps: GetStaticProps<Props> = async ({
 };
 
 const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
-  const { data } = useSneaker(id, sneaker);
+  const { data } = useSneaker(id, sneaker ?? undefined);
   const { user } = useUser();
 
   if (!data) {
@@ -80,7 +88,9 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
   const title = `${data.brand} ${data.model} – ${data.colorway}`;
   const year = data.purchaseDate && new Date(data.purchaseDate).getFullYear();
 
-  const description = `Logan bought the ${data.brand} ${data.model}${
+  const description = `${data.User.name} bought the ${data.brand} ${
+    data.model
+  }${
     data.purchaseDate &&
     ` on ${formatDate(data.purchaseDate, {
       month: 'long',

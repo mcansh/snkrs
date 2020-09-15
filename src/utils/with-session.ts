@@ -18,8 +18,6 @@ export interface ServerRequestSession extends IncomingMessage {
 }
 
 const sessionOptions: SessionOptions = {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore types for next-iron-session arent right
   password: [
     {
       id: 2,

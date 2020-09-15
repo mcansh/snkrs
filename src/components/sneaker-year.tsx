@@ -7,14 +7,18 @@ import { Sneaker } from 'src/components/sneaker';
 import { useSneakerYear } from 'src/hooks/use-sneakers';
 
 export interface SneakerYearProps {
-  sneakers: SneakerType[];
+  sneakers: (SneakerType & {
+    User: {
+      name: string;
+    };
+  })[];
   year: number;
 }
 
 const SneakerYear: NextPage<SneakerYearProps> = ({ year, sneakers }) => {
   const { data } = useSneakerYear(year, sneakers);
 
-  if (!sneakers?.length || !data?.length) {
+  if (!data || !data.length) {
     return (
       <div className="flex items-center justify-center w-full h-full text-lg text-center">
         <p>No sneakers</p>
@@ -26,7 +30,7 @@ const SneakerYear: NextPage<SneakerYearProps> = ({ year, sneakers }) => {
     <main className="container min-h-full p-4 mx-auto">
       <NextSeo
         title={String(year)}
-        description={`Logan bought ${data.length} sneakers in ${year}`}
+        description={`${data[0].User.name} bought ${data.length} sneakers in ${year}`}
         openGraph={{
           title: `${year} | Sneaker Collection`,
         }}

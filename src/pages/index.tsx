@@ -13,6 +13,7 @@ interface Props {
 export const getStaticProps: GetStaticProps<Props> = async () => {
   const sneakers = await prisma.sneaker.findMany({
     orderBy: { purchaseDate: 'desc' },
+    where: { User: { username: 'loganmcansh' } },
   });
 
   return {

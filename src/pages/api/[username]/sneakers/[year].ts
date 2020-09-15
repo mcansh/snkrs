@@ -8,6 +8,7 @@ const handler: NextApiHandler = async (req, res) => {
 
   const sneakers = await prisma.sneaker.findMany({
     orderBy: { purchaseDate: 'asc' },
+    include: { User: { select: { name: true } } },
     where: {
       AND: [
         { User: { username: req.query.username as string } },

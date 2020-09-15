@@ -7,6 +7,7 @@ import { prisma } from 'prisma/db';
 const handler: NextApiHandler = async (req, res) => {
   const sneaker = await prisma.sneaker.findOne({
     where: { id: req.query.id as string },
+    include: { User: { select: { name: true } } },
   });
 
   return res.json(superjson.stringify(sneaker));
