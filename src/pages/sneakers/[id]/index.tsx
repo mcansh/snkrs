@@ -3,7 +3,6 @@ import { NextPage, GetStaticProps, GetStaticPaths } from 'next';
 import Link from 'next/link';
 import { NextSeo } from 'next-seo';
 import { Sneaker as SneakerType } from '@prisma/client';
-import useSWR from 'swr';
 import { SimpleImg } from 'react-simple-img';
 
 import { StockXResponse } from '../../../../@types/stockx';
@@ -13,6 +12,7 @@ import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatDate } from 'src/utils/format-date';
 import { prisma } from 'prisma/db';
 import { useUser } from 'src/hooks/use-user';
+import { useSneaker } from 'src/hooks/use-sneakers';
 
 export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
   const sneakers = await prisma.sneaker.findMany();
@@ -66,9 +66,7 @@ export const getStaticProps: GetStaticProps<Props> = async ({
 };
 
 const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
-  const { data } = useSWR<SneakerType>(() => `/api/sneakers/${id}`, {
-    initialData: sneaker,
-  });
+  const { data } = useSneaker(id, sneaker);
   const { user } = useUser();
 
   if (!data) {

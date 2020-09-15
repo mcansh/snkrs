@@ -1,4 +1,5 @@
 import { NextApiHandler } from 'next';
+import superjson from 'superjson';
 
 import { withMethods } from 'src/utils/with-methods';
 import { prisma } from 'prisma/db';
@@ -9,7 +10,7 @@ const handler: NextApiHandler = async (req, res) => {
     where: { User: { username: req.query.username as string } },
   });
 
-  return res.json(sneakers);
+  return res.json(superjson.stringify(sneakers));
 };
 
 export default withMethods(handler, ['GET']);

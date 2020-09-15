@@ -1,4 +1,5 @@
 import { NextApiHandler } from 'next';
+import superjson from 'superjson';
 
 import { prisma } from 'prisma/db';
 
@@ -20,7 +21,7 @@ const handler: NextApiHandler = async (req, res) => {
     },
   });
 
-  return res.json(sneakers);
+  return res.json(superjson.stringify(sneakers));
 };
 
 export default handler;

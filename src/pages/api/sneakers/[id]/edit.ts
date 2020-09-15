@@ -1,3 +1,5 @@
+import superjson from 'superjson';
+
 import { NextApiHandlerSession, withSession } from 'src/utils/with-session';
 import { withMethods } from 'src/utils/with-methods';
 import { prisma } from 'prisma/db';
@@ -39,7 +41,7 @@ const handler: NextApiHandlerSession = async (req, res) => {
     data: { ...req.body, soldDate, purchaseDate },
   });
 
-  return res.status(200).json(updatedSneaker);
+  return res.status(200).json(superjson.stringify(updatedSneaker));
 };
 
 export default withSession(withMethods(handler, ['PATCH']));

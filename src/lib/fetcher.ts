@@ -1,13 +1,16 @@
-async function fetcher(input: RequestInfo, init?: RequestInit | undefined) {
+import superjson from 'superjson';
+
+async function fetcher<T extends any>(
+  input: RequestInfo,
+  init?: RequestInit | undefined
+) {
   try {
     const response = await fetch(input, init);
 
-    // if the server replies, there's always some data in json
-    // if there's a network error, it will throw at the previous line
-    const data = await response.json();
+    const data = await response.text();
 
     if (response.ok) {
-      return data;
+      return superjson.parse<T>(data);
     }
 
     const error = new Error(response.statusText) as any;

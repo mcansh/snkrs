@@ -1,4 +1,5 @@
 import { parseISO } from 'date-fns';
+import superjson from 'superjson';
 
 import { NextApiHandlerSession, withSession } from 'src/utils/with-session';
 import { withMethods } from 'src/utils/with-methods';
@@ -28,7 +29,7 @@ const handler: NextApiHandlerSession = async (req, res) => {
     },
   });
 
-  return res.status(201).json(sneaker);
+  return res.status(201).json(superjson.stringify(sneaker));
 };
 
 export default withSession(withMethods(handler, ['POST']));
