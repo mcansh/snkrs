@@ -3,7 +3,7 @@ import { Sneaker as SneakerType } from '@prisma/client';
 
 import { superFetcher } from 'src/lib/fetcher';
 
-function useSneaker(id?: string, initialData: SneakerType = undefined) {
+function useSneaker(id?: string, initialData?: SneakerType) {
   return useSWR<SneakerType>(() => `/api/sneakers/${id}`, {
     initialData,
     fetcher: superFetcher,
