@@ -1,10 +1,10 @@
 import React from 'react';
 import { Sneaker as SneakerType } from '@prisma/client';
 import { GetStaticProps, NextPage } from 'next';
-import useSWR from 'swr';
 
 import { Sneaker } from 'src/components/sneaker';
 import { prisma } from 'prisma/db';
+import { useUserSneakers } from 'src/hooks/use-sneakers';
 
 interface Props {
   sneakers: SneakerType[];
@@ -23,9 +23,7 @@ export const getStaticProps: GetStaticProps<Props> = async () => {
 };
 
 const Index: NextPage<Props> = ({ sneakers }) => {
-  const { data } = useSWR<SneakerType[]>('/api/loganmcansh/sneakers', {
-    initialData: sneakers,
-  });
+  const { data } = useUserSneakers('loganmcansh', sneakers);
 
   if (!sneakers?.length || !data?.length) {
     return (

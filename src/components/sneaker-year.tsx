@@ -1,10 +1,10 @@
 import React from 'react';
 import { NextPage } from 'next';
-import useSWR from 'swr';
 import { NextSeo } from 'next-seo';
 import { Sneaker as SneakerType } from '@prisma/client';
 
 import { Sneaker } from 'src/components/sneaker';
+import { useSneakerYear } from 'src/hooks/use-sneakers';
 
 export interface SneakerYearProps {
   sneakers: SneakerType[];
@@ -12,9 +12,7 @@ export interface SneakerYearProps {
 }
 
 const SneakerYear: NextPage<SneakerYearProps> = ({ year, sneakers }) => {
-  const { data } = useSWR<SneakerType[]>(`/api/sneakers/${year}`, {
-    initialData: sneakers,
-  });
+  const { data } = useSneakerYear(year, sneakers);
 
   if (!sneakers?.length || !data?.length) {
     return (

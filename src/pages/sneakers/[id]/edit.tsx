@@ -6,7 +6,6 @@ import { Sneaker as SneakerType } from '@prisma/client';
 import { SimpleImg } from 'react-simple-img';
 import { Formik } from 'formik';
 import { useRouter } from 'next/router';
-import useSWR from 'swr';
 import { dequal } from 'dequal';
 import { formatISO } from 'date-fns';
 import * as Yup from 'yup';
@@ -16,6 +15,8 @@ import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatDate } from 'src/utils/format-date';
 import { useUser } from 'src/hooks/use-user';
 import { prisma } from 'prisma/db';
+import { useSneaker } from 'src/hooks/use-sneakers';
+import { getParams } from 'src/utils/get-params';
 
 const schema = Yup.object().shape({
   model: Yup.string().required(),
@@ -69,13 +70,10 @@ export const getStaticProps: GetStaticProps<Props, Params> = async ({
 const SneakerPage: NextPage<Props> = ({ sneaker }) => {
   const router = useRouter();
   const { user } = useUser({ redirectTo: `/login?continue=${router.asPath}` });
-  const { id } = router.query;
-  const { data, error, mutate } = useSWR<SneakerType>(
-    id ? `/api/sneakers/${id}` : null,
-    { initialData: sneaker ?? undefined }
-  );
+  const { id } = getParams(router.query);
+  const { data, error, mutate } = useSneaker(id, sneaker ?? undefined);
 
-  if (!user || (!data && !error)) {
+  if (!user || user.isLoggedIn === false || !data) {
     return (
       <div className="flex items-center justify-center w-full h-full font-mono text-lg text-center">
         loading...
