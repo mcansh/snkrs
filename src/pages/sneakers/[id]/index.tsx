@@ -69,9 +69,9 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
   const { data } = useSWR<SneakerType>(() => `/api/sneakers/${id}`, {
     initialData: sneaker,
   });
-  const user = useUser();
+  const { user } = useUser();
 
-  if (!sneaker || !data) {
+  if (!data) {
     return (
       <div className="flex items-center justify-center w-full h-full text-lg text-center">
         <p>No sneaker with id &quot;{id}&quot;</p>
@@ -178,7 +178,7 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
             </Link>
           )}
 
-          {user && (
+          {user?.isLoggedIn && (
             <Link href={`/sneakers/${id}/edit`}>
               <a className="block mt-auto text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline">
                 Edit Sneaker
