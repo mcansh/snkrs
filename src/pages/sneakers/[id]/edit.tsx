@@ -28,10 +28,12 @@ const schema = Yup.object().shape({
   retailPrice: Yup.number().required(),
   purchaseDate: Yup.date(),
   sold: Yup.boolean().required().default(false),
-  soldDate: Yup.date().when('sold', {
-    is: sold => sold === true,
-    then: Yup.date().required('soldDate is required'),
-  }),
+  soldDate: Yup.date()
+    .when('sold', {
+      is: sold => sold === true,
+      then: Yup.date().required('soldDate is required'),
+    })
+    .min(Yup.ref('sold')),
   soldPrice: Yup.number().when('sold', {
     is: sold => sold === true,
     then: Yup.number().required('soldPrice is required'),
@@ -76,7 +78,7 @@ export const getStaticProps: GetStaticProps<Props, Params> = async ({
   return { props: { sneaker }, revalidate: 60 * 60 };
 };
 
-const formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS"
+const formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
 const SneakerPage: NextPage<Props> = ({ sneaker }) => {
   const router = useRouter();
@@ -324,6 +326,7 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
                           onChange={form.handleChange}
                           placeholder="Sold Date"
                           name="soldDate"
+                          min={form.values.purchaseDate}
                         />
                         <input
                           className="p-1 border-2 border-gray-200 rounded appearance-none"
