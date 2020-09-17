@@ -212,6 +212,7 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
                 : sneaker.soldDate,
               soldPrice: values.soldPrice ?? null,
               userId: sneaker.userId,
+              User: sneaker.User,
             });
 
             if (promise.ok) {
