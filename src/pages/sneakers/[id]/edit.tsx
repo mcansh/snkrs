@@ -198,10 +198,18 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
             soldPrice: sneaker?.soldPrice ?? undefined,
           }}
           onSubmit={async values => {
+            const removeSoldFieldsIfNotSold = values.sold
+              ? values
+              : {
+                  ...values,
+                  soldDate: null,
+                  soldPrice: null,
+                };
+
             const promise = await fetch(`/api/sneakers/${id}/edit`, {
               method: 'PATCH',
               headers: { 'content-type': 'application/json' },
-              body: JSON.stringify(values),
+              body: JSON.stringify(removeSoldFieldsIfNotSold),
             });
 
             mutate({
