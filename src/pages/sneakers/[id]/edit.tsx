@@ -7,7 +7,7 @@ import { SimpleImg } from 'react-simple-img';
 import { Formik } from 'formik';
 import { useRouter } from 'next/router';
 import { dequal } from 'dequal';
-import { formatISO } from 'date-fns';
+import { format } from 'date-fns';
 import * as Yup from 'yup';
 
 import { formatMoney } from 'src/utils/format-money';
@@ -75,6 +75,8 @@ export const getStaticProps: GetStaticProps<Props, Params> = async ({
   });
   return { props: { sneaker }, revalidate: 60 * 60 };
 };
+
+const formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS"
 
 const SneakerPage: NextPage<Props> = ({ sneaker }) => {
   const router = useRouter();
@@ -185,11 +187,11 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
             price: sneaker.price,
             retailPrice: sneaker.retailPrice,
             purchaseDate: sneaker.purchaseDate
-              ? formatISO(sneaker.purchaseDate, { representation: 'date' })
+              ? format(sneaker.purchaseDate, formatter)
               : undefined,
             sold: sneaker.sold,
             soldDate: sneaker.soldDate
-              ? formatISO(sneaker.soldDate, { representation: 'date' })
+              ? format(sneaker.soldDate, formatter)
               : undefined,
             soldPrice: sneaker?.soldPrice ?? undefined,
           }}
@@ -230,11 +232,11 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
               price: sneaker.price,
               retailPrice: sneaker.retailPrice,
               purchaseDate: sneaker.purchaseDate
-                ? formatISO(sneaker.purchaseDate)
+                ? format(sneaker.purchaseDate, formatter)
                 : undefined,
               sold: sneaker.sold,
               soldDate: sneaker.soldDate
-                ? formatISO(sneaker.soldDate)
+                ? format(sneaker.soldDate, formatter)
                 : undefined,
               soldPrice: sneaker.soldPrice,
             });
