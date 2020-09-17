@@ -24,7 +24,7 @@ function useSneakerYear(year: number, initialData?: SneakerTypeWithUser[]) {
 }
 
 function useUserSneakers(username: string, initialData?: SneakerType[]) {
-  return useSWR<SneakerType[]>(`/api/${username}/sneakers`, {
+  return useSWR<SneakerType[]>(`/api/${username}`, {
     initialData,
     fetcher: superFetcher,
   });
