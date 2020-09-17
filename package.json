@@ -64,7 +64,7 @@
   "devDependencies": {
     "@commitlint/cli": "11.0.0",
     "@commitlint/config-conventional": "11.0.0",
-    "@mcansh/eslint-config": "2.7.3",
+    "@mcansh/eslint-config": "2.8.0",
     "@next/eslint-plugin-next": "9.5.3",
     "@prisma/cli": "2.7.1",
     "@tailwindcss/ui": "0.6.2",
