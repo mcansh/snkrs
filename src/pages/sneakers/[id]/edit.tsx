@@ -43,8 +43,14 @@ type Params = {
 };
 
 interface Props {
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  sneaker: SneakerType | null;
+  sneaker:
+    | (SneakerType & {
+        User: {
+          name: string;
+        };
+      })
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    | null;
 }
 
 export const getStaticPaths: GetStaticPaths<Params> = async () => {
@@ -63,7 +69,10 @@ export const getStaticProps: GetStaticProps<Props, Params> = async ({
     throw new Error('no params!');
   }
 
-  const sneaker = await prisma.sneaker.findOne({ where: { id: params.id } });
+  const sneaker = await prisma.sneaker.findOne({
+    where: { id: params.id },
+    include: { User: { select: { name: true } } },
+  });
   return { props: { sneaker }, revalidate: 60 * 60 };
 };
 
@@ -105,7 +114,9 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
 
   const title = `${sneaker.brand} ${sneaker.model} – ${sneaker.colorway}`;
 
-  const description = `Logan bought the ${sneaker.brand} ${sneaker.model}${
+  const description = `${sneaker.User.name} bought the ${sneaker.brand} ${
+    sneaker.model
+  }${
     sneaker.purchaseDate &&
     ` on ${formatDate(sneaker.purchaseDate, {
       month: 'long',
@@ -201,6 +212,7 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
                 : sneaker.soldDate,
               soldPrice: values.soldPrice ?? null,
               userId: sneaker.userId,
+              User: sneaker.User,
             });
 
             if (promise.ok) {
