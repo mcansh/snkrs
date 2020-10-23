@@ -18,12 +18,7 @@ const CSP = (props: DocumentProps) => {
       "'unsafe-inline'",
       'https://kiwi.mcan.sh/script.js',
     ],
-    'connect-src': [
-      "'self'",
-      'ws://localhost:*',
-      'https://qckm.io',
-      'https://stockx.com',
-    ],
+    'connect-src': ["'self'", 'ws://localhost:*', 'https://qckm.io'],
     'style-src': [
       "'self'",
       "'unsafe-inline'",

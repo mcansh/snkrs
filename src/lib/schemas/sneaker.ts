@@ -11,7 +11,6 @@ const createSneakerSchema = Yup.object().shape({
   sold: Yup.boolean().notRequired().default(false),
   soldDate: Yup.date().notRequired().max(new Date()),
   soldPrice: Yup.number().positive().notRequired(),
-  stockxProductId: Yup.string().notRequired(),
 });
 
 export { createSneakerSchema };

@@ -5,8 +5,6 @@ import { NextSeo } from 'next-seo';
 import { Sneaker as SneakerType } from '@prisma/client';
 import { SimpleImg } from 'react-simple-img';
 
-import { StockXResponse } from '../../../../@types/stockx';
-
 import { formatMoney } from 'src/utils/format-money';
 import { getCloudinaryURL } from 'src/utils/cloudinary';
 import { formatDate } from 'src/utils/format-date';
@@ -26,16 +24,11 @@ export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
   };
 };
 
+type SneakerWithUser = SneakerType & { User: { name: string } };
+
 interface Props {
-  sneaker:
-    | (SneakerType & {
-        User: {
-          name: string;
-        };
-      })
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    | null;
-  stockx?: StockXResponse;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  sneaker: SneakerWithUser | null;
   id?: string;
 }
 
@@ -49,31 +42,14 @@ export const getStaticProps: GetStaticProps<Props> = async ({
     include: { User: { select: { name: true } } },
   });
 
-  const stockx = sneaker?.stockxProductId
-    ? await fetch(
-        `https://stockx.com/api/products/${sneaker.stockxProductId}/activity?state=480&currency=USD&limit=1&page=1&sort=createdAt&order=DESC&country=US`,
-        {
-          headers: {
-            accept: 'application/json',
-            'user-agent':
-              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36',
-          },
-        }
-      ).then(r => r.json())
-    : null;
-
   return {
     // because this data is slightly more dynamic, update it every hour
     revalidate: 60 * 60,
-    props: {
-      id,
-      sneaker,
-      stockx,
-    },
+    props: { id, sneaker },
   };
 };
 
-const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
+const SneakerPage: NextPage<Props> = ({ id, sneaker }) => {
   const { data } = useSneaker(id, sneaker ?? undefined);
   const { user } = useUser();
 
@@ -87,6 +63,7 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
 
   const title = `${data.brand} ${data.model} – ${data.colorway}`;
   const year = data.purchaseDate && new Date(data.purchaseDate).getFullYear();
+  const belowRetail = data.retailPrice > data.price;
 
   const description = `${data.User.name} bought the ${data.brand} ${
     data.model
@@ -148,31 +125,25 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker, stockx }) => {
         />
         <div className="flex flex-col">
           <h1 className="text-2xl">{title}</h1>
-          <p className="text-xl">{formatMoney(data.price)}</p>
-          {stockx?.ProductActivity?.[0].amount && (
-            <time
-              className="text-xl"
-              dateTime={stockx.ProductActivity[0].createdAt}
-            >
-              Last sale on StockX{' '}
-              {formatMoney(stockx.ProductActivity[0].amount * 100)}
+
+          <p className="text-xl">
+            Bought {belowRetail ? 'below' : 'above'} retail (
+            {formatMoney(data.retailPrice)}) {belowRetail ? '🔥' : '😭'} for{' '}
+            {formatMoney(data.price)}
+          </p>
+
+          <p className="text-md">
+            Purchased on{' '}
+            <time dateTime={data.purchaseDate.toISOString()}>
+              {formatDate(data.purchaseDate)}
             </time>
-          )}
-          {data.purchaseDate && (
-            <p>
-              <time
-                className="text-md"
-                dateTime={data.purchaseDate.toISOString()}
-              >
-                Purchased {formatDate(data.purchaseDate)}
-              </time>
-            </p>
-          )}
+          </p>
 
           {data.sold && data.soldDate && (
-            <p>
-              <time className="text-md" dateTime={data.soldDate.toISOString()}>
-                Sold {formatDate(data.soldDate)}{' '}
+            <p className="text-md">
+              Sold{' '}
+              <time dateTime={data.soldDate.toISOString()}>
+                {formatDate(data.soldDate)}{' '}
                 {data?.soldPrice && <>For {formatMoney(data.soldPrice)}</>}
               </time>
             </p>

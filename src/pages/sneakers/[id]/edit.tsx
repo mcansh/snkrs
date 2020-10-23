@@ -215,7 +215,6 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
             mutate({
               ...values,
               id: sneaker.id,
-              stockxProductId: sneaker.stockxProductId ?? null,
               purchaseDate: values.purchaseDate
                 ? new Date(values.purchaseDate)
                 : sneaker.purchaseDate,
