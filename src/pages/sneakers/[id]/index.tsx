@@ -63,7 +63,9 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker }) => {
 
   const title = `${data.brand} ${data.model} – ${data.colorway}`;
   const year = data.purchaseDate && new Date(data.purchaseDate).getFullYear();
+
   const belowRetail = data.retailPrice > data.price;
+  const atRetail = data.retailPrice === data.price;
 
   const description = `${data.User.name} bought the ${data.brand} ${
     data.model
@@ -126,11 +128,15 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker }) => {
         <div className="flex flex-col">
           <h1 className="text-2xl">{title}</h1>
 
-          <p className="text-xl">
-            Bought {belowRetail ? 'below' : 'above'} retail (
-            {formatMoney(data.retailPrice)}) {belowRetail ? '🔥' : '😭'} for{' '}
-            {formatMoney(data.price)}
-          </p>
+          {atRetail ? (
+            <p className="text-xl">{formatMoney(data.price)}</p>
+          ) : (
+            <p className="text-xl">
+              Bought {belowRetail ? 'below' : 'above'} retail (
+              {formatMoney(data.retailPrice)}) {belowRetail ? '🔥' : '😭'} for{' '}
+              {formatMoney(data.price)}
+            </p>
+          )}
 
           <p className="text-md">
             Purchased on{' '}
