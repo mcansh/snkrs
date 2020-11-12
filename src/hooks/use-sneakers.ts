@@ -10,21 +10,21 @@ interface SneakerTypeWithUser extends SneakerType {
 }
 
 function useSneaker(id?: string, initialData?: SneakerTypeWithUser) {
-  return useSWR<SneakerTypeWithUser>(() => `/api/sneakers/${id}`, {
+  return useSWR<SneakerTypeWithUser, Error>(id ? `/api/sneakers/${id}` : null, {
     initialData,
     fetcher: superFetcher,
   });
 }
 
 function useSneakerYear(year: number, initialData?: SneakerTypeWithUser[]) {
-  return useSWR<SneakerTypeWithUser[]>(`/api/sneakers/${year}`, {
+  return useSWR<SneakerTypeWithUser[], Error>(`/api/sneakers/${year}`, {
     initialData,
     fetcher: superFetcher,
   });
 }
 
 function useUserSneakers(username: string, initialData?: SneakerType[]) {
-  return useSWR<SneakerType[]>(`/api/${username}`, {
+  return useSWR<SneakerType[], Error>(`/api/${username}`, {
     initialData,
     fetcher: superFetcher,
   });
