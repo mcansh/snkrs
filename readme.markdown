@@ -2,4 +2,4 @@
 
 My Sneaker Collection
 
-![](public/screenshot.png)
+![](public/screenshot.jpg)
