@@ -1,4 +1,4 @@
-import { NextApiHandlerSession } from './with-session';
+import type { NextApiHandlerSession } from './with-session';
 
 export type Method =
   | 'GET'

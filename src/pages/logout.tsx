@@ -1,5 +1,5 @@
 import React from 'react';
-import { NextPage } from 'next';
+import type { NextPage } from 'next';
 import useSWR from 'swr';
 import Router from 'next/router';
 import Link from 'next/link';

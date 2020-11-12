@@ -1,4 +1,4 @@
-import { NextApiHandler } from 'next';
+import type { NextApiHandler } from 'next';
 import superjson from 'superjson';
 
 import { prisma } from 'prisma/db';

@@ -1,4 +1,5 @@
-import { Cloudinary, Transformation } from 'cloudinary-core';
+import type { Transformation } from 'cloudinary-core';
+import { Cloudinary } from 'cloudinary-core';
 
 const cloudinary = new Cloudinary({ cloud_name: 'dof0zryca', secure: true });
 

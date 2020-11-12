@@ -1,8 +1,8 @@
 import React from 'react';
-import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
+import type { GetStaticPaths, GetStaticProps, NextPage } from 'next';
 import Link from 'next/link';
 import { NextSeo } from 'next-seo';
-import { Sneaker as SneakerType } from '@prisma/client';
+import type { Sneaker as SneakerType } from '@prisma/client';
 import { SimpleImg } from 'react-simple-img';
 import { Formik } from 'formik';
 import { useRouter } from 'next/router';
@@ -59,7 +59,7 @@ export const getStaticPaths: GetStaticPaths<Params> = async () => {
   const sneakers = await prisma.sneaker.findMany({ select: { id: true } });
 
   return {
-    fallback: 'unstable_blocking',
+    fallback: 'blocking',
     paths: sneakers.map(sneaker => ({ params: { id: sneaker.id } })),
   };
 };
@@ -86,7 +86,7 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
   const { id } = getParams(router.query);
   const { data, error, mutate } = useSneaker(id, sneaker ?? undefined);
 
-  if (!user || user.isLoggedIn === false || !data) {
+  if (!user || !user.isLoggedIn || !data) {
     return (
       <div className="flex items-center justify-center w-full h-full font-mono text-lg text-center">
         loading...
@@ -195,7 +195,7 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
             soldDate: sneaker.soldDate
               ? format(sneaker.soldDate, formatter)
               : undefined,
-            soldPrice: sneaker?.soldPrice ?? undefined,
+            soldPrice: sneaker.soldPrice ?? undefined,
           }}
           onSubmit={async values => {
             const removeSoldFieldsIfNotSold = values.sold

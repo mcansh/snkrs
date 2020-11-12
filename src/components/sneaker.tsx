@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sneaker as SneakerType } from '@prisma/client';
+import type { Sneaker as SneakerType } from '@prisma/client';
 import Link from 'next/link';
 import { SimpleImg } from 'react-simple-img';
 

@@ -1,7 +1,8 @@
 import argon2 from 'argon2';
 
 import { withMethods } from 'src/utils/with-methods';
-import { withSession, NextApiHandlerSession } from 'src/utils/with-session';
+import type { NextApiHandlerSession } from 'src/utils/with-session';
+import { withSession } from 'src/utils/with-session';
 import { prisma } from 'prisma/db';
 import { loginSchema } from 'src/lib/schemas/login';
 

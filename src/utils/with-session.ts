@@ -1,13 +1,12 @@
 // this file is a wrapper with defaults to be used in both API routes and `getServerSideProps` functions
-import { IncomingMessage, ServerResponse } from 'http';
+import type { IncomingMessage, ServerResponse } from 'http';
 
+import type { Session, SessionOptions } from 'next-iron-session';
 import {
   withIronSession,
-  Session,
-  SessionOptions,
   applySession as applyIronSession,
 } from 'next-iron-session';
-import { NextApiRequest, NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
 export interface NextApiRequestSession extends NextApiRequest {
   session: Session;

@@ -1,5 +1,5 @@
 import useSWR from 'swr';
-import { Sneaker as SneakerType, User as UserType } from '@prisma/client';
+import type { Sneaker as SneakerType, User as UserType } from '@prisma/client';
 
 import { superFetcher } from 'src/lib/fetcher';
 

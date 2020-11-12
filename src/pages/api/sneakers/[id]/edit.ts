@@ -1,6 +1,7 @@
 import superjson from 'superjson';
 
-import { NextApiHandlerSession, withSession } from 'src/utils/with-session';
+import type { NextApiHandlerSession } from 'src/utils/with-session';
+import { withSession } from 'src/utils/with-session';
 import { withMethods } from 'src/utils/with-methods';
 import { prisma } from 'prisma/db';
 

@@ -2,7 +2,7 @@ import React from 'react';
 import Router from 'next/router';
 import useSWR from 'swr';
 
-import { UserResponse } from 'src/pages/api/user';
+import type { UserResponse } from 'src/pages/api/user';
 
 interface Options {
   redirectTo?: string;

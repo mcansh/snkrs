@@ -1,8 +1,8 @@
 import React from 'react';
-import { NextPage, GetStaticProps, GetStaticPaths } from 'next';
+import type { NextPage, GetStaticProps, GetStaticPaths } from 'next';
 import Link from 'next/link';
 import { NextSeo } from 'next-seo';
-import { Sneaker as SneakerType } from '@prisma/client';
+import type { Sneaker as SneakerType } from '@prisma/client';
 import { SimpleImg } from 'react-simple-img';
 
 import { formatMoney } from 'src/utils/format-money';
@@ -17,7 +17,7 @@ export const getStaticPaths: GetStaticPaths<{ id: string }> = async () => {
   const sneakers = await prisma.sneaker.findMany();
 
   return {
-    fallback: 'unstable_blocking',
+    fallback: 'blocking',
     paths: sneakers.map(sneaker => ({
       params: { id: sneaker.id },
     })),
@@ -150,7 +150,7 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker }) => {
               Sold{' '}
               <time dateTime={data.soldDate.toISOString()}>
                 {formatDate(data.soldDate)}{' '}
-                {data?.soldPrice && <>For {formatMoney(data.soldPrice)}</>}
+                {data.soldPrice && <>For {formatMoney(data.soldPrice)}</>}
               </time>
             </p>
           )}

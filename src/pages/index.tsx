@@ -1,6 +1,6 @@
 import React from 'react';
-import { Sneaker as SneakerType } from '@prisma/client';
-import { GetStaticProps, NextPage } from 'next';
+import type { Sneaker as SneakerType } from '@prisma/client';
+import type { GetStaticProps, NextPage } from 'next';
 
 import { Sneaker } from 'src/components/sneaker';
 import { prisma } from 'prisma/db';

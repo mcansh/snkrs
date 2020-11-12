@@ -1,20 +1,21 @@
 import React from 'react';
-import { GetStaticProps, NextPage, GetStaticPaths } from 'next';
+import type { GetStaticProps, NextPage, GetStaticPaths } from 'next';
 
-import { SneakerYear, SneakerYearProps } from 'src/components/sneaker-year';
+import type { SneakerYearProps } from 'src/components/sneaker-year';
+import { SneakerYear } from 'src/components/sneaker-year';
 import { getYearInSneakers } from 'src/lib/get-sneakers-for-year';
 import { prisma } from 'prisma/db';
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const sneakers = await prisma.sneaker.findMany();
   const allYears = sneakers
-    .map(sneaker => sneaker.purchaseDate?.getFullYear())
+    .map(sneaker => sneaker.purchaseDate.getFullYear())
     .filter(Boolean);
 
   const years = [...new Set(allYears)];
 
   return {
-    fallback: 'unstable_blocking',
+    fallback: 'blocking',
     paths: years.map(year => ({
       params: { year: String(year) },
     })),

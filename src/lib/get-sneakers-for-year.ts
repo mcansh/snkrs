@@ -1,4 +1,4 @@
-import { SortOrder } from '@prisma/client';
+import type { SortOrder } from '@prisma/client';
 
 import { prisma } from 'prisma/db';
 

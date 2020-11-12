@@ -1,5 +1,5 @@
 import React from 'react';
-import { NextPage } from 'next';
+import type { NextPage } from 'next';
 import { useFormik } from 'formik';
 import { useRouter } from 'next/router';
 import { NextSeo } from 'next-seo';

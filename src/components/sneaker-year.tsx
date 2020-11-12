@@ -1,7 +1,7 @@
 import React from 'react';
-import { NextPage } from 'next';
+import type { NextPage } from 'next';
 import { NextSeo } from 'next-seo';
-import { Sneaker as SneakerType } from '@prisma/client';
+import type { Sneaker as SneakerType } from '@prisma/client';
 
 import { Sneaker } from 'src/components/sneaker';
 import { useSneakerYear } from 'src/hooks/use-sneakers';

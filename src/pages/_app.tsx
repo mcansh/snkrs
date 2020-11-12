@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppProps, NextWebVitalsMetric } from 'next/app';
+import type { AppProps, NextWebVitalsMetric } from 'next/app';
 import * as Fathom from 'fathom-client';
 
 import { Layout } from 'src/components/layout';

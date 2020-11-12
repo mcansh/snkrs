@@ -1,7 +1,8 @@
 import crypto from 'crypto';
 
 import React from 'react';
-import { NextScript, DocumentProps } from 'next/document';
+import type { DocumentProps } from 'next/document';
+import { NextScript } from 'next/document';
 
 const cspHashOf = (text: string) => {
   const hash = crypto.createHash('sha256');
