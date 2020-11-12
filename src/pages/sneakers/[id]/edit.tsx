@@ -120,13 +120,11 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
 
   const description = `${sneaker.User.name} bought the ${sneaker.brand} ${
     sneaker.model
-  }${
-    sneaker.purchaseDate &&
-    ` on ${formatDate(sneaker.purchaseDate, {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    })}`
+  } on ${formatDate(sneaker.purchaseDate, {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })}
   }`;
 
   const { imagePublicId } = sneaker;
@@ -162,16 +160,14 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
         <div>
           <h1 className="text-2xl">{title}</h1>
           <p className="text-xl">{formatMoney(sneaker.price)}</p>
-          {sneaker.purchaseDate && (
-            <p>
-              <time
-                className="text-md"
-                dateTime={sneaker.purchaseDate.toISOString()}
-              >
-                Purchased {formatDate(sneaker.purchaseDate)}
-              </time>
-            </p>
-          )}
+          <p>
+            <time
+              className="text-md"
+              dateTime={sneaker.purchaseDate.toISOString()}
+            >
+              Purchased {formatDate(sneaker.purchaseDate)}
+            </time>
+          </p>
         </div>
       </div>
       <div>
@@ -186,9 +182,7 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
             imagePublicId: sneaker.imagePublicId,
             price: sneaker.price,
             retailPrice: sneaker.retailPrice,
-            purchaseDate: sneaker.purchaseDate
-              ? format(sneaker.purchaseDate, formatter)
-              : undefined,
+            purchaseDate: format(sneaker.purchaseDate, formatter),
             sold: sneaker.sold,
             soldDate: sneaker.soldDate
               ? format(sneaker.soldDate, formatter)
@@ -210,7 +204,7 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
               body: JSON.stringify(removeSoldFieldsIfNotSold),
             });
 
-            mutate({
+            await mutate({
               ...values,
               id: sneaker.id,
               purchaseDate: values.purchaseDate
@@ -225,7 +219,7 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
             });
 
             if (promise.ok) {
-              router.push('/sneakers/[id]', `/sneakers/${id}`);
+              await router.push('/sneakers/[id]', `/sneakers/${id}`);
             }
           }}
         >
@@ -238,9 +232,7 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
               imagePublicId: sneaker.imagePublicId,
               price: sneaker.price,
               retailPrice: sneaker.retailPrice,
-              purchaseDate: sneaker.purchaseDate
-                ? format(sneaker.purchaseDate, formatter)
-                : undefined,
+              purchaseDate: format(sneaker.purchaseDate, formatter),
               sold: sneaker.sold,
               soldDate: sneaker.soldDate
                 ? format(sneaker.soldDate, formatter)
@@ -248,11 +240,13 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
               soldPrice: sneaker.soldPrice,
             });
 
+            const formErrors = Object.values(form.errors);
+
             return (
               <form className="space-y-4" onSubmit={form.handleSubmit}>
-                {form.errors && (
+                {formErrors.length > 0 && (
                   <ul className="font-mono text-sm text-red-600 list-disc list-inside">
-                    {Object.values(form.errors).map(errorMessage => (
+                    {formErrors.map(errorMessage => (
                       <li key={errorMessage}>{errorMessage}</li>
                     ))}
                   </ul>

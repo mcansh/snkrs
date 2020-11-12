@@ -62,20 +62,18 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker }) => {
   }
 
   const title = `${data.brand} ${data.model} – ${data.colorway}`;
-  const year = data.purchaseDate && new Date(data.purchaseDate).getFullYear();
+  const year = new Date(data.purchaseDate).getFullYear();
 
   const belowRetail = data.retailPrice > data.price;
   const atRetail = data.retailPrice === data.price;
 
   const description = `${data.User.name} bought the ${data.brand} ${
     data.model
-  }${
-    data.purchaseDate &&
-    ` on ${formatDate(data.purchaseDate, {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    })}`
+  } on ${formatDate(data.purchaseDate, {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })}
   }`;
 
   const { imagePublicId } = data;
@@ -153,16 +151,14 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker }) => {
             </p>
           )}
 
-          {year && (
-            <Link href="/sneakers/yir/[year]" as={`/sneakers/yir/${year}`}>
-              <a className="block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline">
-                See others purchased in {year}
-              </a>
-            </Link>
-          )}
+          <Link href="/sneakers/yir/[year]" as={`/sneakers/yir/${year}`}>
+            <a className="block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline">
+              See others purchased in {year}
+            </a>
+          </Link>
 
           {user?.isLoggedIn && (
-            <Link href={`/sneakers/${id}/edit`}>
+            <Link href={`/sneakers/${data.id}/edit`}>
               <a className="block mt-auto text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline">
                 Edit Sneaker
               </a>

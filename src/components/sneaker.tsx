@@ -45,7 +45,7 @@ const Sneaker: React.FC<SneakerType> = ({
             </h2>
             <p className="text-lg truncate">{colorway}</p>
             {price && <p>{formatMoney(price)}</p>}
-            {purchaseDate && <p>Purchased {formatDate(purchaseDate)}</p>}
+            <p>Purchased {formatDate(purchaseDate)}</p>
           </div>
         </a>
       </Link>
