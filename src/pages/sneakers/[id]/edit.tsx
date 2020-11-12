@@ -3,7 +3,7 @@ import type { GetStaticPaths, GetStaticProps, NextPage } from 'next';
 import Link from 'next/link';
 import { NextSeo } from 'next-seo';
 import type { Sneaker as SneakerType } from '@prisma/client';
-import { SimpleImg } from 'react-simple-img';
+import Image from 'next/image';
 import { Formik } from 'formik';
 import { useRouter } from 'next/router';
 import { dequal } from 'dequal';
@@ -152,13 +152,11 @@ const SneakerPage: NextPage<Props> = ({ sneaker }) => {
         <a>Back</a>
       </Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
-        <SimpleImg
+        <Image
           src={image1x}
-          srcSet={`${image1x} 1x, ${image2x} 2x, ${image3x} 3x`}
           alt={title}
-          height={200}
-          width={200}
-          applyAspectRatio
+          height={640}
+          width={640}
           className="w-full h-full overflow-hidden rounded-md"
         />
         <div>

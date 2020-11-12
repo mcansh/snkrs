@@ -3,7 +3,7 @@ import type { NextPage, GetStaticProps, GetStaticPaths } from 'next';
 import Link from 'next/link';
 import { NextSeo } from 'next-seo';
 import type { Sneaker as SneakerType } from '@prisma/client';
-import { SimpleImg } from 'react-simple-img';
+import Image from 'next/image';
 
 import { formatMoney } from 'src/utils/format-money';
 import { getCloudinaryURL } from 'src/utils/cloudinary';
@@ -116,13 +116,11 @@ const SneakerPage: NextPage<Props> = ({ id, sneaker }) => {
         <a>Back</a>
       </Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
-        <SimpleImg
-          src={image1x}
-          srcSet={`${image1x} 1x, ${image2x} 2x, ${image3x} 3x`}
+        <Image
+          src={getCloudinaryURL(imagePublicId)}
           alt={title}
-          height={200}
-          width={200}
-          applyAspectRatio
+          height={640}
+          width={640}
           className="w-full h-full overflow-hidden rounded-md"
         />
         <div className="flex flex-col">
