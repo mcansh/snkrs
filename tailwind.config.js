@@ -23,5 +23,5 @@ module.exports = {
     opacity: [...defaultConfig.variants.opacity, 'disabled'],
     cursor: [...defaultConfig.variants.cursor, 'disabled'],
   },
-  plugins: [require('@tailwindcss/ui')],
+  plugins: [],
 };

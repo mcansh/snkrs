@@ -13,7 +13,7 @@ const handler: NextApiHandlerSession = async (req, res) => {
     return res.status(401).json({ error: 'not authenticated' });
   }
 
-  const user = await prisma.user.findOne({ where: { id: userId } });
+  const user = await prisma.user.findUnique({ where: { id: userId } });
 
   if (!user) {
     return res.status(401).json({ error: 'not authenticated' });

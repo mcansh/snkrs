@@ -1,8 +1,7 @@
-import type { SortOrder } from '@prisma/client';
-
+import type { Prisma } from '@prisma/client';
 import { prisma } from 'prisma/db';
 
-function getYearInSneakers(year: number, order: SortOrder = 'asc') {
+function getYearInSneakers(year: number, order: Prisma.SortOrder = 'asc') {
   return prisma.sneaker.findMany({
     orderBy: { purchaseDate: order },
     include: { User: { select: { name: true } } },

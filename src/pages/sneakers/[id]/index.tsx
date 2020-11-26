@@ -37,7 +37,7 @@ export const getStaticProps: GetStaticProps<Props> = async ({
 }) => {
   const id = getParam(params.id);
 
-  const sneaker = await prisma.sneaker.findOne({
+  const sneaker = await prisma.sneaker.findUnique({
     where: { id },
     include: { User: { select: { name: true } } },
   });

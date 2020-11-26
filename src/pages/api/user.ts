@@ -18,7 +18,7 @@ const handler: NextApiHandlerSession<UserResponse> = async (req, res) => {
     return res.status(200).json({ isLoggedIn: false });
   }
 
-  const user = await prisma.user.findOne({
+  const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
       email: true,

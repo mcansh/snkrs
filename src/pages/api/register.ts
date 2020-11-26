@@ -7,7 +7,7 @@ import { prisma } from 'prisma/db';
 import { registerSchema } from 'src/lib/schemas/register';
 
 const handler: NextApiHandlerSession = async (req, res) => {
-  const existingUserEmail = await prisma.user.findOne({
+  const existingUserEmail = await prisma.user.findUnique({
     where: { email: req.body.email },
   });
 
@@ -17,7 +17,7 @@ const handler: NextApiHandlerSession = async (req, res) => {
     });
   }
 
-  const existingUserUsername = await prisma.user.findOne({
+  const existingUserUsername = await prisma.user.findUnique({
     where: { username: req.body.username },
   });
 
