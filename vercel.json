@@ -1,0 +1,22 @@
+{
+  "builds": [
+    {
+      "src": "index.js",
+      "use": "https://github.com/mcansh/vercel-node-public-directory",
+      "config": {
+        "includeFiles": [
+          "remix.config.js",
+          "app-build/**/*",
+          "build/**/*",
+          "data-build/**/*"
+        ]
+      }
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ]
+}

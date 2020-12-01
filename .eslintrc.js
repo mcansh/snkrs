@@ -1,9 +1,15 @@
+const path = require('path');
+
 module.exports = {
   extends: ['@mcansh/eslint-config/typescript'],
+  parserOptions: {
+    project: [
+      path.join(process.cwd(), 'app/tsconfig.json'),
+      path.join(process.cwd(), 'data/tsconfig.json'),
+      path.join(process.cwd(), '@types/tsconfig.json'),
+    ],
+  },
   rules: {
-    'no-use-before-define': 'off',
-    '@typescript-eslint/no-use-before-define': 'error',
-    '@next/next/no-html-link-for-pages': ['warn', 'src/pages'],
     'import/no-extraneous-dependencies': [
       'error',
       {
@@ -12,6 +18,7 @@ module.exports = {
           'next.config.js',
           'lint-staged.config.js',
           'tailwind.config.js',
+          'postcss.config.js',
         ],
       },
     ],

@@ -5,7 +5,7 @@ module.exports = {
   future: 'all',
   experimental: 'all',
   purge: {
-    content: ['./**/{pages,components}/**/*.{js,jsx,ts,tsx}'],
+    content: ['./app/**/*.{js,ts,tsx,md,mdx}', './remix.config.js'],
   },
   theme: {
     extend: {

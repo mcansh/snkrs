@@ -4,7 +4,7 @@ generator client {
 
 datasource postgresql {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url = "***"
 }
 
 model Sneaker {
@@ -35,11 +35,4 @@ model User {
   sneakers  Sneaker[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now()) @updatedAt
-}
-
-model Session {
-  id      String   @id
-  sid     String   @unique
-  data    String
-  expires DateTime
 }
