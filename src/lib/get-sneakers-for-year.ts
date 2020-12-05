@@ -1,4 +1,5 @@
 import type { Prisma } from '@prisma/client';
+
 import { prisma } from 'prisma/db';
 
 function getYearInSneakers(year: number, order: Prisma.SortOrder = 'asc') {
