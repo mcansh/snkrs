@@ -18,3 +18,5 @@ jobs:
         run: |
           npm ci
           npm run validate
+        env:
+          REMIX_REGISTRY_TOKEN: ${{ secrets.REMIX_REGISTRY_TOKEN }}
