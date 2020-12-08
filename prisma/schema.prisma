@@ -21,9 +21,9 @@ model Sneaker {
   soldDate      DateTime?
   soldPrice     Int?
   userId        String
-  User          User      @relation(fields: [userId], references: [id])
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @default(now()) @updatedAt
+  User          User      @relation(fields: [userId], references: [id])
 }
 
 model User {
@@ -32,9 +32,9 @@ model User {
   name      String
   password  String
   username  String    @unique
-  sneakers  Sneaker[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now()) @updatedAt
+  sneakers  Sneaker[]
 }
 
 model Session {

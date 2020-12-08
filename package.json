@@ -31,10 +31,7 @@
     "test": "jest",
     "type-check": "tsc",
     "validate": "npm-run-all --parallel lint type-check test",
-    "db:save": "prisma migrate save --experimental",
-    "db:up": "prisma migrate up --experimental",
-    "db:generate": "prisma generate",
-    "db:migrate": "npm-run-all db:*",
+    "db:migrate": "prisma migrate dev --preview-feature",
     "postinstall": "npm run generate && patch-package",
     "clean": "del .cache build public/build app-build data-build"
   },
