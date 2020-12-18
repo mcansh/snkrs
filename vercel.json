@@ -1,8 +1,12 @@
 {
   "builds": [
     {
+      "src": "public/**",
+      "use": "@vercel/static"
+    },
+    {
       "src": "index.js",
-      "use": "https://github.com/mcansh/vercel-node-public-directory",
+      "use": "@vercel/node",
       "config": {
         "includeFiles": [
           "remix.config.js",
@@ -14,6 +18,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/public/$1"
+    },
     {
       "source": "/(.*)",
       "destination": "/"

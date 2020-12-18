@@ -24,7 +24,6 @@
     "build:css": "postcss styles --base styles --dir app-build/ --env production",
     "build:remix": "remix build",
     "build": "run-s build:*",
-    "vercel-build": "npm run build",
     "start": "node index.js",
     "generate": "prisma generate",
     "lint": "eslint --cache --ext .js,.ts,.tsx .",
@@ -33,7 +32,9 @@
     "validate": "npm-run-all --parallel lint type-check test",
     "db:migrate": "prisma migrate dev --preview-feature",
     "postinstall": "npm run generate && patch-package",
-    "clean": "del .cache build public/build app-build data-build"
+    "clean": "del .cache build public/build app-build data-build",
+    "predeploy": "npm run clean && npm run build",
+    "deploy": "vercel"
   },
   "dependencies": {
     "@headlessui/react": "0.2.0",
