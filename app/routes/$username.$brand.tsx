@@ -4,7 +4,7 @@ import type { Sneaker as SneakerType } from '@prisma/client';
 
 import { Sneaker } from '../components/sneaker';
 
-import FourOhFour from './404';
+import FourOhFour, { meta as fourOhFourMeta } from './404';
 
 interface Props {
   sneakers: SneakerType[];
@@ -16,6 +16,10 @@ interface Props {
 }
 
 const meta = ({ data }: { data: Props }) => {
+  if (!data.user) {
+    return fourOhFourMeta();
+  }
+
   const usernameEndsWithS = data.user.name.toLowerCase().endsWith('s');
 
   const usernameWithApostrophe = usernameEndsWithS
@@ -29,7 +33,7 @@ const meta = ({ data }: { data: Props }) => {
 };
 
 const Index = () => {
-  const { user, sneakers } = useRouteData<Props>();
+  const { user, sneakers, brand } = useRouteData<Props>();
 
   if (!user) {
     return <FourOhFour />;
@@ -46,7 +50,7 @@ const Index = () => {
   return (
     <main className="container min-h-full p-4 mx-auto">
       <h1 className="pb-2 text-xl sm:text-4xl">
-        Sneaker Collection – {sneakers.length} and counting
+        {brand} Sneaker Collection – {sneakers.length} and counting
       </h1>
 
       <ul className="grid grid-cols-1 gap-2 sm:gap-3 md:gap-4 sm:grid-cols-2 md:grid-cols-4">

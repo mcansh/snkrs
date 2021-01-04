@@ -6,7 +6,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { Sneaker } from '../components/sneaker';
 
-import FourOhFour from './404';
+import FourOhFour, { meta as fourOhFourMeta } from './404';
 
 interface Props {
   user: {
@@ -17,6 +17,10 @@ interface Props {
 }
 
 const meta = ({ data }: { data: Props }) => {
+  if (!data.user) {
+    return fourOhFourMeta();
+  }
+
   const usernameEndsWithS = data.user.name.toLowerCase().endsWith('s');
 
   const usernameWithApostrophe = usernameEndsWithS

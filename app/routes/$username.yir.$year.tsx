@@ -4,7 +4,7 @@ import { useRouteData } from '@remix-run/react';
 
 import { Sneaker } from '../components/sneaker';
 
-import FourOhFour from './404';
+import FourOhFour, { meta as fourOhFourMeta } from './404';
 
 interface SneakerYearProps {
   user: {
@@ -16,6 +16,10 @@ interface SneakerYearProps {
 }
 
 const meta = ({ data }: { data: SneakerYearProps }) => {
+  if (!data.user) {
+    return fourOhFourMeta();
+  }
+
   const sneakers = data.user.sneakers.length === 1 ? 'sneaker' : 'sneakers';
   return {
     title: data.year,
