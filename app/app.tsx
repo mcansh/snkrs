@@ -1,6 +1,13 @@
 import React from 'react';
-import { Meta, Scripts, Styles, Routes, useGlobalData } from '@remix-run/react';
-// import * as Fathom from 'fathom-client';
+import {
+  Meta,
+  Scripts,
+  Styles,
+  Routes,
+  useGlobalData,
+  usePendingLocation,
+} from '@remix-run/react';
+import * as Fathom from 'fathom-client';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 
@@ -10,15 +17,15 @@ const noScriptPaths = new Set<string>([]);
 
 const App: React.VFC = () => {
   const { flash } = useGlobalData<{ flash?: Flash }>();
+  const pendingLocation = usePendingLocation();
   const location = useLocation();
   const includeScripts = !noScriptPaths.has(location.pathname);
 
   React.useEffect(() => {
-    console.log('usually load fathom analytics');
-    // Fathom.load('HIUAENVC', {
-    //   excludedDomains: ['localhost'],
-    //   url: 'https://kiwi.mcan.sh/script.js',
-    // });
+    Fathom.load('HIUAENVC', {
+      excludedDomains: ['localhost'],
+      url: 'https://kiwi.mcan.sh/script.js',
+    });
   }, []);
 
   return (
@@ -71,7 +78,12 @@ const App: React.VFC = () => {
         <Meta />
         <Styles />
       </head>
-      <body>
+      <body
+        style={{
+          opacity: pendingLocation ? 0.6 : undefined,
+          cursor: pendingLocation ? 'not-allowed' : undefined,
+        }}
+      >
         <AnimatePresence initial={includeScripts}>
           {flash && (
             <motion.div

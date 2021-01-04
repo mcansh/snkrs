@@ -6,6 +6,7 @@
 .eslintcache
 .vercel
 
+/.build-cache
 /.cache
 /app-build
 /data-build
