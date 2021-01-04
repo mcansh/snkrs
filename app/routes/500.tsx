@@ -9,7 +9,12 @@ function meta() {
 const FiveHundred: React.VFC = () => {
   console.error('Check your server terminal output');
 
-  return <h1>500</h1>;
+  return (
+    <div className="flex flex-col items-center justify-center w-full h-full">
+      <h1 className="text-3xl">500</h1>
+      <p>Something went wrong</p>
+    </div>
+  );
 };
 
 export default FiveHundred;
