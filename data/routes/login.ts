@@ -4,6 +4,7 @@ import { verify } from 'argon2';
 
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
 import type { Context } from '../db';
+import { InvalidLoginError } from '../errors';
 import { flashMessage } from '../flash-message';
 
 const action: Action = async ({ session, request, context }) => {
@@ -14,36 +15,34 @@ const action: Action = async ({ session, request, context }) => {
 
   const redirectAfterLogin = session.get(redirectKey);
 
-  const foundUser = await prisma.user.findUnique({
-    where: { email },
-  });
+  try {
+    const foundUser = await prisma.user.findUnique({
+      where: { email },
+    });
 
-  if (!foundUser) {
+    if (!foundUser) {
+      throw new InvalidLoginError();
+    }
+
+    const valid = await verify(foundUser.password, password);
+
+    if (!valid) {
+      throw new InvalidLoginError();
+    }
+
+    session.set(sessionKey, foundUser.id);
     session.flash(
       flashMessageKey,
-      flashMessage('Invalid Username/Password combo', 'error')
+      flashMessage(`Welcome back ${foundUser.username}!`, 'success')
     );
+    session.unset(redirectKey);
+    return redirect(redirectAfterLogin ? redirectAfterLogin : '/');
+  } catch (error) {
+    if (error instanceof InvalidLoginError) {
+      session.flash(flashMessageKey, flashMessage(error.message, 'error'));
+    }
     return redirect(`/login`);
   }
-
-  const valid = await verify(foundUser.password, password);
-
-  if (!valid) {
-    session.flash(
-      flashMessageKey,
-      flashMessage('Invalid Username/Password combo', 'error')
-    );
-
-    return redirect(`/login`);
-  }
-
-  session.set(sessionKey, foundUser.id);
-  session.flash(
-    flashMessageKey,
-    flashMessage(`Welcome back ${foundUser.username}!`, 'success')
-  );
-  session.unset(redirectKey);
-  return redirect(redirectAfterLogin ? redirectAfterLogin : '/');
 };
 
 export { action };
