@@ -14,6 +14,7 @@ const loader: Loader = async ({ context, params }) => {
       select: {
         name: true,
         username: true,
+        id: true,
       },
     });
 
@@ -22,18 +23,20 @@ const loader: Loader = async ({ context, params }) => {
     }
 
     const sneakers = await prisma.sneaker.findMany({
-      where: { User: { username } },
+      where: {
+        User: { id: user.id },
+        brand: {
+          equals: brand,
+          mode: 'insensitive',
+        },
+      },
       orderBy: { purchaseDate: 'desc' },
     });
 
-    const filteredSneakers = sneakers.filter(
-      sneaker => sneaker.brand.toLowerCase() === brand.toLowerCase()
-    );
-
     const body = JSON.stringify({
-      sneakers: filteredSneakers,
+      sneakers,
       user,
-      brand: filteredSneakers[0].brand ?? brand,
+      brand: sneakers[0].brand ?? brand,
     });
 
     return new Response(body, {
