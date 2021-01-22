@@ -9,7 +9,6 @@
 /.build-cache
 /.cache
 /app-build
-/data-build
 /public/build
 /prisma/node_modules
 /build

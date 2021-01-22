@@ -23,4 +23,7 @@ const loader: Loader = async ({ session, context }) => {
   return redirect(`/loganmcansh`);
 };
 
+const IndexPage = () => null;
+
+export default IndexPage;
 export { loader };

@@ -7,10 +7,15 @@ import {
   useRouteData,
 } from '@remix-run/react';
 import { format, parseISO } from 'date-fns';
+import type { Loader } from '@remix-run/data';
+import { redirect } from '@remix-run/data';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
 import { formatMoney } from '../utils/format-money';
+import { redirectKey, sessionKey } from '../constants';
+import type { Context } from '../db';
+import { AuthorizationError } from '../errors';
 
 // const schema = Yup.object().shape({
 //   model: Yup.string().required(),
@@ -42,6 +47,46 @@ interface Props {
   };
 }
 
+const loader: Loader = async ({ params, session, context }) => {
+  const { prisma } = context as Context;
+
+  try {
+    const sneaker = await prisma.sneaker.findUnique({
+      where: { id: params.sneakerId },
+      include: { User: { select: { name: true, id: true } } },
+    });
+
+    const userId = session.get(sessionKey);
+
+    const userCreatedSneaker = sneaker?.User.id === userId;
+
+    if (!userId || !userCreatedSneaker) {
+      throw new AuthorizationError();
+    }
+
+    const body = JSON.stringify({
+      sneaker,
+      id: params.sneakerId,
+      userCreatedSneaker,
+    });
+
+    return new Response(body, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control':
+          'max-age=300, s-maxage=600, stale-while-revalidate=31536000',
+      },
+    });
+  } catch (error) {
+    if (error instanceof AuthorizationError) {
+      session.set(redirectKey, `/sneakers/${params.sneakerId}/edit`);
+    }
+
+    return redirect(`/login`);
+  }
+};
+
 const formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
 const EditSneakerPage: React.VFC = () => {
@@ -63,21 +108,21 @@ const EditSneakerPage: React.VFC = () => {
   const image2x = getCloudinaryURL(imagePublicId, { width: 800, crop: 'pad' });
   const image3x = getCloudinaryURL(imagePublicId, { width: 1200, crop: 'pad' });
   /*
-              const valuesAreEqual = dequal(form.values, {
-              model: sneaker.model,
-              colorway: sneaker.colorway,
-              brand: sneaker.brand,
-              size: sneaker.size,
-              imagePublicId: sneaker.imagePublicId,
-              price: sneaker.price,
-              retailPrice: sneaker.retailPrice,
-              purchaseDate: format(sneaker.purchaseDate, formatter),
-              sold: sneaker.sold,
-              soldDate: sneaker.soldDate
-                ? format(sneaker.soldDate, formatter)
-                : undefined,
-              soldPrice: sneaker.soldPrice,
-            });
+    const valuesAreEqual = dequal(form.values, {
+      model: sneaker.model,
+      colorway: sneaker.colorway,
+      brand: sneaker.brand,
+      size: sneaker.size,
+      imagePublicId: sneaker.imagePublicId,
+      price: sneaker.price,
+      retailPrice: sneaker.retailPrice,
+      purchaseDate: format(sneaker.purchaseDate, formatter),
+      sold: sneaker.sold,
+      soldDate: sneaker.soldDate
+        ? format(sneaker.soldDate, formatter)
+        : undefined,
+      soldPrice: sneaker.soldPrice,
+    });
    */
 
   return (
@@ -96,15 +141,17 @@ const EditSneakerPage: React.VFC = () => {
       /> */}
       <Link to={`/sneakers/${sneaker.id}`}>Back</Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
-        <img
-          src={image2x}
-          srcSet={`${image1x} 1x, ${image2x} 2x, ${image3x} 3x`}
-          alt={title}
-          height={1200}
-          width={1200}
-          className="w-full h-full overflow-hidden rounded-md"
-          loading="lazy"
-        />
+        <div className="relative" style={{ paddingBottom: '100%' }}>
+          <img
+            src={image2x}
+            srcSet={`${image1x} 1x, ${image2x} 2x, ${image3x} 3x`}
+            alt={title}
+            height={1200}
+            width={1200}
+            className="absolute inset-0 overflow-hidden rounded-md"
+            loading="lazy"
+          />
+        </div>
         <div>
           <h1 className="text-2xl">{title}</h1>
           <p className="text-xl">{formatMoney(sneaker.price)}</p>
@@ -215,3 +262,4 @@ const EditSneakerPage: React.VFC = () => {
 };
 
 export default EditSneakerPage;
+export { loader };

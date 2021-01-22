@@ -1,16 +1,60 @@
-import { Form, usePendingFormSubmit, useRouteData } from '@remix-run/react';
+import { Form, usePendingFormSubmit } from '@remix-run/react';
 import React from 'react';
 import { useLocation } from 'react-router-dom';
+import type { Action } from '@remix-run/data';
+import { redirect, parseFormBody } from '@remix-run/data';
+import { verify } from 'argon2';
 
-export const meta = () => ({
+import { flashMessageKey, redirectKey, sessionKey } from '../constants';
+import type { Context } from '../db';
+import { InvalidLoginError } from '../errors';
+import { flashMessage } from '../flash-message';
+
+const action: Action = async ({ session, request, context }) => {
+  const { prisma } = context as Context;
+  const body = await parseFormBody(request);
+  const email = body.get('email') as string;
+  const password = body.get('password') as string;
+
+  const redirectAfterLogin = session.get(redirectKey);
+
+  try {
+    const foundUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!foundUser) {
+      throw new InvalidLoginError();
+    }
+
+    const valid = await verify(foundUser.password, password);
+
+    if (!valid) {
+      throw new InvalidLoginError();
+    }
+
+    session.set(sessionKey, foundUser.id);
+    session.flash(
+      flashMessageKey,
+      flashMessage(`Welcome back ${foundUser.username}!`, 'success')
+    );
+    session.unset(redirectKey);
+    return redirect(redirectAfterLogin ? redirectAfterLogin : '/');
+  } catch (error) {
+    if (error instanceof InvalidLoginError) {
+      session.flash(flashMessageKey, flashMessage(error.message, 'error'));
+    }
+    return redirect(`/login`);
+  }
+};
+
+const meta = () => ({
   title: 'Log in',
 });
 
 const Login: React.VFC = () => {
   const pendingForm = usePendingFormSubmit();
   const location = useLocation();
-  const data = useRouteData();
-  console.log(pendingForm, data);
 
   return (
     <div className="w-11/12 max-w-lg py-8 mx-auto">
@@ -54,3 +98,4 @@ const Login: React.VFC = () => {
 };
 
 export default Login;
+export { meta, action };

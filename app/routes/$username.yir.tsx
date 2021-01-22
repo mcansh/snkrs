@@ -7,4 +7,7 @@ const loader: Loader = ({ params: { username } }) => {
   return redirect(`/${username}/yir/${currentYear}`);
 };
 
+const YearInReviewUserIndexPage = () => null;
+
+export default YearInReviewUserIndexPage;
 export { loader };

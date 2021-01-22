@@ -1,11 +1,17 @@
 import React from 'react';
 import type { Sneaker as SneakerType, User } from '@prisma/client';
 import { Link, useRouteData } from '@remix-run/react';
+import type { Action, Loader } from '@remix-run/data';
+import { parseFormBody, redirect } from '@remix-run/data';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
 import { formatMoney } from '../utils/format-money';
 import { copy } from '../utils/copy';
+import { flashMessageKey, redirectKey, sessionKey } from '../constants';
+import type { Context } from '../db';
+import { AuthorizationError } from '../errors';
+import { flashMessage } from '../flash-message';
 
 type SneakerWithUser = SneakerType & {
   User: Pick<User, 'name' | 'id' | 'username'>;
@@ -16,6 +22,105 @@ interface Props {
   id: string;
   userCreatedSneaker: boolean;
 }
+
+const loader: Loader = async ({ params, session, context }) => {
+  const { prisma } = context as Context;
+  const sneaker = await prisma.sneaker.findUnique({
+    where: { id: params.sneakerId },
+    include: { User: { select: { name: true, id: true, username: true } } },
+  });
+
+  const userCreatedSneaker = sneaker?.User.id === session.get(sessionKey);
+
+  const body = JSON.stringify({
+    sneaker,
+    id: params.sneakerId,
+    userCreatedSneaker,
+  });
+
+  return new Response(body, {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control':
+        'max-age=300, s-maxage=600, stale-while-revalidate=31536000',
+    },
+  });
+};
+
+const action: Action = async ({ request, params, session, context }) => {
+  const { prisma } = context as Context;
+  const userId = session.get(sessionKey);
+  const { sneakerId } = params;
+
+  try {
+    const body = await parseFormBody(request);
+
+    if (!userId) {
+      throw new AuthorizationError();
+    }
+
+    // const sneaker = await prisma.sneaker.findUnique({
+    //   where: { id },
+    // });
+
+    // if (!sneaker) {
+    //   return res.status(404).json({ error: 'No sneaker with that id' });
+    // }
+
+    // if (sneaker.userId !== userId) {
+    //   return res.status(401).json({ error: "you don't own that sneaker" });
+    // }
+
+    const bodyObj = Object.fromEntries(body);
+
+    const purchaseDate = bodyObj.purchaseDate
+      ? new Date(bodyObj.purchaseDate as string)
+      : undefined;
+
+    const soldDate = bodyObj.soldDate
+      ? new Date(bodyObj.soldDate as string)
+      : undefined;
+
+    const price = bodyObj.price
+      ? parseInt(bodyObj.price as string, 10)
+      : undefined;
+
+    const retailPrice = bodyObj.retailPrice
+      ? parseInt(bodyObj.retailPrice as string, 10)
+      : undefined;
+
+    const soldPrice = bodyObj.soldPrice
+      ? parseInt(bodyObj.soldPrice as string, 10)
+      : undefined;
+
+    await prisma.sneaker.update({
+      where: { id: sneakerId },
+      data: {
+        ...bodyObj,
+        soldDate,
+        purchaseDate,
+        price,
+        retailPrice,
+        soldPrice,
+      },
+    });
+
+    session.flash(
+      flashMessageKey,
+      flashMessage(`Updated ${sneakerId}`, 'success')
+    );
+
+    return redirect(`/sneakers/${sneakerId}`);
+  } catch (error) {
+    if (error instanceof AuthorizationError) {
+      session.set(redirectKey, `/sneakers/${sneakerId}`);
+      session.flash(flashMessageKey, flashMessage(error.message, 'error'));
+    }
+
+    return redirect(`/login`);
+  }
+};
 
 const meta = ({ data: { sneaker } }: { data: Props }) => {
   const date = formatDate(sneaker.purchaseDate, {
@@ -65,12 +170,7 @@ const SneakerPage: React.VFC = () => {
     <main className="container min-h-full p-4 mx-auto">
       <Link to="/">Back</Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
-        <div
-          className="relative"
-          style={{
-            paddingBottom: '100%',
-          }}
-        >
+        <div className="relative" style={{ paddingBottom: '100%' }}>
           <img
             src={image2x}
             srcSet={`${image1x} 1x, ${image2x} 2x, ${image3x} 3x`}
@@ -98,6 +198,13 @@ const SneakerPage: React.VFC = () => {
             Purchased on{' '}
             <time dateTime={new Date(sneaker.purchaseDate).toISOString()}>
               {formatDate(sneaker.purchaseDate)}
+            </time>
+          </p>
+
+          <p>
+            Last Updated{' '}
+            <time dateTime={new Date(sneaker.updatedAt).toISOString()}>
+              {formatDate(sneaker.updatedAt)}
             </time>
           </p>
 
@@ -158,4 +265,4 @@ const SneakerPage: React.VFC = () => {
 };
 
 export default SneakerPage;
-export { meta };
+export { meta, loader, action };
