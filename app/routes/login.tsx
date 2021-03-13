@@ -1,18 +1,21 @@
+import * as React from 'react';
 import { Form, usePendingFormSubmit } from '@remix-run/react';
-import React from 'react';
 import { useLocation } from 'react-router-dom';
 import type { Action } from '@remix-run/data';
-import { redirect, parseFormBody } from '@remix-run/data';
+import { redirect } from '@remix-run/data';
 import { verify } from 'argon2';
 
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
 import type { Context } from '../db';
 import { InvalidLoginError } from '../errors';
 import { flashMessage } from '../flash-message';
+import { commitSession, getSession } from '../session';
 
-const action: Action = async ({ session, request, context }) => {
+const action: Action = async ({ request, context }) => {
+  const session = await getSession(request.headers.get('Cookie'));
   const { prisma } = context as Context;
-  const body = await parseFormBody(request);
+  const reqBody = await request.text();
+  const body = new URLSearchParams(reqBody);
   const email = body.get('email') as string;
   const password = body.get('password') as string;
 
@@ -39,12 +42,20 @@ const action: Action = async ({ session, request, context }) => {
       flashMessage(`Welcome back ${foundUser.username}!`, 'success')
     );
     session.unset(redirectKey);
-    return redirect(redirectAfterLogin ? redirectAfterLogin : '/');
+    return redirect(redirectAfterLogin ? redirectAfterLogin : '/', {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    });
   } catch (error) {
     if (error instanceof InvalidLoginError) {
       session.flash(flashMessageKey, flashMessage(error.message, 'error'));
     }
-    return redirect(`/login`);
+    return redirect(`/login`, {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    });
   }
 };
 

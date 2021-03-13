@@ -1,4 +1,5 @@
 import React from 'react';
+import type { HeadersFunction } from '@remix-run/react';
 import { useRouteData } from '@remix-run/react';
 import type { Sneaker as SneakerType } from '@prisma/client';
 import { useNavigate } from 'react-router';
@@ -40,6 +41,10 @@ const meta = ({ data }: { data: Props }) => {
     description: `${usernameWithApostrophe} sneaker collection`,
   };
 };
+
+const headers: HeadersFunction = ({ loaderHeaders }) => ({
+  'Cache-Control': loaderHeaders.get('Cache-Control'),
+});
 
 const loader: Loader = async ({ context, params }) => {
   const { username } = params;
@@ -207,4 +212,4 @@ const Index = () => {
 };
 
 export default Index;
-export { meta, loader };
+export { meta, loader, headers };

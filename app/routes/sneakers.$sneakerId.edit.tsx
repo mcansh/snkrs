@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Sneaker as SneakerType } from '@prisma/client';
+import type { HeadersFunction } from '@remix-run/react';
 import {
   Form,
   Link,
@@ -16,6 +17,7 @@ import { formatMoney } from '../utils/format-money';
 import { redirectKey, sessionKey } from '../constants';
 import type { Context } from '../db';
 import { AuthorizationError } from '../errors';
+import { commitSession, getSession } from '../session';
 
 // const schema = Yup.object().shape({
 //   model: Yup.string().required(),
@@ -47,8 +49,13 @@ interface Props {
   };
 }
 
-const loader: Loader = async ({ params, session, context }) => {
+const headers: HeadersFunction = ({ loaderHeaders }) => ({
+  'Cache-Control': loaderHeaders.get('Cache-Control'),
+});
+
+const loader: Loader = async ({ params, request, context }) => {
   const { prisma } = context as Context;
+  const session = await getSession(request.headers.get('Cookie'));
 
   try {
     const sneaker = await prisma.sneaker.findUnique({
@@ -83,7 +90,9 @@ const loader: Loader = async ({ params, session, context }) => {
       session.set(redirectKey, `/sneakers/${params.sneakerId}/edit`);
     }
 
-    return redirect(`/login`);
+    return redirect(`/login`, {
+      headers: { 'Set-Cookie': await commitSession(session) },
+    });
   }
 };
 
@@ -262,4 +271,4 @@ const EditSneakerPage: React.VFC = () => {
 };
 
 export default EditSneakerPage;
-export { loader };
+export { loader, headers };

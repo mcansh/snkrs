@@ -4,8 +4,10 @@ import { redirect } from '@remix-run/data';
 import { flashMessageKey, sessionKey } from '../constants';
 import type { Context } from '../db';
 import { flashMessage } from '../flash-message';
+import { commitSession, getSession } from '../session';
 
-const loader: Loader = async ({ session, context }) => {
+const loader: Loader = async ({ request, context }) => {
+  const session = await getSession(request.headers.get('Cookie'));
   const { prisma } = context as Context;
   const userId = session.get(sessionKey);
 
@@ -17,7 +19,11 @@ const loader: Loader = async ({ session, context }) => {
     }
 
     session.flash(flashMessageKey, flashMessage('User not found', 'error'));
-    return redirect(`/loganmcansh`);
+    return redirect(`/loganmcansh`, {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    });
   }
 
   return redirect(`/loganmcansh`);

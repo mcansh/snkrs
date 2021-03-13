@@ -1,22 +1,49 @@
-import React from 'react';
+import * as React from 'react';
+import type { LinksFunction } from '@remix-run/react';
 import {
+  Links,
   Meta,
   Scripts,
-  Styles,
-  Routes,
-  useGlobalData,
   usePendingLocation,
+  useRouteData,
 } from '@remix-run/react';
 import * as Fathom from 'fathom-client';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import type { Loader } from '@remix-run/data';
 
+// eslint-disable-next-line import/no-unresolved, import/extensions
+import globalCSS from 'css:./styles/global.css';
 import type { Flash } from './@types/flash';
+import { flashMessageKey } from './constants';
+import { commitSession, getSession } from './session';
 
 const noScriptPaths = new Set<string>([]);
 
+interface RouteData {
+  flash?: Flash;
+}
+
+const links: LinksFunction = () => [{ rel: 'stylesheet', href: globalCSS }];
+
+const loader: Loader = async ({ request }) => {
+  const session = await getSession(request.headers.get('Cookie'));
+  const flash = session.get(flashMessageKey);
+
+  if (flash) {
+    return new Response(JSON.stringify({ flash }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Set-Cookie': await commitSession(session),
+      },
+    });
+  }
+  return { flash: undefined };
+};
+
 const App: React.VFC = () => {
-  const { flash } = useGlobalData<{ flash?: Flash }>();
+  const { flash } = useRouteData<RouteData>();
   const pendingLocation = usePendingLocation();
   const location = useLocation();
   const includeScripts = !noScriptPaths.has(location.pathname);
@@ -76,7 +103,7 @@ const App: React.VFC = () => {
         <meta property="og:title" content="Home | Sneaker Collection" />
         <meta property="og:locale" content="en_US" />
         <Meta />
-        <Styles />
+        <Links />
       </head>
       <body
         style={{
@@ -109,11 +136,12 @@ const App: React.VFC = () => {
           )}
         </AnimatePresence>
 
-        <Routes />
+        <Outlet />
         {includeScripts && <Scripts />}
       </body>
     </html>
   );
 };
 
-export { App };
+export default App;
+export { links, loader };

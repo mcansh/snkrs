@@ -1,12 +1,13 @@
 import React from 'react';
 import { Form, usePendingFormSubmit } from '@remix-run/react';
 import type { Action, Loader } from '@remix-run/data';
-import { parseFormBody, redirect } from '@remix-run/data';
+import { redirect } from '@remix-run/data';
 
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
 import type { Context } from '../db';
 import { AuthorizationError } from '../errors';
 import { flashMessage } from '../flash-message';
+import { commitSession, getSession } from '../session';
 
 // const schema = Yup.object().shape({
 //   model: Yup.string().required(),
@@ -34,7 +35,8 @@ const meta = () => ({
   title: 'Add a sneaker to your collection',
 });
 
-const loader: Loader = ({ session }) => {
+const loader: Loader = async ({ request }) => {
+  const session = await getSession(request.headers.get('Cookie'));
   const userId = session.get(sessionKey);
   try {
     if (!userId) {
@@ -47,15 +49,21 @@ const loader: Loader = ({ session }) => {
       session.flash(flashMessageKey, flashMessage(error.message, 'error'));
       session.set(redirectKey, `/sneakers/add`);
     }
-    return redirect(`/login`);
+    return redirect(`/login`, {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    });
   }
 };
 
-const action: Action = async ({ request, session, context }) => {
+const action: Action = async ({ request, context }) => {
   const { prisma } = context as Context;
+  const session = await getSession(request.headers.get('Cookie'));
 
   try {
-    const formData = (await parseFormBody(request)) as FormData;
+    const reqBody = await request.text();
+    const formData = new URLSearchParams(reqBody);
 
     const userId = session.get(sessionKey);
 
@@ -91,7 +99,11 @@ const action: Action = async ({ request, session, context }) => {
       session.flash(flashMessageKey, flashMessage(error.message, 'error'));
       session.set(redirectKey, `/sneakers/add`);
     }
-    return redirect(`/login`);
+    return redirect(`/login`, {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    });
   }
 };
 

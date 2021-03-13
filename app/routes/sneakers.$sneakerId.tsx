@@ -1,8 +1,9 @@
 import React from 'react';
 import type { Sneaker as SneakerType, User } from '@prisma/client';
+import type { HeadersFunction } from '@remix-run/react';
 import { Link, useRouteData } from '@remix-run/react';
 import type { Action, Loader } from '@remix-run/data';
-import { parseFormBody, redirect } from '@remix-run/data';
+import { redirect } from '@remix-run/data';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
@@ -12,6 +13,7 @@ import { flashMessageKey, redirectKey, sessionKey } from '../constants';
 import type { Context } from '../db';
 import { AuthorizationError } from '../errors';
 import { flashMessage } from '../flash-message';
+import { commitSession, getSession } from '../session';
 
 type SneakerWithUser = SneakerType & {
   User: Pick<User, 'name' | 'id' | 'username'>;
@@ -23,7 +25,12 @@ interface Props {
   userCreatedSneaker: boolean;
 }
 
-const loader: Loader = async ({ params, session, context }) => {
+const headers: HeadersFunction = ({ loaderHeaders }) => ({
+  'Cache-Control': loaderHeaders.get('Cache-Control'),
+});
+
+const loader: Loader = async ({ params, request, context }) => {
+  const session = await getSession(request.headers.get('Cookie'));
   const { prisma } = context as Context;
   const sneaker = await prisma.sneaker.findUnique({
     where: { id: params.sneakerId },
@@ -48,13 +55,15 @@ const loader: Loader = async ({ params, session, context }) => {
   });
 };
 
-const action: Action = async ({ request, params, session, context }) => {
+const action: Action = async ({ request, params, context }) => {
+  const session = await getSession(request.headers.get('Cookie'));
   const { prisma } = context as Context;
   const userId = session.get(sessionKey);
   const { sneakerId } = params;
 
   try {
-    const body = await parseFormBody(request);
+    const reqBody = await request.text();
+    const body = new URLSearchParams(reqBody);
 
     if (!userId) {
       throw new AuthorizationError();
@@ -111,14 +120,22 @@ const action: Action = async ({ request, params, session, context }) => {
       flashMessage(`Updated ${sneakerId}`, 'success')
     );
 
-    return redirect(`/sneakers/${sneakerId}`);
+    return redirect(`/sneakers/${sneakerId}`, {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    });
   } catch (error) {
     if (error instanceof AuthorizationError) {
       session.set(redirectKey, `/sneakers/${sneakerId}`);
       session.flash(flashMessageKey, flashMessage(error.message, 'error'));
     }
 
-    return redirect(`/login`);
+    return redirect(`/login`, {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    });
   }
 };
 
@@ -265,4 +282,4 @@ const SneakerPage: React.VFC = () => {
 };
 
 export default SneakerPage;
-export { meta, loader, action };
+export { meta, loader, action, headers };

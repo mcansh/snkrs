@@ -1,18 +1,12 @@
 {
-  "github": {
-    "enabled": false
-  },
   "builds": [
     {
-      "src": "public/**",
+      "src": "public/**/*",
       "use": "@vercel/static"
     },
     {
       "src": "index.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["remix.config.js", "app-build/**/*", "build/**/*"]
-      }
+      "use": "@vercel/node"
     }
   ],
   "rewrites": [
@@ -23,6 +17,17 @@
     {
       "source": "/(.*)",
       "destination": "/"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/build/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000"
+        }
+      ]
     }
   ]
 }

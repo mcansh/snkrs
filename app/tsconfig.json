@@ -1,12 +1,13 @@
 {
-  "extends": "../config/shared-tsconfig.json",
-  "include": ["**/*"],
+  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
-    // The Remix compiler takes care of compiling everything in the `app`
-    // directory, so we don't need to emit anything with `tsc`.
-    // "noEmit": true,
-    "outDir": "../app-build",
-    "module": "commonjs",
-    "allowJs": true
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "node",
+    "target": "ES2019",
+    "module": "ES2020",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true
   }
 }

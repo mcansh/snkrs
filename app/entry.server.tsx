@@ -1,9 +1,7 @@
-import React from 'react';
+import * as React from 'react';
 import { renderToString } from 'react-dom/server';
 import Remix from '@remix-run/react/server';
 import type { EntryContext } from '@remix-run/core';
-
-import { App } from './app';
 
 export default function handleRequest(
   request: Request,
@@ -12,9 +10,7 @@ export default function handleRequest(
   remixContext: EntryContext
 ) {
   const markup = renderToString(
-    <Remix url={request.url} context={remixContext}>
-      <App />
-    </Remix>
+    <Remix url={request.url} context={remixContext} />
   );
 
   return new Response(`<!DOCTYPE html>${markup}`, {

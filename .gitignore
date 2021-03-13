@@ -12,4 +12,3 @@
 /public/build
 /prisma/node_modules
 /build
-/app/**/*.css
