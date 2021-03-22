@@ -16,6 +16,7 @@
   },
   "scripts": {
     "dev": "remix run",
+    "vercel-build": "npm run build",
     "build": "remix build",
     "generate": "prisma generate",
     "lint": "eslint --cache --ext .js,.ts,.tsx .",
