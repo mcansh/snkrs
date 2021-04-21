@@ -1,17 +1,13 @@
-import type { Loader } from '@remix-run/data';
-import { redirect } from '@remix-run/data';
+import type { LoaderFunction } from '@remix-run/node';
+import { redirect } from '@remix-run/node';
 
-import { flashMessageKey, sessionKey } from '../constants';
-import { flashMessage } from '../flash-message';
-import { commitSession, getSession } from '../session';
+import { destroySession, getSession } from '../session';
 
-const loader: Loader = async ({ request }) => {
+const loader: LoaderFunction = async ({ request }) => {
   const session = await getSession(request.headers.get('Cookie'));
-  session.unset(sessionKey);
-  session.flash(flashMessageKey, flashMessage('See ya later ✌️', 'info'));
   return redirect('/', {
     headers: {
-      'Set-Cookie': await commitSession(session),
+      'Set-Cookie': await destroySession(session),
     },
   });
 };

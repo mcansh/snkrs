@@ -6,25 +6,6 @@ module.exports = {
     project: [path.join(process.cwd(), 'app/tsconfig.json')],
   },
   rules: {
-    'import/order': [
-      'error',
-      {
-        pathGroups: [
-          {
-            pattern: 'img:*',
-            group: 'internal',
-          },
-          {
-            pattern: 'url:*',
-            group: 'internal',
-          },
-          {
-            pattern: 'css:*',
-            group: 'internal',
-          },
-        ],
-      },
-    ],
     'import/no-extraneous-dependencies': [
       'error',
       {

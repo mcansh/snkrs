@@ -2,8 +2,8 @@ import React from 'react';
 import type { Sneaker as SneakerType, User } from '@prisma/client';
 import type { HeadersFunction } from '@remix-run/react';
 import { Link, useRouteData } from '@remix-run/react';
-import type { Action, Loader } from '@remix-run/data';
-import { redirect } from '@remix-run/data';
+import type { ActionFunction, LoaderFunction } from '@remix-run/node';
+import { redirect } from '@remix-run/node';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
@@ -26,10 +26,10 @@ interface Props {
 }
 
 const headers: HeadersFunction = ({ loaderHeaders }) => ({
-  'Cache-Control': loaderHeaders.get('Cache-Control'),
+  'Cache-Control': loaderHeaders.get('Cache-Control') ?? 'no-cache',
 });
 
-const loader: Loader = async ({ params, request, context }) => {
+const loader: LoaderFunction = async ({ params, request, context }) => {
   const session = await getSession(request.headers.get('Cookie'));
   const { prisma } = context as Context;
   const sneaker = await prisma.sneaker.findUnique({
@@ -55,7 +55,7 @@ const loader: Loader = async ({ params, request, context }) => {
   });
 };
 
-const action: Action = async ({ request, params, context }) => {
+const action: ActionFunction = async ({ request, params, context }) => {
   const session = await getSession(request.headers.get('Cookie'));
   const { prisma } = context as Context;
   const userId = session.get(sessionKey);

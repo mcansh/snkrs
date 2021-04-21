@@ -5,8 +5,8 @@ import type { Sneaker as SneakerType } from '@prisma/client';
 import { useNavigate } from 'react-router';
 import { useSearchParams } from 'react-router-dom';
 import { Listbox } from '@headlessui/react';
-import type { Loader } from '@remix-run/data';
-import { json } from '@remix-run/data';
+import type { LoaderFunction } from '@remix-run/node';
+import { json } from '@remix-run/node';
 
 import { Sneaker } from '../components/sneaker';
 import { ChevronDownIcon } from '../components/icons/chevron-down';
@@ -43,10 +43,10 @@ const meta = ({ data }: { data: Props }) => {
 };
 
 const headers: HeadersFunction = ({ loaderHeaders }) => ({
-  'Cache-Control': loaderHeaders.get('Cache-Control'),
+  'Cache-Control': loaderHeaders.get('Cache-Control') ?? 'no-cache',
 });
 
-const loader: Loader = async ({ context, params }) => {
+const loader: LoaderFunction = async ({ context, params }) => {
   const { username } = params;
   const { prisma } = context as Context;
 

@@ -8,7 +8,7 @@
 
 /.build-cache
 /.cache
-/app-build
+/build
 /public/build
 /prisma/node_modules
-/build
+app/styles

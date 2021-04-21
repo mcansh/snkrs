@@ -1,8 +1,8 @@
 import React from 'react';
 import type { Sneaker as SneakerType } from '@prisma/client';
 import { useRouteData } from '@remix-run/react';
-import type { Loader } from '@remix-run/data';
-import { json } from '@remix-run/data';
+import type { LoaderFunction } from '@remix-run/node';
+import { json } from '@remix-run/node';
 
 import { Sneaker } from '../components/sneaker';
 import type { Context } from '../db';
@@ -19,7 +19,7 @@ interface SneakerYearProps {
   year: number;
 }
 
-const loader: Loader = async ({ params, context }) => {
+const loader: LoaderFunction = async ({ params, context }) => {
   const { prisma } = context as Context;
   const { username } = params;
   const year = parseInt(params.year, 10);

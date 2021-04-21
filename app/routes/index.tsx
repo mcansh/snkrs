@@ -1,12 +1,12 @@
-import type { Loader } from '@remix-run/data';
-import { redirect } from '@remix-run/data';
+import type { LoaderFunction } from '@remix-run/node';
+import { redirect } from '@remix-run/node';
 
 import { flashMessageKey, sessionKey } from '../constants';
 import type { Context } from '../db';
 import { flashMessage } from '../flash-message';
 import { commitSession, getSession } from '../session';
 
-const loader: Loader = async ({ request, context }) => {
+const loader: LoaderFunction = async ({ request, context }) => {
   const session = await getSession(request.headers.get('Cookie'));
   const { prisma } = context as Context;
   const userId = session.get(sessionKey);

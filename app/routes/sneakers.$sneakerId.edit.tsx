@@ -8,8 +8,8 @@ import {
   useRouteData,
 } from '@remix-run/react';
 import { format, parseISO } from 'date-fns';
-import type { Loader } from '@remix-run/data';
-import { redirect } from '@remix-run/data';
+import type { LoaderFunction } from '@remix-run/node';
+import { redirect } from '@remix-run/node';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
@@ -50,10 +50,10 @@ interface Props {
 }
 
 const headers: HeadersFunction = ({ loaderHeaders }) => ({
-  'Cache-Control': loaderHeaders.get('Cache-Control'),
+  'Cache-Control': loaderHeaders.get('Cache-Control') ?? 'no-cache',
 });
 
-const loader: Loader = async ({ params, request, context }) => {
+const loader: LoaderFunction = async ({ params, request, context }) => {
   const { prisma } = context as Context;
   const session = await getSession(request.headers.get('Cookie'));
 

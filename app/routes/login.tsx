@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Form, usePendingFormSubmit } from '@remix-run/react';
 import { useLocation } from 'react-router-dom';
-import type { Action } from '@remix-run/data';
-import { redirect } from '@remix-run/data';
+import type { ActionFunction } from '@remix-run/node';
+import { redirect } from '@remix-run/node';
 import { verify } from 'argon2';
 
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
@@ -11,7 +11,7 @@ import { InvalidLoginError } from '../errors';
 import { flashMessage } from '../flash-message';
 import { commitSession, getSession } from '../session';
 
-const action: Action = async ({ request, context }) => {
+const action: ActionFunction = async ({ request, context }) => {
   const session = await getSession(request.headers.get('Cookie'));
   const { prisma } = context as Context;
   const reqBody = await request.text();

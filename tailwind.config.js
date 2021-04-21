@@ -2,8 +2,7 @@ const defaultConfig = require('tailwindcss/defaultConfig');
 const defaultTheme = require('tailwindcss/defaultTheme');
 
 module.exports = {
-  future: 'all',
-  experimental: 'all',
+  mode: 'jit',
   purge: {
     content: ['./app/**/*.{js,ts,tsx,md,mdx}', './remix.config.js'],
   },

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type { LinksFunction } from '@remix-run/react';
+import type { LinksFunction, LoaderFunction } from '@remix-run/node';
 import {
   Links,
   Meta,
@@ -10,10 +10,8 @@ import {
 import * as Fathom from 'fathom-client';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Outlet, useLocation } from 'react-router-dom';
-import type { Loader } from '@remix-run/data';
 
-// eslint-disable-next-line import/no-unresolved, import/extensions
-import globalCSS from 'css:./styles/global.css';
+import globalCSS from './styles/global.css';
 import type { Flash } from './@types/flash';
 import { flashMessageKey } from './constants';
 import { commitSession, getSession } from './session';
@@ -26,7 +24,7 @@ interface RouteData {
 
 const links: LinksFunction = () => [{ rel: 'stylesheet', href: globalCSS }];
 
-const loader: Loader = async ({ request }) => {
+const loader: LoaderFunction = async ({ request }) => {
   const session = await getSession(request.headers.get('Cookie'));
   const flash = session.get(flashMessageKey);
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Form, usePendingFormSubmit } from '@remix-run/react';
-import type { Action, Loader } from '@remix-run/data';
-import { redirect } from '@remix-run/data';
+import type { ActionFunction, LoaderFunction } from '@remix-run/node';
+import { redirect } from '@remix-run/node';
 
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
 import type { Context } from '../db';
@@ -35,7 +35,7 @@ const meta = () => ({
   title: 'Add a sneaker to your collection',
 });
 
-const loader: Loader = async ({ request }) => {
+const loader: LoaderFunction = async ({ request }) => {
   const session = await getSession(request.headers.get('Cookie'));
   const userId = session.get(sessionKey);
   try {
@@ -57,7 +57,7 @@ const loader: Loader = async ({ request }) => {
   }
 };
 
-const action: Action = async ({ request, context }) => {
+const action: ActionFunction = async ({ request, context }) => {
   const { prisma } = context as Context;
   const session = await getSession(request.headers.get('Cookie'));
 

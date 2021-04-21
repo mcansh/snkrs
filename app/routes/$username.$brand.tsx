@@ -1,8 +1,8 @@
 import React from 'react';
 import { useRouteData } from '@remix-run/react';
 import type { Sneaker as SneakerType } from '@prisma/client';
-import type { Loader } from '@remix-run/data';
-import { json } from '@remix-run/data';
+import type { LoaderFunction } from '@remix-run/node';
+import { json } from '@remix-run/node';
 
 import { Sneaker } from '../components/sneaker';
 import type { Context } from '../db';
@@ -19,7 +19,7 @@ interface Props {
   };
 }
 
-const loader: Loader = async ({ context, params }) => {
+const loader: LoaderFunction = async ({ context, params }) => {
   const { prisma } = context as Context;
   const { brand, username } = params;
 
