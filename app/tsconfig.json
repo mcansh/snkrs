@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "node",
+    "target": "ES2019",
+    "module": "ES2020",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  }
+}

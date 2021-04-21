@@ -2,33 +2,44 @@ generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
+datasource postgresql {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model Sneaker {
-  id            String    @id @default(uuid())
-  model         String
-  colorway      String
   brand         String
-  size          Float     @default(10)
+  colorway      String
+  id            String    @id @default(uuid())
   imagePublicId String
+  model         String
+  purchaseDate  DateTime
+  size          Float     @default(10)
   price         Int
   retailPrice   Int
-  purchaseDate  DateTime
   sold          Boolean   @default(false)
   soldDate      DateTime?
   soldPrice     Int?
-  User          User      @relation(fields: [userId], references: [id])
   userId        String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+  User          User      @relation(fields: [userId], references: [id])
 }
 
 model User {
-  id       String    @id @default(uuid())
-  name     String
-  email    String    @unique
-  username String    @unique
-  password String
-  sneakers Sneaker[]
+  email     String    @unique
+  id        String    @id @default(uuid())
+  name      String
+  password  String
+  username  String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  sneakers  Sneaker[]
+}
+
+model Session {
+  id      String   @id
+  sid     String   @unique
+  data    String
+  expires DateTime
 }
