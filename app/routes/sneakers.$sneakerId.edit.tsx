@@ -8,7 +8,7 @@ import {
 } from '@remix-run/react';
 import { format, parseISO } from 'date-fns';
 import type { LoaderFunction } from '@remix-run/node';
-import { redirect } from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
@@ -56,6 +56,8 @@ const loader: LoaderFunction = async ({ params, request }) => {
       where: { id: params.sneakerId },
       include: { User: { select: { name: true, id: true } } },
     });
+
+    if (!sneaker) return json({ id: params.sneakerId }, { status: 404 });
 
     const userId = session.get(sessionKey);
 

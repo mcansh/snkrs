@@ -3,7 +3,7 @@ import type { Sneaker as SneakerType, User } from '@prisma/client';
 import type { HeadersFunction } from '@remix-run/react';
 import { Link, useRouteData } from '@remix-run/react';
 import type { ActionFunction, LoaderFunction } from '@remix-run/node';
-import { redirect } from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
@@ -36,22 +36,24 @@ const loader: LoaderFunction = async ({ params, request }) => {
     include: { User: { select: { name: true, id: true, username: true } } },
   });
 
+  if (!sneaker) {
+    return json({ id: params.sneakerId }, { status: 404 });
+  }
+
   const userCreatedSneaker = sneaker?.User.id === session.get(sessionKey);
 
-  const body = JSON.stringify({
-    sneaker,
-    id: params.sneakerId,
-    userCreatedSneaker,
-  });
-
-  return new Response(body, {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control':
-        'max-age=300, s-maxage=31536000, stale-while-revalidate=31536000',
+  return json(
+    {
+      sneaker,
+      id: params.sneakerId,
+      userCreatedSneaker,
     },
-  });
+    {
+      headers: {
+        'Cache-Control': `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
+      },
+    }
+  );
 };
 
 const action: ActionFunction = async ({ request, params }) => {
@@ -137,16 +139,22 @@ const action: ActionFunction = async ({ request, params }) => {
   }
 };
 
-const meta = ({ data: { sneaker } }: { data: Props }) => {
-  const date = formatDate(sneaker.purchaseDate, {
+const meta = ({ data }: { data: Props }) => {
+  if (!data.sneaker) {
+    return {
+      title: 'Sneaker Not Found',
+    };
+  }
+
+  const date = formatDate(data.sneaker.purchaseDate, {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
   });
-  const description = `${sneaker.User.name} bought the ${sneaker.brand} ${sneaker.model} on ${date}`;
+  const description = `${data.sneaker.User.name} bought the ${data.sneaker.brand} ${data.sneaker.model} on ${date}`;
 
   return {
-    title: `${sneaker.brand} ${sneaker.model} – ${sneaker.colorway}`,
+    title: `${data.sneaker.brand} ${data.sneaker.model} – ${data.sneaker.colorway}`,
     description,
   };
 };
