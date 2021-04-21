@@ -1,8 +1,8 @@
 module.exports = {
   apps: [
     {
-      name: 'Vercel',
-      script: 'vc dev',
+      name: 'Server',
+      script: 'index.js',
       ignore_watch: ['.'],
       env: {
         NODE_ENV: 'development',

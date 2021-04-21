@@ -27,11 +27,10 @@
   "dependencies": {
     "@headlessui/react": "1.0.0",
     "@prisma/client": "2.21.2",
+    "@remix-run/express": "0.15.5",
     "@remix-run/node": "0.15.5",
     "@remix-run/react": "0.15.5",
-    "@remix-run/vercel": "0.15.5",
     "@svgr/webpack": "5.5.0",
-    "@vercel/node": "1.9.1",
     "cloudinary": "1.25.1",
     "cloudinary-core": "2.11.3",
     "clsx": "1.1.1",
