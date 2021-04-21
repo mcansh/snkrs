@@ -90,6 +90,13 @@ const action: ActionFunction = async ({ request }) => {
         size,
         imagePublicId: '',
       },
+      include: {
+        User: {
+          select: {
+            username: true,
+          },
+        },
+      },
     });
 
     const purgePromise = await fetch(
@@ -102,7 +109,7 @@ const action: ActionFunction = async ({ request }) => {
           'Content-type': 'application/json',
         },
         body: JSON.stringify({
-          files: ['https://snkrs.mcan.sh/'],
+          files: [`https://snkrs.mcan.sh/${sneaker.User.username}`],
         }),
       }
     );
