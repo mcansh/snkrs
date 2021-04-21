@@ -1,0 +1,14 @@
+/coverage
+/node_modules
+.ds_store
+*.log
+.env*
+.eslintcache
+.vercel
+
+/.build-cache
+/.cache
+/build
+/public/build
+/prisma/node_modules
+app/styles

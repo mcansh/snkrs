@@ -22,7 +22,8 @@
     "db:migrate": "prisma migrate dev --preview-feature",
     "prepare": "husky install",
     "postinstall": "npm run generate",
-    "clean": "del .cache build public/build app/styles"
+    "clean": "del .cache build public/build app/styles",
+    "start": "node index.js"
   },
   "dependencies": {
     "@headlessui/react": "1.0.0",
