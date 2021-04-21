@@ -49,7 +49,7 @@ const loader: LoaderFunction = async ({ params, request }) => {
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control':
-        'max-age=300, s-maxage=600, stale-while-revalidate=31536000',
+        'max-age=300, s-maxage=31536000, stale-while-revalidate=31536000',
     },
   });
 };

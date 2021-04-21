@@ -92,6 +92,19 @@ const action: ActionFunction = async ({ request }) => {
       },
     });
 
+    await fetch(
+      `https://api.cloudflare.com/client/v4/zones/${process.env.CLOUDFLARE_ZONE_ID}/purge_cache`,
+      {
+        method: 'post',
+        headers: {
+          'X-Auth-Email': process.env.CLOUDFLARE_EMAIL,
+          'X-Auth-Key': process.env.CLOUDFLARE_PURGE_KEY,
+          'Content-type': 'application/json',
+        },
+        body: JSON.stringify([`https://snkrs.mcan.sh`]),
+      }
+    );
+
     return redirect(`/sneakers/${sneaker.id}`);
   } catch (error) {
     if (error instanceof AuthorizationError) {

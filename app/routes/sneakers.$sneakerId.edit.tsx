@@ -1,6 +1,5 @@
 import React from 'react';
 import type { Sneaker as SneakerType } from '@prisma/client';
-import type { HeadersFunction } from '@remix-run/react';
 import {
   Form,
   Link,
@@ -49,10 +48,6 @@ interface Props {
   };
 }
 
-const headers: HeadersFunction = ({ loaderHeaders }) => ({
-  'Cache-Control': loaderHeaders.get('Cache-Control') ?? 'no-cache',
-});
-
 const loader: LoaderFunction = async ({ params, request }) => {
   const session = await getSession(request.headers.get('Cookie'));
 
@@ -78,11 +73,7 @@ const loader: LoaderFunction = async ({ params, request }) => {
 
     return new Response(body, {
       status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control':
-          'max-age=300, s-maxage=600, stale-while-revalidate=31536000',
-      },
+      headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
     if (error instanceof AuthorizationError) {
@@ -270,4 +261,4 @@ const EditSneakerPage: React.VFC = () => {
 };
 
 export default EditSneakerPage;
-export { loader, headers };
+export { loader };
