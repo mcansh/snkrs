@@ -92,18 +92,25 @@ const action: ActionFunction = async ({ request }) => {
       },
     });
 
-    await fetch(
+    const purgePromise = await fetch(
       `https://api.cloudflare.com/client/v4/zones/${process.env.CLOUDFLARE_ZONE_ID}/purge_cache`,
       {
-        method: 'post',
+        method: 'DELETE',
         headers: {
           'X-Auth-Email': process.env.CLOUDFLARE_EMAIL,
           'X-Auth-Key': process.env.CLOUDFLARE_PURGE_KEY,
           'Content-type': 'application/json',
         },
-        body: JSON.stringify([`https://snkrs.mcan.sh`]),
+        body: JSON.stringify({
+          files: ['https://snkrs.mcan.sh/'],
+        }),
       }
     );
+
+    const res = await purgePromise.json();
+
+    // eslint-disable-next-line no-console
+    console.log('PURGE!', res);
 
     return redirect(`/sneakers/${sneaker.id}`);
   } catch (error) {
