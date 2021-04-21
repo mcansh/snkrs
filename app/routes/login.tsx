@@ -3,13 +3,13 @@ import { Form, usePendingFormSubmit } from '@remix-run/react';
 import { useLocation } from 'react-router-dom';
 import type { ActionFunction } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
-import { verify } from 'argon2';
 
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
 import type { Context } from '../db';
 import { InvalidLoginError } from '../errors';
 import { flashMessage } from '../flash-message';
 import { commitSession, getSession } from '../session';
+import { verify } from '../lib/auth';
 
 const action: ActionFunction = async ({ request, context }) => {
   const session = await getSession(request.headers.get('Cookie'));
@@ -30,7 +30,7 @@ const action: ActionFunction = async ({ request, context }) => {
       throw new InvalidLoginError();
     }
 
-    const valid = await verify(foundUser.password, password);
+    const valid = await verify(password, foundUser.password);
 
     if (!valid) {
       throw new InvalidLoginError();
