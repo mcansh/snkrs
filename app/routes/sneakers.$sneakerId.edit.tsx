@@ -15,9 +15,9 @@ import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
 import { formatMoney } from '../utils/format-money';
 import { redirectKey, sessionKey } from '../constants';
-import type { Context } from '../db';
 import { AuthorizationError } from '../errors';
 import { commitSession, getSession } from '../session';
+import { prisma } from '../db';
 
 // const schema = Yup.object().shape({
 //   model: Yup.string().required(),
@@ -53,8 +53,7 @@ const headers: HeadersFunction = ({ loaderHeaders }) => ({
   'Cache-Control': loaderHeaders.get('Cache-Control') ?? 'no-cache',
 });
 
-const loader: LoaderFunction = async ({ params, request, context }) => {
-  const { prisma } = context as Context;
+const loader: LoaderFunction = async ({ params, request }) => {
   const session = await getSession(request.headers.get('Cookie'));
 
   try {

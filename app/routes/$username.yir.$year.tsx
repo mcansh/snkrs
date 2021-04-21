@@ -5,7 +5,7 @@ import type { LoaderFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 
 import { Sneaker } from '../components/sneaker';
-import type { Context } from '../db';
+import { prisma } from '../db';
 import { NotFoundError } from '../errors';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
@@ -19,8 +19,7 @@ interface SneakerYearProps {
   year: number;
 }
 
-const loader: LoaderFunction = async ({ params, context }) => {
-  const { prisma } = context as Context;
+const loader: LoaderFunction = async ({ params }) => {
   const { username } = params;
   const year = parseInt(params.year, 10);
 

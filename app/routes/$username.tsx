@@ -11,7 +11,7 @@ import { json } from '@remix-run/node';
 import { Sneaker } from '../components/sneaker';
 import { ChevronDownIcon } from '../components/icons/chevron-down';
 import { CheckmarkIcon } from '../components/icons/checkmark';
-import type { Context } from '../db';
+import { prisma } from '../db';
 import { NotFoundError } from '../errors';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
@@ -46,9 +46,8 @@ const headers: HeadersFunction = ({ loaderHeaders }) => ({
   'Cache-Control': loaderHeaders.get('Cache-Control') ?? 'no-cache',
 });
 
-const loader: LoaderFunction = async ({ context, params }) => {
+const loader: LoaderFunction = async ({ params }) => {
   const { username } = params;
-  const { prisma } = context as Context;
 
   try {
     const user = await prisma.user.findUnique({

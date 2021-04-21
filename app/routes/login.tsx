@@ -5,15 +5,14 @@ import type { ActionFunction } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
 
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
-import type { Context } from '../db';
 import { InvalidLoginError } from '../errors';
 import { flashMessage } from '../flash-message';
 import { commitSession, getSession } from '../session';
 import { verify } from '../lib/auth';
+import { prisma } from '../db';
 
-const action: ActionFunction = async ({ request, context }) => {
+const action: ActionFunction = async ({ request }) => {
   const session = await getSession(request.headers.get('Cookie'));
-  const { prisma } = context as Context;
   const reqBody = await request.text();
   const body = new URLSearchParams(reqBody);
   const email = body.get('email') as string;

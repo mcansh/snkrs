@@ -10,7 +10,7 @@ import { getCloudinaryURL } from '../utils/cloudinary';
 import { formatMoney } from '../utils/format-money';
 import { copy } from '../utils/copy';
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
-import type { Context } from '../db';
+import { prisma } from '../db';
 import { AuthorizationError } from '../errors';
 import { flashMessage } from '../flash-message';
 import { commitSession, getSession } from '../session';
@@ -29,9 +29,8 @@ const headers: HeadersFunction = ({ loaderHeaders }) => ({
   'Cache-Control': loaderHeaders.get('Cache-Control') ?? 'no-cache',
 });
 
-const loader: LoaderFunction = async ({ params, request, context }) => {
+const loader: LoaderFunction = async ({ params, request }) => {
   const session = await getSession(request.headers.get('Cookie'));
-  const { prisma } = context as Context;
   const sneaker = await prisma.sneaker.findUnique({
     where: { id: params.sneakerId },
     include: { User: { select: { name: true, id: true, username: true } } },
@@ -55,9 +54,8 @@ const loader: LoaderFunction = async ({ params, request, context }) => {
   });
 };
 
-const action: ActionFunction = async ({ request, params, context }) => {
+const action: ActionFunction = async ({ request, params }) => {
   const session = await getSession(request.headers.get('Cookie'));
-  const { prisma } = context as Context;
   const userId = session.get(sessionKey);
   const { sneakerId } = params;
 

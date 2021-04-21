@@ -6,6 +6,7 @@ import {
   Scripts,
   usePendingLocation,
   useRouteData,
+  useLiveReload,
 } from '@remix-run/react';
 import * as Fathom from 'fathom-client';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -45,6 +46,8 @@ const App: React.VFC = () => {
   const pendingLocation = usePendingLocation();
   const location = useLocation();
   const includeScripts = !noScriptPaths.has(location.pathname);
+
+  useLiveReload();
 
   React.useEffect(() => {
     Fathom.load('HIUAENVC', {
