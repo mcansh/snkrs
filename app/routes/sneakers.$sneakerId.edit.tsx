@@ -112,9 +112,9 @@ const EditSneakerPage: React.VFC = () => {
   const title = `Editing ${sneaker.brand} ${sneaker.model} – ${sneaker.colorway}`;
 
   const { imagePublicId } = sneaker;
-  const image1x = getCloudinaryURL(imagePublicId, { width: 400, crop: 'pad' });
-  const image2x = getCloudinaryURL(imagePublicId, { width: 800, crop: 'pad' });
-  const image3x = getCloudinaryURL(imagePublicId, { width: 1200, crop: 'pad' });
+  const image1x = getCloudinaryURL(imagePublicId, ['w_400', 'c_pad']);
+  const image2x = getCloudinaryURL(imagePublicId, ['w_400', 'c_pad']);
+  const image3x = getCloudinaryURL(imagePublicId, ['w_400', 'c_pad']);
   /*
     const valuesAreEqual = dequal(form.values, {
       model: sneaker.model,
