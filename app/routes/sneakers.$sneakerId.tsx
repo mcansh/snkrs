@@ -114,12 +114,19 @@ const action: ActionFunction = ({ request, params }) =>
           retailPrice,
           soldPrice,
         },
-        select: { User: { select: { username: true } } },
+        select: {
+          User: { select: { username: true } },
+          brand: true,
+          purchaseDate: true,
+        },
       });
 
+      const prefix = `https://snkrs.mcan.sh/${updatedSneaker.User.username}`;
       await purgeCloudflareCache([
         `https://snkrs.mcan.sh/sneakers/${sneakerId}`,
-        `https://snkrs.mcan.sh/${updatedSneaker.User.username}`,
+        `${prefix}`,
+        `${prefix}/${updatedSneaker.brand}`,
+        `${prefix}/yir/${updatedSneaker.purchaseDate.getFullYear()}`,
       ]);
 
       session.flash(

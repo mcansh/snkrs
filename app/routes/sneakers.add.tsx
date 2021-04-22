@@ -99,8 +99,12 @@ const action: ActionFunction = ({ request }) =>
         },
       });
 
+      const prefix = `https://snkrs.mcan.sh/${sneaker.User.username}`;
+
       await purgeCloudflareCache([
-        `https://snkrs.mcan.sh/${sneaker.User.username}`,
+        `${prefix}`,
+        `${prefix}/${sneaker.brand}`,
+        `${prefix}/yir/${sneaker.purchaseDate.getFullYear()}`,
       ]);
 
       return redirect(`/sneakers/${sneaker.id}`);
