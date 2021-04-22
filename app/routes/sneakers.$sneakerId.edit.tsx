@@ -18,28 +18,6 @@ import { AuthorizationError } from '../errors';
 import { commitSession, getSession } from '../session';
 import { prisma } from '../db';
 
-// const schema = Yup.object().shape({
-//   model: Yup.string().required(),
-//   colorway: Yup.string().required(),
-//   brand: Yup.string().required(),
-//   size: Yup.number().required().min(1),
-//   imagePublicId: Yup.string().required(),
-//   price: Yup.number().required(),
-//   retailPrice: Yup.number().required(),
-//   purchaseDate: Yup.date(),
-//   sold: Yup.boolean().required().default(false),
-//   soldDate: Yup.date()
-//     .when('sold', {
-//       is: sold => sold === true,
-//       then: Yup.date().required('soldDate is required'),
-//     })
-//     .min(Yup.ref('sold')),
-//   soldPrice: Yup.number().when('sold', {
-//     is: sold => sold === true,
-//     then: Yup.number().required('soldPrice is required'),
-//   }),
-// });
-
 interface Props {
   id: string;
   sneaker: SneakerType & {
@@ -105,38 +83,9 @@ const EditSneakerPage: React.VFC = () => {
   const image1x = getCloudinaryURL(imagePublicId, ['w_400', 'c_pad']);
   const image2x = getCloudinaryURL(imagePublicId, ['w_400', 'c_pad']);
   const image3x = getCloudinaryURL(imagePublicId, ['w_400', 'c_pad']);
-  /*
-    const valuesAreEqual = dequal(form.values, {
-      model: sneaker.model,
-      colorway: sneaker.colorway,
-      brand: sneaker.brand,
-      size: sneaker.size,
-      imagePublicId: sneaker.imagePublicId,
-      price: sneaker.price,
-      retailPrice: sneaker.retailPrice,
-      purchaseDate: format(sneaker.purchaseDate, formatter),
-      sold: sneaker.sold,
-      soldDate: sneaker.soldDate
-        ? format(sneaker.soldDate, formatter)
-        : undefined,
-      soldPrice: sneaker.soldPrice,
-    });
-   */
 
   return (
     <main className="container min-h-full p-4 mx-auto">
-      {/* <NextSeo
-        title={title}
-        description={description}
-        openGraph={{
-          title,
-          images: [
-            { url: image1x, alt: title, width: 400, height: 400 },
-            { url: image2x, alt: title, width: 800, height: 800 },
-            { url: image3x, alt: title, width: 1200, height: 1200 },
-          ],
-        }}
-      /> */}
       <Link to={`/sneakers/${sneaker.id}`}>Back</Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
         <div className="relative" style={{ paddingBottom: '100%' }}>

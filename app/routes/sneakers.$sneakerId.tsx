@@ -14,6 +14,7 @@ import { prisma } from '../db';
 import { AuthorizationError } from '../errors';
 import { flashMessage } from '../flash-message';
 import { commitSession, getSession } from '../session';
+import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 
 type SneakerWithUser = SneakerType & {
   User: Pick<User, 'name' | 'id' | 'username'>;
@@ -103,7 +104,7 @@ const action: ActionFunction = async ({ request, params }) => {
       ? parseInt(bodyObj.soldPrice as string, 10)
       : undefined;
 
-    await prisma.sneaker.update({
+    const updatedSneaker = await prisma.sneaker.update({
       where: { id: sneakerId },
       data: {
         ...bodyObj,
@@ -113,7 +114,13 @@ const action: ActionFunction = async ({ request, params }) => {
         retailPrice,
         soldPrice,
       },
+      select: { User: { select: { username: true } } },
     });
+
+    await purgeCloudflareCache([
+      `https://snkrs.mcan.sh/sneakers/${sneakerId}`,
+      `https://snkrs.mcan.sh/${updatedSneaker.User.username}`,
+    ]);
 
     session.flash(
       flashMessageKey,

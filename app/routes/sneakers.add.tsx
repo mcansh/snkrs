@@ -8,28 +8,7 @@ import { prisma } from '../db';
 import { AuthorizationError } from '../errors';
 import { flashMessage } from '../flash-message';
 import { commitSession, getSession } from '../session';
-
-// const schema = Yup.object().shape({
-//   model: Yup.string().required(),
-//   colorway: Yup.string().required(),
-//   brand: Yup.string().required(),
-//   size: Yup.number().required().min(1),
-//   imagePublicId: Yup.string().required(),
-//   price: Yup.number().required(),
-//   retailPrice: Yup.number().required(),
-//   purchaseDate: Yup.date(),
-//   sold: Yup.boolean().required().default(false),
-//   soldDate: Yup.date()
-//     .when('sold', {
-//       is: sold => sold === true,
-//       then: Yup.date().required('soldDate is required'),
-//     })
-//     .min(Yup.ref('sold')),
-//   soldPrice: Yup.number().when('sold', {
-//     is: sold => sold === true,
-//     then: Yup.number().required('soldPrice is required'),
-//   }),
-// });
+import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 
 const meta = () => ({
   title: 'Add a sneaker to your collection',
@@ -101,25 +80,9 @@ const action: ActionFunction = async ({ request }) => {
       },
     });
 
-    const purgePromise = await fetch(
-      `https://api.cloudflare.com/client/v4/zones/${process.env.CLOUDFLARE_ZONE_ID}/purge_cache`,
-      {
-        method: 'DELETE',
-        headers: {
-          'X-Auth-Email': process.env.CLOUDFLARE_EMAIL,
-          'X-Auth-Key': process.env.CLOUDFLARE_PURGE_KEY,
-          'Content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          files: [`https://snkrs.mcan.sh/${sneaker.User.username}`],
-        }),
-      }
-    );
-
-    const res = await purgePromise.json();
-
-    // eslint-disable-next-line no-console
-    console.log('PURGE!', res);
+    await purgeCloudflareCache([
+      `https://snkrs.mcan.sh/${sneaker.User.username}`,
+    ]);
 
     return redirect(`/sneakers/${sneaker.id}`);
   } catch (error) {
@@ -143,57 +106,58 @@ const NewSneakerPage: React.VFC = () => {
   return (
     <main className="container min-h-full p-4 mx-auto">
       <h2 className="py-4 text-lg">Add a sneaker to your collection</h2>
-      <Form method="post" action="/sneakers/add">
+      <Form method="post">
         <fieldset
           disabled={!!pendingForm}
-          className="grid items-center gap-2 sm:grid-cols-2"
+          className="w-full space-y-2 sm:grid sm:items-center sm:gap-2 sm:grid-cols-2 sm:space-y-0"
         >
           <input
-            className="p-1 border-2 border-gray-200 rounded appearance-none"
+            className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
             type="text"
             placeholder="Brand"
             name="brand"
           />
           <input
-            className="p-1 border-2 border-gray-200 rounded appearance-none"
+            className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
             type="text"
             placeholder="Model"
             name="model"
           />
           <input
-            className="p-1 border-2 border-gray-200 rounded appearance-none"
+            className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
             type="text"
             placeholder="Colorway"
             name="colorway"
           />
           <input
-            className="p-1 border-2 border-gray-200 rounded appearance-none"
+            className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
             type="number"
             placeholder="Price"
             name="price"
           />
           <input
-            className="p-1 border-2 border-gray-200 rounded appearance-none"
+            className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
             type="number"
             placeholder="Retail Price"
             name="retailPrice"
           />
           <input
-            className="p-1 border-2 border-gray-200 rounded appearance-none"
+            className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
             type="datetime-local"
             placeholder="Purchase Date"
             name="purchaseDate"
           />
           <input
-            className="p-1 border-2 border-gray-200 rounded appearance-none"
+            className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
             type="number"
             placeholder="Size"
             name="size"
           />
           <input
-            className="p-1 border-2 border-gray-200 rounded appearance-none"
-            type="file"
+            className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
+            type="text"
             name="image"
+            placeholder="1200x1200 photo or cloudinary publicId"
           />
           <button
             type="submit"
