@@ -1,11 +1,11 @@
 import React from 'react';
 import type { HeadersFunction } from '@remix-run/react';
-import { useRouteData } from '@remix-run/react';
+import { block, useRouteData } from '@remix-run/react';
 import type { Sneaker as SneakerType } from '@prisma/client';
 import { useNavigate } from 'react-router';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Listbox } from '@headlessui/react';
-import type { LoaderFunction } from '@remix-run/node';
+import type { LinksFunction, LoaderFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 
 import { Sneaker } from '../components/sneaker';
@@ -13,19 +13,33 @@ import { ChevronDownIcon } from '../components/icons/chevron-down';
 import { CheckmarkIcon } from '../components/icons/checkmark';
 import { prisma } from '../db';
 import { NotFoundError } from '../errors';
+import { getSession } from '../session';
+import { sessionKey } from '../constants';
+import plusCircle from '../icons/plus-circle.svg';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
-interface Props {
+interface RouteData {
   brands: Array<string>;
   user: {
     username: string;
     name: string;
     sneakers: Array<SneakerType>;
+    id: string;
   };
+  isCurrentUser: boolean;
 }
 
-const meta = ({ data }: { data: Props }) => {
+const links: LinksFunction = () => [
+  block({
+    rel: 'preload',
+    href: plusCircle,
+    as: 'image',
+    type: 'image/svg+xml',
+  }),
+];
+
+const meta = ({ data }: { data: RouteData }) => {
   if (!data.user) {
     return fourOhFourMeta();
   }
@@ -46,7 +60,9 @@ const headers: HeadersFunction = ({ loaderHeaders }) => ({
   'Cache-Control': loaderHeaders.get('Cache-Control') ?? 'no-cache',
 });
 
-const loader: LoaderFunction = async ({ params }) => {
+const loader: LoaderFunction = async ({ request, params }) => {
+  const session = await getSession(request.headers.get('Cookie'));
+  const userID = session.get(sessionKey);
   const { username } = params;
 
   try {
@@ -56,6 +72,7 @@ const loader: LoaderFunction = async ({ params }) => {
         name: true,
         username: true,
         sneakers: { orderBy: { purchaseDate: 'desc' } },
+        id: true,
       },
     });
 
@@ -72,7 +89,7 @@ const loader: LoaderFunction = async ({ params }) => {
     ];
 
     return json(
-      { user, brands: uniqueBrands },
+      { brands: uniqueBrands, user, isCurrentUser: user.id === userID },
       {
         headers: {
           'Cache-Control': `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
@@ -89,7 +106,7 @@ const loader: LoaderFunction = async ({ params }) => {
 };
 
 const Index = () => {
-  const { user, brands } = useRouteData<Props>();
+  const { isCurrentUser, user, brands } = useRouteData<RouteData>();
   const navigate = useNavigate();
 
   const [search] = useSearchParams();
@@ -114,9 +131,19 @@ const Index = () => {
 
   return (
     <main className="container min-h-full p-4 mx-auto">
-      <h1 className="pb-2 text-xl sm:text-4xl">
-        Sneaker Collection – {user.sneakers.length} and counting
-      </h1>
+      <div className="flex items-center justify-between pb-2 space-x-2">
+        <h1 className="text-xl sm:text-4xl">
+          Sneaker Collection – {user.sneakers.length} and counting
+        </h1>
+        {isCurrentUser && (
+          <Link to="/sneakers/add">
+            <span className="sr-only">Add to collection</span>
+            <svg className="w-6 h-6 text-purple-600">
+              <use href={`${plusCircle}#plusCircle`} />
+            </svg>
+          </Link>
+        )}
+      </div>
 
       <div className="grid grid-cols-2 gap-2 mb-2 sm:gap-3 md:gap-4">
         <div>
@@ -204,4 +231,4 @@ const Index = () => {
 };
 
 export default Index;
-export { meta, loader, headers };
+export { headers, links, loader, meta };

@@ -12,6 +12,7 @@ import {
 import * as Fathom from 'fathom-client';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Outlet, useLocation } from 'react-router-dom';
+import clsx from 'clsx';
 
 import globalCSS from './styles/global.css';
 import type { Flash } from './@types/flash';
@@ -122,13 +123,14 @@ const App: React.VFC = () => {
         <AnimatePresence initial={includeScripts}>
           {flash && (
             <motion.div
-              className={`fixed z-10 p-2 text-white -translate-y-full rounded-lg shadow-md top-2 left-2 ${
+              className={clsx(
+                'fixed z-10 p-2 text-white -translate-y-full rounded-lg shadow-md top-2 left-2',
                 typeof flash === 'string'
                   ? 'bg-purple-500'
                   : flash.type === 'error'
-                  ? 'bg-red-400'
+                  ? 'bg-red-500'
                   : 'bg-purple-500'
-              }`}
+              )}
               initial={{ y: '-100%', opacity: 0 }}
               animate={{ y: '0%', opacity: 1 }}
               transition={{ duration: 0.25 }}
