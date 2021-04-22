@@ -20,13 +20,13 @@ WORKDIR /app
 ENV NODE_ENV production
 
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/server ./server
+COPY --from=builder /app/build ./build
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S remix -u 1001
-RUN chown -R remix:nodejs /app/server
+RUN chown -R remix:nodejs /app/build
 USER remix
 
 EXPOSE 3000
