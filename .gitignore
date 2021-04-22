@@ -6,6 +6,6 @@ node_modules
 .eslintcache
 
 .cache
+/build
 /public/build
-/server/build
 app/styles
