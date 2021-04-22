@@ -13,9 +13,9 @@ import { ChevronDownIcon } from '../components/icons/chevron-down';
 import { CheckmarkIcon } from '../components/icons/checkmark';
 import { prisma } from '../db';
 import { NotFoundError } from '../errors';
-import { getSession } from '../session';
 import { sessionKey } from '../constants';
 import plusCircle from '../icons/plus-circle.svg';
+import { withSession } from '../lib/with-session';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
@@ -60,50 +60,50 @@ const headers: HeadersFunction = ({ loaderHeaders }) => ({
   'Cache-Control': loaderHeaders.get('Cache-Control') ?? 'no-cache',
 });
 
-const loader: LoaderFunction = async ({ request, params }) => {
-  const session = await getSession(request.headers.get('Cookie'));
-  const userID = session.get(sessionKey);
-  const { username } = params;
+const loader: LoaderFunction = ({ request, params }) =>
+  withSession(request, async session => {
+    const userID = session.get(sessionKey);
+    const { username } = params;
 
-  try {
-    const user = await prisma.user.findUnique({
-      where: { username },
-      select: {
-        name: true,
-        username: true,
-        sneakers: { orderBy: { purchaseDate: 'desc' } },
-        id: true,
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundError();
-    }
-
-    const uniqueBrands = [
-      ...new Set<string>(
-        [...user.sneakers]
-          .sort((a, b) => a.brand.localeCompare(b.brand))
-          .map(sneaker => sneaker.brand)
-      ),
-    ];
-
-    return json(
-      { brands: uniqueBrands, user, isCurrentUser: user.id === userID },
-      {
-        headers: {
-          'Cache-Control': `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
+    try {
+      const user = await prisma.user.findUnique({
+        where: { username },
+        select: {
+          name: true,
+          username: true,
+          sneakers: { orderBy: { purchaseDate: 'desc' } },
+          id: true,
         },
+      });
+
+      if (!user) {
+        throw new NotFoundError();
       }
-    );
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      return json({}, { status: 404 });
+
+      const uniqueBrands = [
+        ...new Set<string>(
+          [...user.sneakers]
+            .sort((a, b) => a.brand.localeCompare(b.brand))
+            .map(sneaker => sneaker.brand)
+        ),
+      ];
+
+      return json(
+        { brands: uniqueBrands, user, isCurrentUser: user.id === userID },
+        {
+          headers: {
+            'Cache-Control': `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
+          },
+        }
+      );
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        return json({}, { status: 404 });
+      }
+      console.error(error);
+      return json({}, { status: 500 });
     }
-    console.error(error);
-    return json({}, { status: 500 });
-  }
-};
+  });
 
 const Index = () => {
   const { isCurrentUser, user, brands } = useRouteData<RouteData>();

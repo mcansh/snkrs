@@ -17,7 +17,7 @@ import clsx from 'clsx';
 import globalCSS from './styles/global.css';
 import type { Flash } from './@types/flash';
 import { flashMessageKey } from './constants';
-import { commitSession, getSession } from './session';
+import { withSession } from './lib/with-session';
 
 const noScriptPaths = new Set<string>([]);
 
@@ -27,27 +27,22 @@ interface RouteData {
 
 const links: LinksFunction = () => [{ rel: 'stylesheet', href: globalCSS }];
 
-const loader: LoaderFunction = async ({ request }) => {
-  const session = await getSession(request.headers.get('Cookie'));
-  const flash = session.get(flashMessageKey);
+const loader: LoaderFunction = ({ request }) =>
+  withSession(request, session => {
+    const flash = session.get(flashMessageKey);
 
-  if (flash) {
-    let parsed;
-    try {
-      parsed = JSON.parse(flash);
-    } catch (error) {
-      // failed to parse json
-      parsed = flash;
-    }
-    return json(
-      { flash: parsed },
-      {
-        headers: { 'Set-Cookie': await commitSession(session) },
+    if (flash) {
+      let parsed;
+      try {
+        parsed = JSON.parse(flash);
+      } catch (error) {
+        // failed to parse json
+        parsed = flash;
       }
-    );
-  }
-  return { flash: undefined };
-};
+      return json({ flash: parsed });
+    }
+    return { flash: undefined };
+  });
 
 const App: React.VFC = () => {
   const { flash } = useRouteData<RouteData>();

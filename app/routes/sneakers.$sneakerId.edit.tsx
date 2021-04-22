@@ -15,8 +15,8 @@ import { getCloudinaryURL } from '../utils/cloudinary';
 import { formatMoney } from '../utils/format-money';
 import { redirectKey, sessionKey } from '../constants';
 import { AuthorizationError } from '../errors';
-import { commitSession, getSession } from '../session';
 import { prisma } from '../db';
+import { withSession } from '../lib/with-session';
 
 interface Props {
   id: string;
@@ -26,42 +26,39 @@ interface Props {
   };
 }
 
-const loader: LoaderFunction = async ({ params, request }) => {
-  const session = await getSession(request.headers.get('Cookie'));
+const loader: LoaderFunction = ({ params, request }) =>
+  withSession(request, async session => {
+    try {
+      const sneaker = await prisma.sneaker.findUnique({
+        where: { id: params.sneakerId },
+        include: { User: { select: { name: true, id: true } } },
+      });
 
-  try {
-    const sneaker = await prisma.sneaker.findUnique({
-      where: { id: params.sneakerId },
-      include: { User: { select: { name: true, id: true } } },
-    });
+      if (!sneaker) return json({ id: params.sneakerId }, { status: 404 });
 
-    if (!sneaker) return json({ id: params.sneakerId }, { status: 404 });
+      const userId = session.get(sessionKey);
 
-    const userId = session.get(sessionKey);
+      const userCreatedSneaker = sneaker?.User.id === userId;
 
-    const userCreatedSneaker = sneaker?.User.id === userId;
+      if (!userId || !userCreatedSneaker) {
+        throw new AuthorizationError();
+      }
 
-    if (!userId || !userCreatedSneaker) {
-      throw new AuthorizationError();
+      return json({
+        sneaker,
+        id: params.sneakerId,
+        userCreatedSneaker,
+      });
+    } catch (error) {
+      if (error instanceof AuthorizationError) {
+        session.set(redirectKey, `/sneakers/${params.sneakerId}/edit`);
+      } else {
+        console.error(error);
+      }
+
+      return redirect('/login');
     }
-
-    return json({
-      sneaker,
-      id: params.sneakerId,
-      userCreatedSneaker,
-    });
-  } catch (error) {
-    if (error instanceof AuthorizationError) {
-      session.set(redirectKey, `/sneakers/${params.sneakerId}/edit`);
-    } else {
-      console.error(error);
-    }
-
-    return redirect(`/login`, {
-      headers: { 'Set-Cookie': await commitSession(session) },
-    });
-  }
-};
+  });
 
 const formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 

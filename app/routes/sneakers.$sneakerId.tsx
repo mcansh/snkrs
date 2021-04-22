@@ -13,8 +13,8 @@ import { flashMessageKey, redirectKey, sessionKey } from '../constants';
 import { prisma } from '../db';
 import { AuthorizationError } from '../errors';
 import { flashMessage } from '../flash-message';
-import { commitSession, getSession } from '../session';
 import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
+import { withSession } from '../lib/with-session';
 
 type SneakerWithUser = SneakerType & {
   User: Pick<User, 'name' | 'id' | 'username'>;
@@ -30,123 +30,115 @@ const headers: HeadersFunction = ({ loaderHeaders }) => ({
   'Cache-Control': loaderHeaders.get('Cache-Control') ?? 'no-cache',
 });
 
-const loader: LoaderFunction = async ({ params, request }) => {
-  const session = await getSession(request.headers.get('Cookie'));
-  const sneaker = await prisma.sneaker.findUnique({
-    where: { id: params.sneakerId },
-    include: { User: { select: { name: true, id: true, username: true } } },
+const loader: LoaderFunction = ({ params, request }) =>
+  withSession(request, async session => {
+    const sneaker = await prisma.sneaker.findUnique({
+      where: { id: params.sneakerId },
+      include: { User: { select: { name: true, id: true, username: true } } },
+    });
+
+    if (!sneaker) {
+      return json({ id: params.sneakerId }, { status: 404 });
+    }
+
+    const userCreatedSneaker = sneaker?.User.id === session.get(sessionKey);
+
+    return json(
+      {
+        sneaker,
+        id: params.sneakerId,
+        userCreatedSneaker,
+      },
+      {
+        headers: {
+          'Cache-Control': `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
+        },
+      }
+    );
   });
 
-  if (!sneaker) {
-    return json({ id: params.sneakerId }, { status: 404 });
-  }
+const action: ActionFunction = ({ request, params }) =>
+  withSession(request, async session => {
+    const userId = session.get(sessionKey);
+    const { sneakerId } = params;
 
-  const userCreatedSneaker = sneaker?.User.id === session.get(sessionKey);
+    try {
+      const reqBody = await request.text();
+      const body = new URLSearchParams(reqBody);
 
-  return json(
-    {
-      sneaker,
-      id: params.sneakerId,
-      userCreatedSneaker,
-    },
-    {
-      headers: {
-        'Cache-Control': `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
-      },
+      if (!userId) {
+        throw new AuthorizationError();
+      }
+
+      // const sneaker = await prisma.sneaker.findUnique({
+      //   where: { id },
+      // });
+
+      // if (!sneaker) {
+      //   return res.status(404).json({ error: 'No sneaker with that id' });
+      // }
+
+      // if (sneaker.userId !== userId) {
+      //   return res.status(401).json({ error: "you don't own that sneaker" });
+      // }
+
+      const bodyObj = Object.fromEntries(body);
+
+      const purchaseDate = bodyObj.purchaseDate
+        ? new Date(bodyObj.purchaseDate as string)
+        : undefined;
+
+      const soldDate = bodyObj.soldDate
+        ? new Date(bodyObj.soldDate as string)
+        : undefined;
+
+      const price = bodyObj.price
+        ? parseInt(bodyObj.price as string, 10)
+        : undefined;
+
+      const retailPrice = bodyObj.retailPrice
+        ? parseInt(bodyObj.retailPrice as string, 10)
+        : undefined;
+
+      const soldPrice = bodyObj.soldPrice
+        ? parseInt(bodyObj.soldPrice as string, 10)
+        : undefined;
+
+      const updatedSneaker = await prisma.sneaker.update({
+        where: { id: sneakerId },
+        data: {
+          ...bodyObj,
+          soldDate,
+          purchaseDate,
+          price,
+          retailPrice,
+          soldPrice,
+        },
+        select: { User: { select: { username: true } } },
+      });
+
+      await purgeCloudflareCache([
+        `https://snkrs.mcan.sh/sneakers/${sneakerId}`,
+        `https://snkrs.mcan.sh/${updatedSneaker.User.username}`,
+      ]);
+
+      session.flash(
+        flashMessageKey,
+        flashMessage(`Updated ${sneakerId}`, 'success')
+      );
+
+      return redirect(`/sneakers/${sneakerId}`);
+    } catch (error) {
+      if (error instanceof AuthorizationError) {
+        session.set(redirectKey, `/sneakers/${sneakerId}`);
+        session.flash(flashMessageKey, flashMessage(error.message, 'error'));
+      } else {
+        console.error(error);
+      }
+
+      return redirect(`/login`);
     }
-  );
-};
-
-const action: ActionFunction = async ({ request, params }) => {
-  const session = await getSession(request.headers.get('Cookie'));
-  const userId = session.get(sessionKey);
-  const { sneakerId } = params;
-
-  try {
-    const reqBody = await request.text();
-    const body = new URLSearchParams(reqBody);
-
-    if (!userId) {
-      throw new AuthorizationError();
-    }
-
-    // const sneaker = await prisma.sneaker.findUnique({
-    //   where: { id },
-    // });
-
-    // if (!sneaker) {
-    //   return res.status(404).json({ error: 'No sneaker with that id' });
-    // }
-
-    // if (sneaker.userId !== userId) {
-    //   return res.status(401).json({ error: "you don't own that sneaker" });
-    // }
-
-    const bodyObj = Object.fromEntries(body);
-
-    const purchaseDate = bodyObj.purchaseDate
-      ? new Date(bodyObj.purchaseDate as string)
-      : undefined;
-
-    const soldDate = bodyObj.soldDate
-      ? new Date(bodyObj.soldDate as string)
-      : undefined;
-
-    const price = bodyObj.price
-      ? parseInt(bodyObj.price as string, 10)
-      : undefined;
-
-    const retailPrice = bodyObj.retailPrice
-      ? parseInt(bodyObj.retailPrice as string, 10)
-      : undefined;
-
-    const soldPrice = bodyObj.soldPrice
-      ? parseInt(bodyObj.soldPrice as string, 10)
-      : undefined;
-
-    const updatedSneaker = await prisma.sneaker.update({
-      where: { id: sneakerId },
-      data: {
-        ...bodyObj,
-        soldDate,
-        purchaseDate,
-        price,
-        retailPrice,
-        soldPrice,
-      },
-      select: { User: { select: { username: true } } },
-    });
-
-    await purgeCloudflareCache([
-      `https://snkrs.mcan.sh/sneakers/${sneakerId}`,
-      `https://snkrs.mcan.sh/${updatedSneaker.User.username}`,
-    ]);
-
-    session.flash(
-      flashMessageKey,
-      flashMessage(`Updated ${sneakerId}`, 'success')
-    );
-
-    return redirect(`/sneakers/${sneakerId}`, {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
-  } catch (error) {
-    if (error instanceof AuthorizationError) {
-      session.set(redirectKey, `/sneakers/${sneakerId}`);
-      session.flash(flashMessageKey, flashMessage(error.message, 'error'));
-    } else {
-      console.error(error);
-    }
-
-    return redirect(`/login`, {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
-  }
-};
+  });
 
 const meta = ({ data }: { data: Props }) => {
   if (!data.sneaker) {

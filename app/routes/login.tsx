@@ -7,59 +7,50 @@ import { redirect } from '@remix-run/node';
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
 import { InvalidLoginError } from '../errors';
 import { flashMessage } from '../flash-message';
-import { commitSession, getSession } from '../session';
 import { verify } from '../lib/auth';
 import { prisma } from '../db';
 
-const action: ActionFunction = async ({ request }) => {
-  const session = await getSession(request.headers.get('Cookie'));
-  const reqBody = await request.text();
-  const body = new URLSearchParams(reqBody);
-  const email = body.get('email') as string;
-  const password = body.get('password') as string;
+const action: ActionFunction = ({ request }) =>
+  withSession(request, async session => {
+    const reqBody = await request.text();
+    const body = new URLSearchParams(reqBody);
+    const email = body.get('email') as string;
+    const password = body.get('password') as string;
 
-  const redirectAfterLogin = session.get(redirectKey);
+    const redirectAfterLogin = session.get(redirectKey);
 
-  try {
-    const foundUser = await prisma.user.findUnique({
-      where: { email },
-    });
+    try {
+      const foundUser = await prisma.user.findUnique({
+        where: { email },
+      });
 
-    if (!foundUser) {
-      throw new InvalidLoginError();
+      if (!foundUser) {
+        throw new InvalidLoginError();
+      }
+
+      const valid = await verify(password, foundUser.password);
+
+      if (!valid) {
+        throw new InvalidLoginError();
+      }
+
+      session.set(sessionKey, foundUser.id);
+      session.flash(
+        flashMessageKey,
+        flashMessage(`Welcome back ${foundUser.username}!`, 'success')
+      );
+      session.unset(redirectKey);
+      return redirect(redirectAfterLogin ? redirectAfterLogin : '/');
+    } catch (error) {
+      if (error instanceof InvalidLoginError) {
+        session.flash(flashMessageKey, flashMessage(error.message, 'error'));
+      } else {
+        console.error(error);
+      }
+
+      return redirect(`/login`);
     }
-
-    const valid = await verify(password, foundUser.password);
-
-    if (!valid) {
-      throw new InvalidLoginError();
-    }
-
-    session.set(sessionKey, foundUser.id);
-    session.flash(
-      flashMessageKey,
-      flashMessage(`Welcome back ${foundUser.username}!`, 'success')
-    );
-    session.unset(redirectKey);
-    return redirect(redirectAfterLogin ? redirectAfterLogin : '/', {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
-  } catch (error) {
-    if (error instanceof InvalidLoginError) {
-      session.flash(flashMessageKey, flashMessage(error.message, 'error'));
-    } else {
-      console.error(error);
-    }
-
-    return redirect(`/login`, {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
-  }
-};
+  });
 
 const meta = () => ({
   title: 'Log in',
