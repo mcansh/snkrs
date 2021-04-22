@@ -9,6 +9,7 @@ import { AuthorizationError } from '../errors';
 import { flashMessage } from '../flash-message';
 import { commitSession, getSession } from '../session';
 import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
+import { cloudinary } from '../lib/cloudinary.server';
 
 const meta = () => ({
   title: 'Add a sneaker to your collection',
@@ -58,6 +59,29 @@ const action: ActionFunction = async ({ request }) => {
     const retailPrice = parseInt(formData.get('retailPrice') as string, 10);
     const purchaseDate = new Date();
     const size = parseInt(formData.get('size') as string, 10);
+    const image = formData.get('image');
+
+    let imagePublicId = '';
+    if (image) {
+      // image was already uploaded to our cloudinary bucket
+      if (image.startsWith('shoes/')) {
+        imagePublicId = image;
+      } else if (
+        /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi.test(
+          image
+        )
+      ) {
+        // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
+        const res = await cloudinary.v2.uploader.upload(image, {
+          resource_type: 'image',
+          folder: 'shoes',
+        });
+
+        imagePublicId = res.public_id;
+      } else {
+        // no image provided
+      }
+    }
 
     const sneaker = await prisma.sneaker.create({
       data: {
@@ -69,7 +93,7 @@ const action: ActionFunction = async ({ request }) => {
         purchaseDate,
         retailPrice,
         size,
-        imagePublicId: '',
+        imagePublicId,
       },
       include: {
         User: {
@@ -89,10 +113,15 @@ const action: ActionFunction = async ({ request }) => {
     if (error instanceof AuthorizationError) {
       session.flash(flashMessageKey, flashMessage(error.message, 'error'));
       session.set(redirectKey, `/sneakers/add`);
-    } else {
-      console.error(error);
+      return redirect(`/login`, {
+        headers: {
+          'Set-Cookie': await commitSession(session),
+        },
+      });
     }
-    return redirect(`/login`, {
+
+    console.error(error);
+    return redirect('/sneakers/add', {
       headers: {
         'Set-Cookie': await commitSession(session),
       },

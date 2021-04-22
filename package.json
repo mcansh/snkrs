@@ -31,6 +31,7 @@
     "@remix-run/node": "0.16.1",
     "@remix-run/react": "0.16.1",
     "@svgr/webpack": "5.5.0",
+    "cloudinary": "1.25.1",
     "clsx": "1.1.1",
     "connect-redis": "5.1.0",
     "csurf": "1.11.0",
