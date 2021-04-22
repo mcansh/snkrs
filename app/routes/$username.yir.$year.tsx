@@ -49,17 +49,12 @@ const loader: LoaderFunction = async ({ params }) => {
       throw new NotFoundError();
     }
 
-    return new Response(JSON.stringify({ year, user }), {
-      status: 200,
-      headers: {
-        'content-type': 'application/json',
-      },
-    });
+    return json({ year, user }, {});
   } catch (error) {
     if (error instanceof NotFoundError) {
       return json({}, { status: 404 });
     }
-
+    console.error(error);
     return json({}, { status: 500 });
   }
 };

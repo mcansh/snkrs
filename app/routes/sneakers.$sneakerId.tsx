@@ -129,6 +129,8 @@ const action: ActionFunction = async ({ request, params }) => {
     if (error instanceof AuthorizationError) {
       session.set(redirectKey, `/sneakers/${sneakerId}`);
       session.flash(flashMessageKey, flashMessage(error.message, 'error'));
+    } else {
+      console.error(error);
     }
 
     return redirect(`/login`, {

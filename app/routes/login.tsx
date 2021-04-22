@@ -49,7 +49,10 @@ const action: ActionFunction = async ({ request }) => {
   } catch (error) {
     if (error instanceof InvalidLoginError) {
       session.flash(flashMessageKey, flashMessage(error.message, 'error'));
+    } else {
+      console.error(error);
     }
+
     return redirect(`/login`, {
       headers: {
         'Set-Cookie': await commitSession(session),

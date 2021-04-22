@@ -67,19 +67,16 @@ const loader: LoaderFunction = async ({ params, request }) => {
       throw new AuthorizationError();
     }
 
-    const body = JSON.stringify({
+    return json({
       sneaker,
       id: params.sneakerId,
       userCreatedSneaker,
     });
-
-    return new Response(body, {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
   } catch (error) {
     if (error instanceof AuthorizationError) {
       session.set(redirectKey, `/sneakers/${params.sneakerId}/edit`);
+    } else {
+      console.error(error);
     }
 
     return redirect(`/login`, {

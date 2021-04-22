@@ -1,5 +1,6 @@
 import * as React from 'react';
 import type { LinksFunction, LoaderFunction } from '@remix-run/node';
+import { json } from '@remix-run/node';
 import {
   Links,
   Meta,
@@ -30,13 +31,10 @@ const loader: LoaderFunction = async ({ request }) => {
   const flash = session.get(flashMessageKey);
 
   if (flash) {
-    return new Response(JSON.stringify({ flash }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Set-Cookie': await commitSession(session),
-      },
-    });
+    return json(
+      { flash },
+      { headers: { 'Set-Cookie': await commitSession(session) } }
+    );
   }
   return { flash: undefined };
 };

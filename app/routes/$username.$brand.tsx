@@ -47,23 +47,12 @@ const loader: LoaderFunction = async ({ params }) => {
       orderBy: { purchaseDate: 'desc' },
     });
 
-    const body = JSON.stringify({
-      sneakers,
-      user,
-      brand: sneakers[0].brand ?? brand,
-    });
-
-    return new Response(body, {
-      status: 200,
-      headers: {
-        'content-type': 'application/json',
-      },
-    });
+    return json({ sneakers, user, brand: sneakers[0].brand ?? brand });
   } catch (error) {
     if (error instanceof NotFoundError) {
       return json({}, { status: 404 });
     }
-
+    console.error(error);
     return json({}, { status: 500 });
   }
 };

@@ -71,26 +71,19 @@ const loader: LoaderFunction = async ({ params }) => {
       ),
     ];
 
-    const body = JSON.stringify({ user, brands: uniqueBrands });
-
-    return new Response(body, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control':
-          'max-age=300, s-maxage=31536000, stale-while-revalidate=31536000',
-      },
-    });
+    return json(
+      { user, brands: uniqueBrands },
+      {
+        headers: {
+          'Cache-Control': `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
+        },
+      }
+    );
   } catch (error) {
     if (error instanceof NotFoundError) {
-      return new Response(JSON.stringify({}), {
-        status: 404,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      return json({}, { status: 404 });
     }
-
+    console.error(error);
     return json({}, { status: 500 });
   }
 };

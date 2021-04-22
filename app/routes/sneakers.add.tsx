@@ -1,7 +1,7 @@
 import React from 'react';
 import { Form, usePendingFormSubmit } from '@remix-run/react';
 import type { ActionFunction, LoaderFunction } from '@remix-run/node';
-import { redirect } from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
 
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
 import { prisma } from '../db';
@@ -43,11 +43,13 @@ const loader: LoaderFunction = async ({ request }) => {
       throw new AuthorizationError();
     }
 
-    return new Response(null, { status: 200 });
+    return json(null);
   } catch (error) {
     if (error instanceof AuthorizationError) {
       session.flash(flashMessageKey, flashMessage(error.message, 'error'));
       session.set(redirectKey, `/sneakers/add`);
+    } else {
+      console.error(error);
     }
     return redirect(`/login`, {
       headers: {
@@ -124,6 +126,8 @@ const action: ActionFunction = async ({ request }) => {
     if (error instanceof AuthorizationError) {
       session.flash(flashMessageKey, flashMessage(error.message, 'error'));
       session.set(redirectKey, `/sneakers/add`);
+    } else {
+      console.error(error);
     }
     return redirect(`/login`, {
       headers: {
