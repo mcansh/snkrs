@@ -186,7 +186,7 @@ const Index = () => {
               >
                 <Listbox.Options
                   static
-                  className="absolute z-10 w-full bg-white top-[50px]"
+                  className="absolute z-10 w-full bg-white top-[50px] shadow-xl"
                 >
                   {brands.map(brand => (
                     <Listbox.Option key={brand} value={brand}>
@@ -245,7 +245,7 @@ const Index = () => {
               >
                 <Listbox.Options
                   static
-                  className="absolute z-10 w-full bg-white top-[50px]"
+                  className="absolute z-10 w-full bg-white top-[50px] shadow-xl"
                 >
                   {[
                     { value: 'desc', display: 'Recent first' },
