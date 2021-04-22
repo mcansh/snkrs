@@ -9,6 +9,7 @@ import { InvalidLoginError } from '../errors';
 import { flashMessage } from '../flash-message';
 import { verify } from '../lib/auth';
 import { prisma } from '../db';
+import { withSession } from '../lib/with-session';
 
 const action: ActionFunction = ({ request }) =>
   withSession(request, async session => {
