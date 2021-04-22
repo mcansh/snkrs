@@ -177,16 +177,16 @@ const Index = () => {
               <Transition
                 show={open}
                 enter="transition duration-100 ease-out"
-                enterFrom="transform scale-95 opacity-0"
-                enterTo="transform scale-100 opacity-100"
+                enterFrom="transform scale-95 opacity-0 shadow-none"
+                enterTo="transform scale-100 opacity-100 shadow-xl"
                 leave="transition duration-75 ease-out"
-                leaveFrom="transform scale-100 opacity-100"
-                leaveTo="transform scale-95 opacity-0"
+                leaveFrom="transform scale-100 opacity-100 shadow-xl"
+                leaveTo="transform scale-95 opacity-0 shadow-none"
                 as={React.Fragment}
               >
                 <Listbox.Options
                   static
-                  className="absolute z-10 w-full bg-white top-[50px] shadow-xl"
+                  className="absolute z-10 w-full bg-white top-[50px]"
                 >
                   {brands.map(brand => (
                     <Listbox.Option key={brand} value={brand}>
