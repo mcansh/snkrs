@@ -1,13 +1,11 @@
 /coverage
-/node_modules
+node_modules
 .ds_store
 *.log
 .env*
 .eslintcache
 
-/.build-cache
-/.cache
-/build
+.cache
 /public/build
-/prisma/node_modules
+/server/build
 app/styles
