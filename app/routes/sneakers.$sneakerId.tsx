@@ -51,7 +51,9 @@ const loader: LoaderFunction = ({ params, request }) =>
       },
       {
         headers: {
-          'Cache-Control': `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
+          'Cache-Control': userCreatedSneaker
+            ? `max-age=60`
+            : `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
         },
       }
     );

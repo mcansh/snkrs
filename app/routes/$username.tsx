@@ -101,11 +101,15 @@ const loader: LoaderFunction = ({ request, params }) =>
         ),
       ];
 
+      const isCurrentUser = user.id === userID;
+
       return json(
-        { brands: uniqueBrands, user, isCurrentUser: user.id === userID },
+        { brands: uniqueBrands, user, isCurrentUser },
         {
           headers: {
-            'Cache-Control': `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
+            'Cache-Control': isCurrentUser
+              ? `max-age=60`
+              : `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
           },
         }
       );
