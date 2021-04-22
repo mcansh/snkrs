@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import type { Sneaker as SneakerType } from '@prisma/client';
 import { Link } from '@remix-run/react';
 
@@ -17,6 +17,7 @@ const Sneaker: React.FC<SneakerType> = ({
   sold,
 }) => {
   const alt = `${brand} ${model} – ${colorway}`;
+
   return (
     <li className="overflow-hidden transition-shadow duration-200 ease-linear bg-white rounded-lg shadow-md hover:shadow-lg">
       <Link to={`/sneakers/${id}`} className="flex flex-col h-full">
