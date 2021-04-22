@@ -4,18 +4,19 @@ import { block, useRouteData } from '@remix-run/react';
 import type { Sneaker as SneakerType } from '@prisma/client';
 import { useNavigate } from 'react-router';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Listbox } from '@headlessui/react';
+import { Listbox, Transition } from '@headlessui/react';
 import type { LinksFunction, LoaderFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
+import clsx from 'clsx';
 
 import { Sneaker } from '../components/sneaker';
-import { ChevronDownIcon } from '../components/icons/chevron-down';
-import { CheckmarkIcon } from '../components/icons/checkmark';
 import { prisma } from '../db';
 import { NotFoundError } from '../errors';
 import { sessionKey } from '../constants';
-import plusCircle from '../icons/plus-circle.svg';
 import { withSession } from '../lib/with-session';
+import plusCircleIcon from '../icons/plus-circle.svg';
+import chevronDownIcon from '../icons/chevron-down.svg';
+import checkIcon from '../icons/check.svg';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
@@ -33,7 +34,19 @@ interface RouteData {
 const links: LinksFunction = () => [
   block({
     rel: 'preload',
-    href: plusCircle,
+    href: plusCircleIcon,
+    as: 'image',
+    type: 'image/svg+xml',
+  }),
+  block({
+    rel: 'preload',
+    href: chevronDownIcon,
+    as: 'image',
+    type: 'image/svg+xml',
+  }),
+  block({
+    rel: 'preload',
+    href: checkIcon,
     as: 'image',
     type: 'image/svg+xml',
   }),
@@ -139,86 +152,134 @@ const Index = () => {
           <Link to="/sneakers/add">
             <span className="sr-only">Add to collection</span>
             <svg className="w-6 h-6 text-purple-600">
-              <use href={`${plusCircle}#plusCircle`} />
+              <use href={`${plusCircleIcon}#plusCircle`} />
             </svg>
           </Link>
         )}
       </div>
 
       <div className="grid grid-cols-2 gap-2 mb-2 sm:gap-3 md:gap-4">
-        <div>
-          <Listbox
-            value={undefined}
-            onChange={selectedBrand =>
-              navigate(((selectedBrand as unknown) as string).toLowerCase())
-            }
-          >
-            <Listbox.Button className="flex justify-between w-full px-3 py-2 text-left bg-white rounded-lg">
-              Filter by brand{' '}
-              <ChevronDownIcon className="w-6 text-purple-600" />
-            </Listbox.Button>
-            <Listbox.Options>
-              {brands.map(brand => (
-                <Listbox.Option as={React.Fragment} key={brand} value={brand}>
-                  {({ active, selected }) => (
-                    <li
-                      className={`${
-                        active
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-white text-black'
-                      }`}
-                    >
-                      {selected && <CheckmarkIcon />}
-                      {brand}
-                    </li>
-                  )}
-                </Listbox.Option>
-              ))}
-            </Listbox.Options>
-          </Listbox>
-        </div>
+        <Listbox
+          value={undefined}
+          onChange={selectedBrand => {
+            navigate(((selectedBrand as unknown) as string).toLowerCase());
+          }}
+        >
+          {({ open }) => (
+            <div className="relative">
+              <Listbox.Button className="flex justify-between w-full px-3 py-2 text-left bg-white rounded-lg">
+                Filter by brand{' '}
+                <svg className="w-6 h-6 text-purple-600">
+                  <use href={`${chevronDownIcon}#chevron-down`} />
+                </svg>
+              </Listbox.Button>
 
-        <div>
-          <Listbox
-            value={undefined}
-            onChange={newSort =>
-              navigate({
-                pathname: './',
-                search: `?sort=${newSort}`,
-              })
-            }
-          >
-            <Listbox.Button className="flex justify-between w-full px-3 py-2 text-left bg-white rounded-lg">
-              {sortQuery ?? 'Sort'}{' '}
-              <ChevronDownIcon className="w-6 text-purple-600" />
-            </Listbox.Button>
-            <Listbox.Options>
-              {[
-                { value: 'desc', display: 'Recent first' },
-                { value: 'asc', display: 'Oldest first' },
-              ].map(sortChoice => (
-                <Listbox.Option
-                  as={React.Fragment}
-                  key={sortChoice.value}
-                  value={sortChoice.value}
+              <Transition
+                show={open}
+                enter="transition duration-100 ease-out"
+                enterFrom="transform scale-95 opacity-0"
+                enterTo="transform scale-100 opacity-100"
+                leave="transition duration-75 ease-out"
+                leaveFrom="transform scale-100 opacity-100"
+                leaveTo="transform scale-95 opacity-0"
+                as={React.Fragment}
+              >
+                <Listbox.Options
+                  static
+                  className="absolute z-10 w-full bg-white top-[50px]"
                 >
-                  {({ active, selected }) => (
-                    <li
-                      className={`${
-                        active
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-white text-black'
-                      }`}
+                  {brands.map(brand => (
+                    <Listbox.Option key={brand} value={brand}>
+                      {({ active, selected }) => (
+                        <li
+                          className={clsx(
+                            'cursor-pointer px-3 flex items-center justify-between',
+                            active
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-white text-black'
+                          )}
+                        >
+                          {brand}
+                          {selected && (
+                            <svg className="w-6 h-6">
+                              <use href={`${checkIcon}#check`} />
+                            </svg>
+                          )}
+                        </li>
+                      )}
+                    </Listbox.Option>
+                  ))}
+                </Listbox.Options>
+              </Transition>
+            </div>
+          )}
+        </Listbox>
+
+        <Listbox
+          value={sortQuery}
+          onChange={newSort =>
+            navigate({
+              pathname: './',
+              search: `?sort=${newSort}`,
+            })
+          }
+        >
+          {({ open }) => (
+            <div className="relative">
+              <Listbox.Button className="flex justify-between w-full px-3 py-2 text-left bg-white rounded-lg">
+                {sortQuery ?? 'Sort'}{' '}
+                <svg className="w-6 h-6 text-purple-600">
+                  <use href={`${chevronDownIcon}#chevron-down`} />
+                </svg>
+              </Listbox.Button>
+
+              <Transition
+                show={open}
+                enter="transition duration-100 ease-out"
+                enterFrom="transform scale-95 opacity-0"
+                enterTo="transform scale-100 opacity-100"
+                leave="transition duration-75 ease-out"
+                leaveFrom="transform scale-100 opacity-100"
+                leaveTo="transform scale-95 opacity-0"
+                as={React.Fragment}
+              >
+                <Listbox.Options
+                  static
+                  className="absolute z-10 w-full bg-white top-[50px]"
+                >
+                  {[
+                    { value: 'desc', display: 'Recent first' },
+                    { value: 'asc', display: 'Oldest first' },
+                  ].map(sortChoice => (
+                    <Listbox.Option
+                      as={React.Fragment}
+                      key={sortChoice.value}
+                      value={sortChoice.value}
                     >
-                      {selected && <CheckmarkIcon />}
-                      {sortChoice.display}
-                    </li>
-                  )}
-                </Listbox.Option>
-              ))}
-            </Listbox.Options>
-          </Listbox>
-        </div>
+                      {({ active, selected }) => (
+                        <li
+                          className={clsx(
+                            'cursor-pointer px-3 flex items-center justify-between',
+                            active
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-white text-black'
+                          )}
+                        >
+                          {sortChoice.display}
+                          {selected && (
+                            <svg className="w-6 h-6">
+                              <use href={`${checkIcon}#check`} />
+                            </svg>
+                          )}
+                        </li>
+                      )}
+                    </Listbox.Option>
+                  ))}
+                </Listbox.Options>
+              </Transition>
+            </div>
+          )}
+        </Listbox>
       </div>
 
       <ul className="grid grid-cols-1 gap-2 sm:gap-3 md:gap-4 sm:grid-cols-2 md:grid-cols-4">
