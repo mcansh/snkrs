@@ -31,9 +31,18 @@ const loader: LoaderFunction = async ({ request }) => {
   const flash = session.get(flashMessageKey);
 
   if (flash) {
+    let parsed;
+    try {
+      parsed = JSON.parse(flash);
+    } catch (error) {
+      // failed to parse json
+      parsed = flash;
+    }
     return json(
-      { flash },
-      { headers: { 'Set-Cookie': await commitSession(session) } }
+      { flash: parsed },
+      {
+        headers: { 'Set-Cookie': await commitSession(session) },
+      }
     );
   }
   return { flash: undefined };
