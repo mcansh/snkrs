@@ -72,7 +72,8 @@ const action: ActionFunction = ({ request }) =>
       const newUser = await prisma.user.create({
         data: {
           email: valid.email,
-          name: `${valid.givenName} ${valid.familyName}`,
+          familyName: valid.familyName,
+          givenName: valid.givenName,
           password: hashed,
           username: valid.username,
         },
