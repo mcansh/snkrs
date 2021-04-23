@@ -41,7 +41,8 @@ const loader: LoaderFunction = ({ request }) =>
       }
       return json({ flash: parsed });
     }
-    return { flash: undefined };
+
+    return json({ flash: undefined });
   });
 
 const App: React.VFC = () => {
