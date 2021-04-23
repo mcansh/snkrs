@@ -18,7 +18,10 @@ const cspSettings = {
   'connect-src': [
     ...(process.env.NODE_ENV === 'production'
       ? ['https://snkrs.mcan.sh']
-      : ['ws://localhost:3001', 'http://localhost:3000']),
+      : [
+          'ws://localhost:3001',
+          `http://localhost:${process.env.PORT ?? 3000}`,
+        ]),
   ],
 };
 

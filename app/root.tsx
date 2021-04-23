@@ -18,6 +18,7 @@ import globalCSS from './styles/global.css';
 import type { Flash } from './@types/flash';
 import { flashMessageKey } from './constants';
 import { withSession } from './lib/with-session';
+import { safeParse } from './utils/safe-parse';
 
 const noScriptPaths = new Set<string>([]);
 
@@ -31,18 +32,13 @@ const loader: LoaderFunction = ({ request }) =>
   withSession(request, session => {
     const flash = session.get(flashMessageKey);
 
-    if (flash) {
-      let parsed;
-      try {
-        parsed = JSON.parse(flash);
-      } catch (error) {
-        // failed to parse json
-        parsed = flash;
-      }
-      return json({ flash: parsed });
+    if (session.has(flashMessageKey)) {
+      session.unset(flashMessageKey);
     }
 
-    return json({ flash: undefined });
+    const parsed = flash ? safeParse(flash) : undefined;
+
+    return json({ flash: parsed });
   });
 
 const App: React.VFC = () => {
