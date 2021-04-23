@@ -6,7 +6,12 @@ import type { EntryContext } from '@remix-run/node';
 // https://securityheaders.com
 const cspSettings = {
   'default-src': ["'self'"],
-  'img-src': ["'self'", 'data:', 'https://images.mcan.sh/upload/'],
+  'img-src': [
+    "'self'",
+    'data:',
+    'https://images.mcan.sh/upload/',
+    'https://kiwi.mcan.sh',
+  ],
   'style-src': ["'self'", "'unsafe-inline'", 'https://rsms.me/inter/inter.css'],
   'font-src': ['https://rsms.me/inter/font-files/'],
   'script-src': ["'self'", "'unsafe-inline'", 'https://kiwi.mcan.sh/script.js'],
