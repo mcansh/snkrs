@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Form, usePendingFormSubmit } from '@remix-run/react';
 import { useLocation } from 'react-router-dom';
-import type { ActionFunction } from '@remix-run/node';
+import type { ActionFunction, LoaderFunction } from '@remix-run/node';
 import { redirect } from '@remix-run/node';
 
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
@@ -10,6 +10,26 @@ import { flashMessage } from '../flash-message';
 import { verify } from '../lib/auth';
 import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
+
+const loader: LoaderFunction = ({ request }) =>
+  withSession(request, async session => {
+    const userId = session.get(sessionKey);
+
+    if (userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { username: true },
+      });
+
+      if (!user) {
+        session.unset(sessionKey);
+        return {};
+      }
+
+      return redirect(`/${user.username}`);
+    }
+    return {};
+  });
 
 const action: ActionFunction = ({ request }) =>
   withSession(request, async session => {
@@ -57,7 +77,7 @@ const meta = () => ({
   title: 'Log in',
 });
 
-const Login: React.VFC = () => {
+const LoginPage: React.VFC = () => {
   const pendingForm = usePendingFormSubmit();
   const location = useLocation();
 
@@ -102,5 +122,5 @@ const Login: React.VFC = () => {
   );
 };
 
-export default Login;
-export { meta, action };
+export default LoginPage;
+export { action, loader, meta };
