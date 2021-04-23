@@ -25,7 +25,7 @@ export class NotFoundError extends Error {
 export class InvalidLoginError extends Error {
   public name = 'InvalidLoginError';
   public statusCode = 401;
-  public constructor(message = 'Invalid username/password combo') {
+  public constructor(message = 'Invalid username or password') {
     super(message);
   }
 }

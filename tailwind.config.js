@@ -1,5 +1,6 @@
 const defaultConfig = require('tailwindcss/defaultConfig');
 const defaultTheme = require('tailwindcss/defaultTheme');
+const plugin = require('tailwindcss/plugin');
 
 module.exports = {
   mode: 'jit',
@@ -14,6 +15,9 @@ module.exports = {
       inset: {
         '1/2': '50%',
       },
+      transitionDelay: {
+        0: '0ms',
+      },
     },
   },
   variants: {
@@ -22,5 +26,13 @@ module.exports = {
     opacity: [...defaultConfig.variants.opacity, 'disabled'],
     cursor: [...defaultConfig.variants.cursor, 'disabled'],
   },
-  plugins: [],
+  plugins: [
+    plugin(({ addVariant, e }) => {
+      addVariant('hidden', ({ modifySelectors, separator }) => {
+        modifySelectors(
+          ({ className }) => `.${e(`hidden${separator}${className}`)}[hidden]`
+        );
+      });
+    }),
+  ],
 };

@@ -1,8 +1,18 @@
 import * as React from 'react';
-import { Form, usePendingFormSubmit } from '@remix-run/react';
+import {
+  block,
+  Form,
+  usePendingFormSubmit,
+  useRouteData,
+} from '@remix-run/react';
 import { useLocation } from 'react-router-dom';
-import type { ActionFunction, LoaderFunction } from '@remix-run/node';
+import type {
+  ActionFunction,
+  LinksFunction,
+  LoaderFunction,
+} from '@remix-run/node';
 import { redirect } from '@remix-run/node';
+import clsx from 'clsx';
 
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
 import { InvalidLoginError } from '../errors';
@@ -10,10 +20,52 @@ import { flashMessage } from '../flash-message';
 import { verify } from '../lib/auth';
 import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
+import type { LoadingButtonProps } from '../components/loading-button';
+import { LoadingButton } from '../components/loading-button';
+import type { Flash } from '../@types/flash';
+import { safeParse } from '../utils/safe-parse';
+import checkIcon from '../icons/check.svg';
+import cloudIcon from '../icons/cloud.svg';
+import exclamationCircleIcon from '../icons/exclamation-circle.svg';
+import loginIcon from '../icons/login.svg';
+
+interface RouteData {
+  loginError?: Flash;
+}
+
+const links: LinksFunction = () => [
+  block({
+    rel: 'preload',
+    href: checkIcon,
+    as: 'image',
+    type: 'image/svg+xml',
+  }),
+  block({
+    rel: 'preload',
+    href: cloudIcon,
+    as: 'image',
+    type: 'image/svg+xml',
+  }),
+  block({
+    rel: 'preload',
+    href: exclamationCircleIcon,
+    as: 'image',
+    type: 'image/svg+xml',
+  }),
+  block({
+    rel: 'preload',
+    href: loginIcon,
+    as: 'image',
+    type: 'image/svg+xml',
+  }),
+];
 
 const loader: LoaderFunction = ({ request }) =>
   withSession(request, async session => {
     const userId = session.get(sessionKey);
+    const loginError = session.get('loginError');
+
+    const parsed = safeParse(loginError);
 
     if (userId) {
       const user = await prisma.user.findUnique({
@@ -23,12 +75,12 @@ const loader: LoaderFunction = ({ request }) =>
 
       if (!user) {
         session.unset(sessionKey);
-        return {};
+        return { loginError: parsed };
       }
 
       return redirect(`/${user.username}`);
     }
-    return {};
+    return { loginError: parsed };
   });
 
 const action: ActionFunction = ({ request }) =>
@@ -64,7 +116,7 @@ const action: ActionFunction = ({ request }) =>
       return redirect(redirectAfterLogin ? redirectAfterLogin : '/');
     } catch (error) {
       if (error instanceof InvalidLoginError) {
-        session.flash(flashMessageKey, flashMessage(error.message, 'error'));
+        session.flash('loginError', flashMessage(error.message, 'error'));
       } else {
         console.error(error);
       }
@@ -78,11 +130,77 @@ const meta = () => ({
 });
 
 const LoginPage: React.VFC = () => {
+  const data = useRouteData<RouteData>();
   const pendingForm = usePendingFormSubmit();
   const location = useLocation();
+  const [state, setState] = React.useState<LoadingButtonProps['state']>('idle');
+  const timerRef = React.useRef<NodeJS.Timeout>();
+
+  const colors = {
+    idle: {
+      bg: 'bg-blue-500',
+      hover: 'hover:bg-blue-700',
+      ring: 'focus:bg-blue-700',
+      disabled: 'focus:bg-blue-200',
+    },
+    loading: {
+      bg: 'bg-indigo-500',
+      hover: 'hover:bg-indigo-700',
+      ring: 'focus:ring-indigo-700',
+      disabled: 'focus:ring-indigo-200',
+    },
+    error: {
+      bg: 'bg-red-500',
+      hover: 'hover:bg-red-700',
+      ring: 'focus:ring-red-700',
+      disabled: 'focus:ring-red-200',
+    },
+    success: {
+      bg: 'bg-green-500',
+      hover: 'hover:bg-green-700',
+      ring: 'focus:ring-green-700',
+      disabled: 'focus:ring-green-200',
+    },
+  };
+
+  React.useEffect(() => {
+    if (pendingForm) {
+      setState('loading');
+    } else if (data.loginError) {
+      setState('error');
+      timerRef.current = setTimeout(() => {
+        setState('idle');
+      }, 1500);
+    } else {
+      setState('idle');
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [data.loginError, pendingForm]);
 
   return (
     <div className="w-11/12 max-w-lg py-8 mx-auto">
+      {data.loginError && (
+        <div
+          className={clsx(
+            'px-4 py-2 mb-2 text-sm text-white rounded',
+            typeof data.loginError === 'string'
+              ? 'bg-purple-500'
+              : data.loginError.type === 'error'
+              ? 'bg-red-500'
+              : 'bg-purple-500'
+          )}
+        >
+          {typeof data.loginError === 'string'
+            ? data.loginError
+            : data.loginError.message}
+        </div>
+      )}
+
       <h1 className="pb-2 text-2xl font-medium">Log in</h1>
 
       <Form
@@ -110,12 +228,41 @@ const LoginPage: React.VFC = () => {
               id="password"
             />
           </label>
-          <button
-            className="self-start w-auto px-4 py-2 text-left text-white transition-colors duration-100 ease-in-out bg-blue-500 rounded disabled:bg-blue-200 hover:bg-blue-700 disabled:cursor-not-allowed"
+
+          <LoadingButton
             type="submit"
-          >
-            Log{pendingForm && 'ging'} in
-          </button>
+            state={state}
+            text={<span>Log in</span>}
+            textLoading={<span>Logging in</span>}
+            textError={
+              <span>There was an error logging in, please try again.</span>
+            }
+            ariaText="Log in"
+            ariaLoadingAlert="Attempting to log in"
+            ariaSuccessAlert="Successfully logged in, redirecting..."
+            ariaErrorAlert="Error logging in"
+            icon={
+              <svg className="w-6 h-6">
+                <use href={`${loginIcon}#login`} />
+              </svg>
+            }
+            iconError={
+              <svg className="w-6 h-6">
+                <use href={`${exclamationCircleIcon}#exclamation-circle`} />
+              </svg>
+            }
+            iconLoading={
+              <svg className="w-6 h-6">
+                <use href={`${cloudIcon}#cloud`} />
+              </svg>
+            }
+            iconSuccess={
+              <svg className="w-6 h-6">
+                <use href={`${checkIcon}#check`} />
+              </svg>
+            }
+            className={`px-4 py-2 disabled:cursor-not-allowed border border-transparent shadow-sm text-base font-medium rounded text-white ${colors[state].bg} ${colors[state].hover} focus:outline-none focus:ring-2 focus:ring-offset-2 ${colors[state].ring}`}
+          />
         </fieldset>
       </Form>
     </div>
@@ -123,4 +270,4 @@ const LoginPage: React.VFC = () => {
 };
 
 export default LoginPage;
-export { action, loader, meta };
+export { action, links, loader, meta };
