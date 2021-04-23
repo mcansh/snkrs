@@ -29,3 +29,19 @@ export class InvalidLoginError extends Error {
     super(message);
   }
 }
+
+export class EmailTakenJoinError extends Error {
+  public name = 'EmailTakenJoinError';
+  public statusCode = 400;
+  public constructor(message = 'A user with this email already exists') {
+    super(message);
+  }
+}
+
+export class UsernameTakenJoinError extends Error {
+  public name = 'UsernameTakenJoinError';
+  public statusCode = 400;
+  public constructor(message = 'A user with this username already exists') {
+    super(message);
+  }
+}

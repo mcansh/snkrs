@@ -1,7 +1,7 @@
 import React from 'react';
 import type { HeadersFunction } from '@remix-run/react';
 import { block, useRouteData } from '@remix-run/react';
-import type { Sneaker as SneakerType } from '@prisma/client';
+import type { Sneaker as SneakerType, User } from '@prisma/client';
 import { useNavigate } from 'react-router';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Listbox, Transition } from '@headlessui/react';
@@ -22,12 +22,10 @@ import FourOhFour, { meta as fourOhFourMeta } from './404';
 
 interface RouteData {
   brands: Array<string>;
-  user: {
-    username: string;
-    name: string;
-    sneakers: Array<SneakerType>;
-    id: string;
-  };
+  user: Pick<
+    User & { sneakers: Array<SneakerType> },
+    'username' | 'familyName' | 'givenName' | 'sneakers' | 'id'
+  >;
   isCurrentUser: boolean;
 }
 
@@ -57,15 +55,15 @@ const meta = ({ data }: { data: RouteData }) => {
     return fourOhFourMeta();
   }
 
-  const usernameEndsWithS = data.user.name.toLowerCase().endsWith('s');
+  const fullName = `${data.user.givenName} ${data.user.familyName}`;
 
-  const usernameWithApostrophe = usernameEndsWithS
-    ? `${data.user.name}'`
-    : `${data.user.name}'s`;
+  const usernameEndsWithS = fullName.toLowerCase().endsWith('s');
+
+  const nameEndsWithS = usernameEndsWithS ? `${fullName}'` : `${fullName}'s`;
 
   return {
-    title: `Home | ${usernameWithApostrophe} Sneaker Collection`,
-    description: `${usernameWithApostrophe} sneaker collection`,
+    title: `Home | ${nameEndsWithS} Sneaker Collection`,
+    description: `${nameEndsWithS} sneaker collection`,
   };
 };
 
@@ -82,7 +80,8 @@ const loader: LoaderFunction = ({ request, params }) =>
       const user = await prisma.user.findUnique({
         where: { username },
         select: {
-          name: true,
+          givenName: true,
+          familyName: true,
           username: true,
           sneakers: { orderBy: { purchaseDate: 'desc' } },
           id: true,
@@ -136,7 +135,13 @@ const Index = () => {
   if (!user.sneakers.length) {
     return (
       <div className="flex items-center justify-center w-full h-full text-lg text-center">
-        <p>No sneakers</p>
+        {isCurrentUser ? (
+          <Link to="/sneakers/add" className="text-purple-600">
+            Add a pair to your collection
+          </Link>
+        ) : (
+          <p>No sneakers</p>
+        )}
       </div>
     );
   }
