@@ -26,7 +26,8 @@ const loader: LoaderFunction = async ({ params }) => {
     const user = await prisma.user.findUnique({
       where: { username },
       select: {
-        name: true,
+        givenName: true,
+        familyName: true,
         username: true,
         id: true,
       },

@@ -63,6 +63,7 @@ const action: ActionFunction = ({ request }) =>
       if (foundUser && foundUser.email === email) {
         throw new EmailTakenJoinError();
       }
+
       if (foundUser && foundUser.username === username) {
         throw new UsernameTakenJoinError();
       }

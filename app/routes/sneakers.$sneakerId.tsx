@@ -17,7 +17,7 @@ import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 import { withSession } from '../lib/with-session';
 
 type SneakerWithUser = SneakerType & {
-  User: Pick<User, 'name' | 'id' | 'username'>;
+  User: Pick<User, 'givenName' | 'familyName' | 'id' | 'username'>;
 };
 
 interface Props {
@@ -34,7 +34,16 @@ const loader: LoaderFunction = ({ params, request }) =>
   withSession(request, async session => {
     const sneaker = await prisma.sneaker.findUnique({
       where: { id: params.sneakerId },
-      include: { User: { select: { name: true, id: true, username: true } } },
+      include: {
+        User: {
+          select: {
+            givenName: true,
+            familyName: true,
+            id: true,
+            username: true,
+          },
+        },
+      },
     });
 
     if (!sneaker) {
@@ -161,7 +170,10 @@ const meta = ({ data }: { data: Props }) => {
     day: 'numeric',
     year: 'numeric',
   });
-  const description = `${data.sneaker.User.name} bought the ${data.sneaker.brand} ${data.sneaker.model} on ${date}`;
+
+  const fullName = `${data.sneaker.User.givenName} ${data.sneaker.User.familyName}`;
+
+  const description = `${fullName} bought the ${data.sneaker.brand} ${data.sneaker.model} on ${date}`;
 
   return {
     title: `${data.sneaker.brand} ${data.sneaker.model} – ${data.sneaker.colorway}`,
@@ -269,9 +281,11 @@ const SneakerPage: React.VFC = () => {
                     year: 'numeric',
                   });
 
+                  const fullName = `${sneaker.User.givenName} ${sneaker.User.familyName}`;
+
                   return navigator.share({
                     title: `${sneaker.brand} ${sneaker.model} – ${sneaker.colorway}`,
-                    text: `${sneaker.User.name} bought the ${sneaker.brand} ${sneaker.model} on ${date}`,
+                    text: `${fullName} bought the ${sneaker.brand} ${sneaker.model} on ${date}`,
                     url: location.href,
                   });
                 }

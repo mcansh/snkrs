@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Sneaker as SneakerType } from '@prisma/client';
+import type { Sneaker as SneakerType, User } from '@prisma/client';
 import { useRouteData } from '@remix-run/react';
 import type { LoaderFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
@@ -11,10 +11,8 @@ import { NotFoundError } from '../errors';
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
 interface SneakerYearProps {
-  user: {
+  user: Pick<User, 'username' | 'familyName' | 'givenName'> & {
     sneakers: SneakerType[];
-    username: string;
-    name: string;
   };
   year: number;
 }
@@ -31,7 +29,8 @@ const loader: LoaderFunction = async ({ params }) => {
     const user = await prisma.user.findUnique({
       where: { username },
       select: {
-        name: true,
+        givenName: true,
+        familyName: true,
         username: true,
         sneakers: {
           orderBy: { purchaseDate: 'asc' },

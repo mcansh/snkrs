@@ -31,7 +31,9 @@ const loader: LoaderFunction = ({ params, request }) =>
     try {
       const sneaker = await prisma.sneaker.findUnique({
         where: { id: params.sneakerId },
-        include: { User: { select: { name: true, id: true } } },
+        include: {
+          User: { select: { familyName: true, givenName: true, id: true } },
+        },
       });
 
       if (!sneaker) return json({ id: params.sneakerId }, { status: 404 });
