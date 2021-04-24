@@ -10,10 +10,12 @@ import {
   useLiveReload,
 } from '@remix-run/react';
 import * as Fathom from 'fathom-client';
-import { AnimatePresence, motion } from 'framer-motion';
 import { Outlet, useLocation } from 'react-router-dom';
+import toast, { useToaster } from 'react-hot-toast';
 import clsx from 'clsx';
+import { Portal, Transition } from '@headlessui/react';
 
+import x from './icons/solid/x.svg';
 import globalCSS from './styles/global.css';
 import type { Flash } from './@types/flash';
 import { flashMessageKey } from './constants';
@@ -36,10 +38,60 @@ const loader: LoaderFunction = ({ request }) =>
       session.unset(flashMessageKey);
     }
 
-    const parsed = flash ? safeParse(flash) : undefined;
+    const parsed = flash ? safeParse(flash) : flash;
 
     return json({ flash: parsed });
   });
+
+const Notifications = () => {
+  const { toasts, handlers } = useToaster();
+  const { startPause, endPause } = handlers;
+
+  return (
+    <Portal>
+      {toasts.map(t => (
+        <div
+          key={t.id}
+          aria-live="assertive"
+          className="fixed inset-0 flex items-end justify-center px-4 py-6 pointer-events-none sm:p-6 sm:items-start sm:justify-end"
+          onMouseEnter={startPause}
+          onMouseLeave={endPause}
+        >
+          <Transition
+            show={t.visible}
+            as={React.Fragment}
+            enter="transform ease-out duration-300 transition"
+            enterFrom="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+            enterTo="translate-y-0 opacity-100 sm:translate-x-0"
+            leave="transition ease-in duration-100"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="w-full max-w-sm overflow-hidden bg-white rounded-lg shadow-lg pointer-events-auto ring-1 ring-black ring-opacity-5">
+              <div className="p-4">
+                <div className="flex items-center">
+                  <div className="flex justify-between flex-1 w-0">
+                    <p className="flex-1 w-0 text-sm font-medium text-gray-900">
+                      {t.message}
+                    </p>
+                  </div>
+                  <div className="flex flex-shrink-0 ml-4">
+                    <button className="inline-flex text-gray-400 bg-white rounded-md hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                      <span className="sr-only">Close</span>
+                      <svg className="w-5 h-5" aria-hidden="true">
+                        <use href={`${x}#x`} />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Transition>
+        </div>
+      ))}
+    </Portal>
+  );
+};
 
 const App: React.VFC = () => {
   const { flash } = useRouteData<RouteData>();
@@ -56,13 +108,28 @@ const App: React.VFC = () => {
     });
   }, []);
 
+  React.useEffect(() => {
+    if (flash) {
+      toast(typeof flash === 'string' ? flash : flash.message, {
+        className: clsx(
+          'p-2 text-white rounded-lg',
+          typeof flash === 'string'
+            ? 'bg-purple-500'
+            : flash.type === 'error'
+            ? 'bg-red-500'
+            : 'bg-purple-500'
+        ),
+      });
+    }
+  });
+
   return (
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
         <link
           rel="icon"
-          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👟</text></svg>"
+          href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext x='0' y='14'%3E👟%3C/text%3E%3C/svg%3E"
         />
         <link
           rel="apple-touch-icon"
@@ -112,31 +179,7 @@ const App: React.VFC = () => {
           cursor: pendingLocation ? 'not-allowed' : undefined,
         }}
       >
-        <AnimatePresence initial={includeScripts}>
-          {flash && (
-            <motion.div
-              className={clsx(
-                'fixed z-10 p-2 text-white -translate-y-full rounded-lg shadow-md top-2 left-2',
-                typeof flash === 'string'
-                  ? 'bg-purple-500'
-                  : flash.type === 'error'
-                  ? 'bg-red-500'
-                  : 'bg-purple-500'
-              )}
-              initial={{ y: '-100%', opacity: 0 }}
-              animate={{ y: '0%', opacity: 1 }}
-              transition={{ duration: 0.25 }}
-            >
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.15, delay: 0.25 }}
-              >
-                {typeof flash === 'string' ? flash : flash.message}
-              </motion.span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <Notifications />
 
         <Outlet />
         {includeScripts && <Scripts />}
