@@ -9,3 +9,6 @@ node_modules
 /build
 /public/build
 app/styles
+
+app/icons/solid
+app/icons/outline
