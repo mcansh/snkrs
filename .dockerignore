@@ -12,3 +12,4 @@ prisma/node_modules
 !postcss.config.js
 !remix.config.js
 !tailwind.config.js
+!scripts/heroicon-symbols.mjs
