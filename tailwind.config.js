@@ -15,8 +15,8 @@ module.exports = {
       inset: {
         '1/2': '50%',
       },
-      transitionDelay: {
-        0: '0ms',
+      screens: {
+        xs: '475px',
       },
     },
   },

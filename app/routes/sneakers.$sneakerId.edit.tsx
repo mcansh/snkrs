@@ -84,7 +84,7 @@ const EditSneakerPage: React.VFC = () => {
   const image3x = getCloudinaryURL(imagePublicId, ['w_400', 'c_pad']);
 
   return (
-    <main className="container min-h-full p-4 mx-auto">
+    <>
       <Link to={`/sneakers/${sneaker.id}`}>Back</Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
         <div className="relative" style={{ paddingBottom: '100%' }}>
@@ -203,7 +203,7 @@ const EditSneakerPage: React.VFC = () => {
           </fieldset>
         </Form>
       </div>
-    </main>
+    </>
   );
 };
 

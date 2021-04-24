@@ -91,8 +91,8 @@ const Index = () => {
   }
 
   return (
-    <main className="container min-h-full p-4 mx-auto">
-      <h1 className="pb-2 text-xl sm:text-4xl">
+    <>
+      <h1 className="pb-2 text-xl xs:text-2xl sm:text-4xl">
         {brand} Sneaker Collection – {sneakers.length} and counting
       </h1>
 
@@ -101,7 +101,7 @@ const Index = () => {
           <Sneaker key={sneaker.id} {...sneaker} />
         ))}
       </ul>
-    </main>
+    </>
   );
 };
 

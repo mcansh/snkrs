@@ -152,9 +152,9 @@ const Index = () => {
       : user.sneakers;
 
   return (
-    <main className="container min-h-full p-4 mx-auto">
+    <>
       <div className="flex items-center justify-between pb-2 space-x-2">
-        <h1 className="text-xl sm:text-4xl">
+        <h1 className="text-xl xs:text-2xl sm:text-4xl">
           Sneaker Collection – {user.sneakers.length} and counting
         </h1>
         {isCurrentUser && (
@@ -300,7 +300,7 @@ const Index = () => {
           <Sneaker key={sneaker.id} {...sneaker} />
         ))}
       </ul>
-    </main>
+    </>
   );
 };
 
