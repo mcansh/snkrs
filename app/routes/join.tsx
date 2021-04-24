@@ -82,7 +82,6 @@ const action: ActionFunction = ({ request }) =>
 
       session.set(sessionKey, newUser.id);
 
-      session.unset(redirectKey);
       return redirect(redirectAfter ? redirectAfter : `/${newUser.username}`);
     } catch (error) {
       console.error(error);

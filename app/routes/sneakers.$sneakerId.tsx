@@ -148,7 +148,7 @@ const action: ActionFunction = ({ request, params }) =>
       return redirect(`/sneakers/${sneakerId}`);
     } catch (error) {
       if (error instanceof AuthorizationError) {
-        session.set(redirectKey, `/sneakers/${sneakerId}`);
+        session.flash(redirectKey, `/sneakers/${sneakerId}`);
         session.flash(flashMessageKey, flashMessage(error.message, 'error'));
       } else {
         console.error(error);

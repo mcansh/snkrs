@@ -53,7 +53,7 @@ const loader: LoaderFunction = ({ params, request }) =>
       });
     } catch (error) {
       if (error instanceof AuthorizationError) {
-        session.set(redirectKey, `/sneakers/${params.sneakerId}/edit`);
+        session.flash(redirectKey, `/sneakers/${params.sneakerId}/edit`);
       } else {
         console.error(error);
       }

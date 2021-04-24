@@ -27,7 +27,7 @@ const loader: LoaderFunction = ({ request }) =>
     } catch (error) {
       if (error instanceof AuthorizationError) {
         session.flash(flashMessageKey, flashMessage(error.message, 'error'));
-        session.set(redirectKey, '/sneakers/add');
+        session.flash(redirectKey, '/sneakers/add');
       } else {
         console.error(error);
       }
@@ -111,7 +111,7 @@ const action: ActionFunction = ({ request }) =>
     } catch (error) {
       if (error instanceof AuthorizationError) {
         session.flash(flashMessageKey, flashMessage(error.message, 'error'));
-        session.set(redirectKey, `/sneakers/add`);
+        session.flash(redirectKey, `/sneakers/add`);
         return redirect('/login');
       }
 

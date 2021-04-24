@@ -112,7 +112,6 @@ const action: ActionFunction = ({ request }) =>
         flashMessageKey,
         flashMessage(`Welcome back ${foundUser.username}!`, 'success')
       );
-      session.unset(redirectKey);
       return redirect(redirectAfterLogin ? redirectAfterLogin : '/');
     } catch (error) {
       if (error instanceof InvalidLoginError) {
