@@ -13,6 +13,7 @@
     "prebuild": "npm run clean",
     "build": "run-s build:*",
     "build:css": "postcss styles --base styles --dir app/styles --env production",
+    "build:icons": "node scripts/heroicon-symbols.mjs",
     "build:remix": "remix build2",
     "generate": "prisma generate",
     "lint": "eslint --cache --ext .js,.ts,.tsx .",
@@ -22,7 +23,7 @@
     "db:migrate": "prisma migrate dev --preview-feature",
     "prepare": "husky install",
     "postinstall": "npm run generate",
-    "clean": "del .cache build public/build app/styles",
+    "clean": "del .cache build public/build app/styles app/icons",
     "start": "remix-serve ./build"
   },
   "dependencies": {
