@@ -186,23 +186,27 @@ const Index = () => {
               <Transition
                 show={open}
                 enter="transition duration-100 ease-out"
-                enterFrom="transform scale-95 opacity-0 shadow-none"
-                enterTo="transform scale-100 opacity-100 shadow-xl"
+                enterFrom="transform scale-95 opacity-0"
+                enterTo="transform scale-100 opacity-100"
                 leave="transition duration-75 ease-out"
-                leaveFrom="transform scale-100 opacity-100 shadow-xl"
-                leaveTo="transform scale-95 opacity-0 shadow-none"
+                leaveFrom="transform scale-100 opacity-100"
+                leaveTo="transform scale-95 opacity-0"
                 as={React.Fragment}
               >
                 <Listbox.Options
                   static
-                  className="absolute z-10 w-full bg-white top-[50px]"
+                  className="divide-y absolute z-10 w-full bg-white top-[50px] rounded-lg shadow-xl overflow-hidden"
                 >
                   {brands.map(brand => (
-                    <Listbox.Option key={brand} value={brand}>
+                    <Listbox.Option
+                      key={brand}
+                      value={brand}
+                      as={React.Fragment}
+                    >
                       {({ active, selected }) => (
                         <li
                           className={clsx(
-                            'cursor-pointer px-3 flex items-center justify-between',
+                            'cursor-pointer px-3 py-1 flex items-center justify-between',
                             active
                               ? 'bg-blue-500 text-white'
                               : 'bg-white text-black'
@@ -254,7 +258,7 @@ const Index = () => {
               >
                 <Listbox.Options
                   static
-                  className="absolute z-10 w-full bg-white top-[50px] shadow-xl"
+                  className="divide-y absolute z-10 w-full bg-white top-[50px] rounded-lg shadow-xl overflow-hidden"
                 >
                   {[
                     { value: 'desc', display: 'Recent first' },
@@ -268,7 +272,7 @@ const Index = () => {
                       {({ active, selected }) => (
                         <li
                           className={clsx(
-                            'cursor-pointer px-3 flex items-center justify-between',
+                            'cursor-pointer px-3 py-1 flex items-center justify-between',
                             active
                               ? 'bg-blue-500 text-white'
                               : 'bg-white text-black'
