@@ -2,7 +2,7 @@
 import path from 'path';
 import { promises as fs, constants } from 'fs';
 
-import { optimize, extendDefaultPlugins } from 'svgo';
+import { optimize, extendDefaultPlugins, createContentItem } from 'svgo';
 
 const HEROCIONS_PATH = path.join(process.cwd(), 'node_modules/heroicons');
 const HEROCIONS_SOLID_PATH = path.join(HEROCIONS_PATH, 'solid');
@@ -37,6 +37,34 @@ async function wrapSymbol(inputPath, outputDir) {
       {
         name: 'removeDimensions',
         active: true,
+      },
+      {
+        name: 'wrapInSymbol',
+        type: 'perItem',
+        fn: item => {
+          if (item.type === 'element') {
+            if (item.name === 'svg') {
+              const { xmlns, ...attributes } = item.attributes;
+
+              for (const attribute in attributes) {
+                if (Object.hasOwnProperty.call(attributes, attribute)) {
+                  delete item.attributes[attribute];
+                }
+              }
+
+              const children = item.children;
+
+              item.children = [
+                createContentItem({
+                  type: 'element',
+                  name: 'symbol',
+                  attributes: { ...attributes, id: base },
+                  children,
+                }),
+              ];
+            }
+          }
+        },
       },
     ]),
   });

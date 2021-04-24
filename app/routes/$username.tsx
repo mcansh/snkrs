@@ -14,9 +14,9 @@ import { prisma } from '../db';
 import { NotFoundError } from '../errors';
 import { sessionKey } from '../constants';
 import { withSession } from '../lib/with-session';
-import plusCircleIcon from '../icons/plus-circle.svg';
-import chevronDownIcon from '../icons/chevron-down.svg';
-import checkIcon from '../icons/check.svg';
+import plusCircleIcon from '../icons/outline/plus-circle.svg';
+import chevronDownIcon from '../icons/outline/chevron-down.svg';
+import checkIcon from '../icons/outline/check.svg';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 

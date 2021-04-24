@@ -24,10 +24,10 @@ import type { LoadingButtonProps } from '../components/loading-button';
 import { LoadingButton } from '../components/loading-button';
 import type { Flash } from '../@types/flash';
 import { safeParse } from '../utils/safe-parse';
-import checkIcon from '../icons/check.svg';
-import cloudIcon from '../icons/cloud.svg';
-import exclamationCircleIcon from '../icons/exclamation-circle.svg';
-import loginIcon from '../icons/login.svg';
+import checkIcon from '../icons/outline/check.svg';
+import cloudIcon from '../icons/outline/cloud.svg';
+import exclamationCircleIcon from '../icons/outline/exclamation-circle.svg';
+import loginIcon from '../icons/outline/login.svg';
 
 interface RouteData {
   loginError?: Flash;
