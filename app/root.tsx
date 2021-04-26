@@ -20,6 +20,7 @@ import { flashMessageKey } from './constants';
 import { withSession } from './lib/with-session';
 import { safeParse } from './utils/safe-parse';
 import { Notifications } from './notifications';
+import spinner from './icons/spinner.svg';
 
 const noScriptPaths = new Set<string>([]);
 
@@ -118,15 +119,23 @@ const App: React.VFC = () => {
         <Meta />
         <Links />
       </head>
-      <body
-        style={{
-          opacity: pendingLocation ? 0.6 : undefined,
-          cursor: pendingLocation ? 'not-allowed' : undefined,
-        }}
-      >
+      <body>
         <Notifications />
 
-        <main className="container min-h-full p-4 pb-6 mx-auto">
+        {pendingLocation && (
+          <div className="fixed z-10 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 transform-gpu">
+            <svg className="z-10 w-10 h-10 text-blue-600 animate-spin">
+              <use href={`${spinner}#spinner`} />
+            </svg>
+          </div>
+        )}
+
+        <main
+          className={clsx(
+            'container min-h-full p-4 pb-6 mx-auto',
+            pendingLocation ? 'opacity-60 cursor-not-allowed' : ''
+          )}
+        >
           <Outlet />
         </main>
         {includeScripts && <Scripts />}
