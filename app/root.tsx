@@ -8,9 +8,10 @@ import {
   usePendingLocation,
   useRouteData,
   useLiveReload,
+  useMatches,
 } from '@remix-run/react';
 import * as Fathom from 'fathom-client';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 
@@ -21,8 +22,6 @@ import { withSession } from './lib/with-session';
 import { safeParse } from './utils/safe-parse';
 import { Notifications } from './notifications';
 import spinner from './icons/spinner.svg';
-
-const noScriptPaths = new Set<string>([]);
 
 interface RouteData {
   flash?: Flash;
@@ -42,8 +41,8 @@ const loader: LoaderFunction = ({ request }) =>
 const App: React.VFC = () => {
   const { flash } = useRouteData<RouteData>();
   const pendingLocation = usePendingLocation();
-  const location = useLocation();
-  const includeScripts = !noScriptPaths.has(location.pathname);
+  const matches = useMatches();
+  const includeScripts = matches.some(match => match.handle?.hydrate !== false);
 
   useLiveReload();
 

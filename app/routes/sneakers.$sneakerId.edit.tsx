@@ -93,7 +93,7 @@ const EditSneakerPage: React.VFC = () => {
   });
 
   return (
-    <>
+    <div className="container min-h-full p-4 pb-6 mx-auto">
       <Link to={`/sneakers/${sneaker.id}`}>Back</Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
         <div className="relative" style={{ paddingBottom: '100%' }}>
@@ -212,7 +212,7 @@ const EditSneakerPage: React.VFC = () => {
           </fieldset>
         </Form>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -88,7 +88,7 @@ const SneakersYearInReview: React.VFC = () => {
   }
 
   return (
-    <>
+    <div className="container min-h-full p-4 pb-6 mx-auto">
       <h1 className="pb-2 text-xl xs:text-2xl sm:text-4xl">
         Sneakers bought in {year} – {user.sneakers.length}
         {new Date().getFullYear() === year && ` and counting`}
@@ -99,7 +99,7 @@ const SneakersYearInReview: React.VFC = () => {
           <Sneaker key={sneaker.id} {...sneaker} />
         ))}
       </ul>
-    </>
+    </div>
   );
 };
 
