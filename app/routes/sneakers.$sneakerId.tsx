@@ -1,8 +1,12 @@
 import React from 'react';
 import type { Sneaker as SneakerType, User } from '@prisma/client';
 import type { HeadersFunction } from '@remix-run/react';
-import { Link, useRouteData } from '@remix-run/react';
-import type { ActionFunction, LoaderFunction } from '@remix-run/node';
+import { block, Link, useRouteData } from '@remix-run/react';
+import type {
+  ActionFunction,
+  LinksFunction,
+  LoaderFunction,
+} from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 
 import { formatDate } from '../utils/format-date';
@@ -20,11 +24,27 @@ type SneakerWithUser = SneakerType & {
   User: Pick<User, 'givenName' | 'familyName' | 'id' | 'username'>;
 };
 
-interface Props {
+interface RouteData {
   sneaker: SneakerWithUser;
   id: string;
   userCreatedSneaker: boolean;
 }
+
+const links: LinksFunction = ({ data }: { data: RouteData }) => {
+  if (!data.sneaker) return [];
+  const sizes = [400, 800, 1200];
+
+  return sizes.map(size =>
+    block({
+      rel: 'preload',
+      type: 'image',
+      href: getCloudinaryURL(data.sneaker.imagePublicId, {
+        width: size,
+        crop: 'pad',
+      }),
+    })
+  );
+};
 
 const headers: HeadersFunction = ({ loaderHeaders }) => ({
   'Cache-Control': loaderHeaders.get('Cache-Control') ?? 'no-cache',
@@ -158,7 +178,7 @@ const action: ActionFunction = ({ request, params }) =>
     }
   });
 
-const meta = ({ data }: { data: Props }) => {
+const meta = ({ data }: { data: RouteData }) => {
   if (!data.sneaker) {
     return {
       title: 'Sneaker Not Found',
@@ -182,7 +202,7 @@ const meta = ({ data }: { data: Props }) => {
 };
 
 const SneakerPage: React.VFC = () => {
-  const { sneaker, id, userCreatedSneaker } = useRouteData<Props>();
+  const { sneaker, id, userCreatedSneaker } = useRouteData<RouteData>();
 
   if (!sneaker) {
     return (
@@ -312,4 +332,4 @@ const SneakerPage: React.VFC = () => {
 };
 
 export default SneakerPage;
-export { meta, loader, action, headers };
+export { action, headers, meta, links, loader };
