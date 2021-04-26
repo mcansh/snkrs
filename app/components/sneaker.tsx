@@ -18,9 +18,18 @@ const Sneaker: React.FC<SneakerType> = ({
 }) => {
   const alt = `${brand} ${model} – ${colorway}`;
 
-  const image1x = getCloudinaryURL(imagePublicId, ['c_scale', 'w_400']);
-  const image2x = getCloudinaryURL(imagePublicId, ['c_scale', 'w_800']);
-  const image3x = getCloudinaryURL(imagePublicId, ['c_scale', 'w_1200']);
+  const image1x = getCloudinaryURL(imagePublicId, {
+    width: '400',
+    crop: 'pad',
+  });
+  const image2x = getCloudinaryURL(imagePublicId, {
+    width: '800',
+    crop: 'pad',
+  });
+  const image3x = getCloudinaryURL(imagePublicId, {
+    width: '1200',
+    crop: 'pad',
+  });
 
   return (
     <li className="overflow-hidden transition-shadow duration-200 ease-linear bg-white rounded-lg shadow-md hover:shadow-lg">

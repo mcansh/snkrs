@@ -198,9 +198,18 @@ const SneakerPage: React.VFC = () => {
   const belowRetail = sneaker.retailPrice > sneaker.price;
   const atRetail = sneaker.retailPrice === sneaker.price;
 
-  const image1x = getCloudinaryURL(sneaker.imagePublicId, ['w_400', 'c_pad']);
-  const image2x = getCloudinaryURL(sneaker.imagePublicId, ['w_800', 'c_pad']);
-  const image3x = getCloudinaryURL(sneaker.imagePublicId, ['w_1200', 'c_pad']);
+  const image1x = getCloudinaryURL(sneaker.imagePublicId, {
+    width: '400',
+    crop: 'pad',
+  });
+  const image2x = getCloudinaryURL(sneaker.imagePublicId, {
+    width: '800',
+    crop: 'pad',
+  });
+  const image3x = getCloudinaryURL(sneaker.imagePublicId, {
+    width: '1200',
+    crop: 'pad',
+  });
 
   return (
     <>

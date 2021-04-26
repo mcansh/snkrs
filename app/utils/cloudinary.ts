@@ -1,12 +1,20 @@
+import type { Transformation } from 'cloudinary-core';
+import { Cloudinary } from 'cloudinary-core';
+
+const cloudinary = new Cloudinary({ cloud_name: 'dof0zryca', secure: true });
+
 function getCloudinaryURL(
   publicId: string,
-  transformOptions: Array<string> = []
+  transformOptions: Transformation.Options = {}
 ) {
-  const transforms = ['f_auto', 'q_auto', ...transformOptions];
+  const transforms: Transformation.Options = {
+    quality: 'auto',
+    fetch_format: 'auto',
+    secure: true,
+    ...transformOptions,
+  };
 
-  const transformString = transforms.join(',');
-
-  return `https://images.mcan.sh/upload/${transformString}/${publicId}`;
+  return cloudinary.url(publicId, transforms);
 }
 
 export { getCloudinaryURL };
