@@ -58,16 +58,13 @@ const Notifications: React.VFC = () => {
   const { toasts, handlers } = useToaster();
   const { startPause, endPause } = handlers;
 
+  const [toast] = toasts;
+
   return (
     <Portal>
-      {toasts.map(t => (
-        <Notification
-          key={t.id}
-          {...t}
-          startPause={startPause}
-          endPause={endPause}
-        />
-      ))}
+      {toast && (
+        <Notification {...toast} startPause={startPause} endPause={endPause} />
+      )}
     </Portal>
   );
 };
