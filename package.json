@@ -23,7 +23,7 @@
     "db:migrate": "prisma migrate dev --preview-feature",
     "prepare": "husky install",
     "postinstall": "npm run generate",
-    "clean": "del .cache build public/build app/styles app/icons",
+    "clean": "del .cache build public/build app/styles app/icons/{solid,outline}",
     "start": "remix-serve ./build"
   },
   "dependencies": {
