@@ -1,7 +1,8 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import path from 'path';
-import { promises as fs, constants } from 'fs';
+import { promises as fs } from 'fs';
 
+import makeDir from 'make-dir';
 import { optimize, extendDefaultPlugins, createContentItem } from 'svgo';
 
 const HEROCIONS_PATH = path.join(process.cwd(), 'node_modules/heroicons');
@@ -11,15 +12,6 @@ const HEROCIONS_OUTLINE_PATH = path.join(HEROCIONS_PATH, 'outline');
 const OUTDIR = path.join(process.cwd(), 'app/icons');
 const OUTDIR_SOLID = path.join(OUTDIR, 'solid');
 const OUTDIR_OUTLINE = path.join(OUTDIR, 'outline');
-
-async function createDirIfNeeded(dir) {
-  try {
-    await fs.access(dir, constants.F_OK);
-    return;
-  } catch (error) {
-    await fs.mkdir(dir);
-  }
-}
 
 async function wrapSymbol(inputPath, outputDir) {
   const ext = path.extname(inputPath);
@@ -76,9 +68,7 @@ async function wrapSymbol(inputPath, outputDir) {
 
 async function compile() {
   // 1. verify all output directories exist
-  await createDirIfNeeded(OUTDIR);
-  await createDirIfNeeded(OUTDIR_SOLID);
-  await createDirIfNeeded(OUTDIR_OUTLINE);
+  await Promise.all([makeDir(OUTDIR_OUTLINE), makeDir(OUTDIR_SOLID)]);
 
   // 2. get all svg icons from heroicons
   const [solid, outline] = await Promise.all([
