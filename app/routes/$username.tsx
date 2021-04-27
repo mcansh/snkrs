@@ -63,7 +63,7 @@ const meta = ({ data }: { data: RouteData }) => {
   const nameEndsWithS = usernameEndsWithS ? `${fullName}'` : `${fullName}'s`;
 
   return {
-    title: `Home | ${nameEndsWithS} Sneaker Collection`,
+    title: `${nameEndsWithS} Sneaker Collection`,
     description: `${nameEndsWithS} sneaker collection`,
   };
 };
