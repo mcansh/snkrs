@@ -22,7 +22,7 @@ import { flashMessageKey } from './constants';
 import { withSession } from './lib/with-session';
 import { safeParse } from './utils/safe-parse';
 import { Notifications } from './notifications';
-import spinner from './icons/spinner.svg';
+import refresh from './icons/outline/refresh.svg';
 
 interface RouteData {
   flash?: Flash;
@@ -115,7 +115,6 @@ const App: React.VFC = () => {
         <meta name="twitter:site" content="@loganmcansh" />
         <meta name="twitter:creator" content="@loganmcansh" />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Home | Sneaker Collection" />
         <meta property="og:locale" content="en_US" />
         <Meta />
         <Links />
@@ -126,7 +125,7 @@ const App: React.VFC = () => {
         {pendingLocation && (
           <div className="fixed z-10 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 transform-gpu">
             <svg className="z-10 w-10 h-10 text-blue-600 animate-spin">
-              <use href={`${spinner}#spinner`} />
+              <use href={`${refresh}#refresh`} />
             </svg>
           </div>
         )}
