@@ -69,6 +69,7 @@
     "@typescript-eslint/eslint-plugin": "4.22.0",
     "@typescript-eslint/parser": "4.22.0",
     "autoprefixer": "10.2.5",
+    "cssnano": "5.0.1",
     "del-cli": "3.0.1",
     "dotenv": "8.2.0",
     "eslint": "7.25.0",
