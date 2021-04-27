@@ -15,7 +15,7 @@ import { NotFoundError } from '../errors';
 import { sessionKey } from '../constants';
 import { withSession } from '../lib/with-session';
 import plusCircleIcon from '../icons/outline/plus-circle.svg';
-import chevronDownIcon from '../icons/outline/chevron-down.svg';
+import selectorIcon from '../icons/outline/selector.svg';
 import checkIcon from '../icons/outline/check.svg';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
@@ -38,7 +38,7 @@ const links: LinksFunction = () => [
   }),
   block({
     rel: 'preload',
-    href: chevronDownIcon,
+    href: selectorIcon,
     as: 'image',
     type: 'image/svg+xml',
   }),
@@ -103,7 +103,7 @@ const loader: LoaderFunction = ({ request, params }) =>
       const isCurrentUser = user.id === userID;
 
       return json(
-        { brands: uniqueBrands, user, isCurrentUser },
+        { brands: ['Show All', ...uniqueBrands], user, isCurrentUser },
         {
           headers: {
             'Cache-Control': isCurrentUser
@@ -121,12 +121,16 @@ const loader: LoaderFunction = ({ request, params }) =>
     }
   });
 
-const Index = () => {
+const sortOptions = [
+  { value: 'desc', display: 'Recent first' },
+  { value: 'asc', display: 'Oldest first' },
+];
+
+const UserSneakersPage = () => {
   const { isCurrentUser, user, brands } = useRouteData<RouteData>();
   const navigate = useNavigate();
 
   const [search] = useSearchParams();
-  const sortQuery = search.get('sort');
 
   if (!user) {
     return <FourOhFour />;
@@ -146,10 +150,11 @@ const Index = () => {
     );
   }
 
+  const selectedBrand = 'Show All';
+  const sortQuery = search.get('sort');
+  const sort = sortOptions.find(s => s.value === sortQuery) ?? sortOptions[0];
   const sorted =
-    sortQuery && sortQuery === 'asc'
-      ? [...user.sneakers].reverse()
-      : user.sneakers;
+    sortQuery === 'asc' ? [...user.sneakers].reverse() : user.sneakers;
 
   return (
     <div className="container min-h-full p-4 pb-6 mx-auto">
@@ -169,56 +174,71 @@ const Index = () => {
 
       <div className="grid grid-cols-2 gap-2 mb-2 sm:gap-3 md:gap-4">
         <Listbox
-          value={undefined}
-          onChange={selectedBrand => {
-            navigate(((selectedBrand as unknown) as string).toLowerCase());
+          value={selectedBrand}
+          onChange={newBrand => {
+            if (newBrand === 'Show All') {
+              return navigate(`/${user.username}`);
+            }
+            return navigate(newBrand.toLowerCase());
           }}
         >
           {({ open }) => (
             <div className="relative">
-              <Listbox.Button className="flex justify-between w-full px-3 py-2 text-left bg-white rounded-lg">
-                Filter by brand{' '}
-                <svg className="w-6 h-6 text-purple-600">
-                  <use href={`${chevronDownIcon}#chevron-down`} />
-                </svg>
+              <Listbox.Button className="relative w-full py-2 pl-3 pr-10 text-left bg-white border border-gray-300 rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <span className="block truncate">{selectedBrand}</span>
+                <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                  <svg className="w-5 h-5 text-gray-400" aria-hidden="true">
+                    <use href={`${selectorIcon}#selector`} />
+                  </svg>
+                </span>
               </Listbox.Button>
 
               <Transition
                 show={open}
-                enter="transition duration-100 ease-out"
-                enterFrom="transform scale-95 opacity-0"
-                enterTo="transform scale-100 opacity-100"
-                leave="transition duration-75 ease-out"
-                leaveFrom="transform scale-100 opacity-100"
-                leaveTo="transform scale-95 opacity-0"
+                leave="transition ease-in duration-100"
+                leaveFrom="opacity-100"
+                leaveTo="opacity-0"
                 as={React.Fragment}
               >
                 <Listbox.Options
                   static
-                  className="divide-y absolute z-10 w-full bg-white top-[50px] rounded-lg shadow-xl overflow-hidden"
+                  className="absolute z-10 w-full py-1 mt-1 overflow-auto text-base bg-white rounded-md shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
                 >
                   {brands.map(brand => (
                     <Listbox.Option
                       key={brand}
                       value={brand}
-                      as={React.Fragment}
+                      className={({ active }) =>
+                        clsx(
+                          active ? 'text-white bg-indigo-600' : 'text-gray-900',
+                          'cursor-default select-none relative py-2 pl-3 pr-9'
+                        )
+                      }
                     >
                       {({ active, selected }) => (
-                        <li
-                          className={clsx(
-                            'cursor-pointer px-3 py-1 flex items-center justify-between',
-                            active
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-white text-black'
-                          )}
-                        >
-                          {brand}
+                        <>
+                          <span
+                            className={clsx(
+                              selected ? 'font-semibold' : 'font-normal',
+                              'block truncate'
+                            )}
+                          >
+                            {brand}
+                          </span>
+
                           {selected && (
-                            <svg className="w-6 h-6">
-                              <use href={`${checkIcon}#check`} />
-                            </svg>
+                            <span
+                              className={clsx(
+                                active ? 'text-white' : 'text-indigo-600',
+                                'absolute inset-y-0 right-0 flex items-center pr-4'
+                              )}
+                            >
+                              <svg className="w-5 h-5" aria-hidden="true">
+                                <use href={`${checkIcon}#check`} />
+                              </svg>
+                            </span>
                           )}
-                        </li>
+                        </>
                       )}
                     </Listbox.Option>
                   ))}
@@ -229,62 +249,66 @@ const Index = () => {
         </Listbox>
 
         <Listbox
-          value={sortQuery}
-          onChange={newSort =>
-            navigate({
-              pathname: './',
-              search: `?sort=${newSort}`,
-            })
-          }
+          value={sort}
+          onChange={newSort => navigate({ search: `?sort=${newSort}` })}
         >
           {({ open }) => (
             <div className="relative">
-              <Listbox.Button className="flex justify-between w-full px-3 py-2 text-left bg-white rounded-lg">
-                {sortQuery ?? 'Sort'}{' '}
-                <svg className="w-6 h-6 text-purple-600">
-                  <use href={`${chevronDownIcon}#chevron-down`} />
-                </svg>
+              <Listbox.Button className="relative w-full py-2 pl-3 pr-10 text-left bg-white border border-gray-300 rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <span className="block truncate">{sort.display}</span>
+                <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                  <svg className="w-5 h-5 text-gray-400" aria-hidden="true">
+                    <use href={`${selectorIcon}#selector`} />
+                  </svg>
+                </span>
               </Listbox.Button>
 
               <Transition
                 show={open}
-                enter="transition duration-100 ease-out"
-                enterFrom="transform scale-95 opacity-0"
-                enterTo="transform scale-100 opacity-100"
-                leave="transition duration-75 ease-out"
-                leaveFrom="transform scale-100 opacity-100"
-                leaveTo="transform scale-95 opacity-0"
+                leave="transition ease-in duration-100"
+                leaveFrom="opacity-100"
+                leaveTo="opacity-0"
                 as={React.Fragment}
               >
                 <Listbox.Options
                   static
-                  className="divide-y absolute z-10 w-full bg-white top-[50px] rounded-lg shadow-xl overflow-hidden"
+                  className="absolute z-10 w-full py-1 mt-1 overflow-auto text-base bg-white rounded-md shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
                 >
-                  {[
-                    { value: 'desc', display: 'Recent first' },
-                    { value: 'asc', display: 'Oldest first' },
-                  ].map(sortChoice => (
+                  {sortOptions.map(sortOption => (
                     <Listbox.Option
-                      as={React.Fragment}
-                      key={sortChoice.value}
-                      value={sortChoice.value}
+                      key={sortOption.display}
+                      value={sortOption.value}
+                      className={({ active }) =>
+                        clsx(
+                          active ? 'text-white bg-indigo-600' : 'text-gray-900',
+                          'cursor-default select-none relative py-2 pl-3 pr-9'
+                        )
+                      }
                     >
                       {({ active, selected }) => (
-                        <li
-                          className={clsx(
-                            'cursor-pointer px-3 py-1 flex items-center justify-between',
-                            active
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-white text-black'
-                          )}
-                        >
-                          {sortChoice.display}
+                        <>
+                          <span
+                            className={clsx(
+                              selected ? 'font-semibold' : 'font-normal',
+                              'block truncate'
+                            )}
+                          >
+                            {sortOption.display}
+                          </span>
+
                           {selected && (
-                            <svg className="w-6 h-6">
-                              <use href={`${checkIcon}#check`} />
-                            </svg>
+                            <span
+                              className={clsx(
+                                active ? 'text-white' : 'text-indigo-600',
+                                'absolute inset-y-0 right-0 flex items-center pr-4'
+                              )}
+                            >
+                              <svg className="w-5 h-5" aria-hidden="true">
+                                <use href={`${checkIcon}#check`} />
+                              </svg>
+                            </span>
                           )}
-                        </li>
+                        </>
                       )}
                     </Listbox.Option>
                   ))}
@@ -295,7 +319,7 @@ const Index = () => {
         </Listbox>
       </div>
 
-      <ul className="grid grid-cols-1 gap-2 sm:gap-3 md:gap-4 sm:grid-cols-2 md:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8">
         {sorted.map(sneaker => (
           <Sneaker key={sneaker.id} {...sneaker} />
         ))}
@@ -304,5 +328,5 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default UserSneakersPage;
 export { headers, links, loader, meta };
