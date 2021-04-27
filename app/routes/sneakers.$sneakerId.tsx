@@ -21,6 +21,9 @@ import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 import { withSession } from '../lib/with-session';
 
 type SneakerWithUser = SneakerType & {
+  soldDate: string;
+  purchaseDate: string;
+  updatedAt: string;
   User: Pick<User, 'givenName' | 'familyName' | 'id' | 'username'>;
 };
 
@@ -201,6 +204,20 @@ const meta = ({ data }: { data: RouteData }) => {
   };
 };
 
+function getEmoji(purchase: number, retail: number) {
+  const diff = retail - purchase;
+
+  if (diff >= 10000) return '💎';
+  if (diff >= 5000) return '💪';
+  if (diff >= 2500) return '🥳';
+  if (diff >= 1000) return '😎';
+  if (diff >= 500) return '😄';
+  if (diff <= 500) return '😕';
+  if (diff <= 1000) return '☹️';
+  if (diff <= 2500) return '😭';
+  return '🤯';
+}
+
 const SneakerPage: React.VFC = () => {
   const { sneaker, id, userCreatedSneaker } = useRouteData<RouteData>();
 
@@ -213,10 +230,10 @@ const SneakerPage: React.VFC = () => {
   }
 
   const title = `${sneaker.brand} ${sneaker.model} – ${sneaker.colorway}`;
-  const year = new Date(sneaker.purchaseDate).getFullYear();
+  const purchaseDate = new Date(sneaker.purchaseDate);
 
-  const belowRetail = sneaker.retailPrice > sneaker.price;
   const atRetail = sneaker.retailPrice === sneaker.price;
+  const emoji = getEmoji(sneaker.price, sneaker.retailPrice);
 
   const image1x = getCloudinaryURL(sneaker.imagePublicId, {
     width: '400',
@@ -253,16 +270,16 @@ const SneakerPage: React.VFC = () => {
             <p className="text-xl">{formatMoney(sneaker.price)}</p>
           ) : (
             <p className="text-xl">
-              Bought {belowRetail ? 'below' : 'above'} retail (
-              {formatMoney(sneaker.retailPrice)}) {belowRetail ? '🔥' : '😭'}{' '}
-              for {formatMoney(sneaker.price)}
+              Bought {sneaker.retailPrice > sneaker.price ? 'below' : 'above'}{' '}
+              retail ({formatMoney(sneaker.retailPrice)}) {emoji} for{' '}
+              {formatMoney(sneaker.price)}
             </p>
           )}
 
           <p className="text-md">
             Purchased on{' '}
-            <time dateTime={new Date(sneaker.purchaseDate).toISOString()}>
-              {formatDate(sneaker.purchaseDate)}
+            <time dateTime={purchaseDate.toISOString()}>
+              {formatDate(purchaseDate)}
             </time>
           </p>
 
@@ -276,7 +293,7 @@ const SneakerPage: React.VFC = () => {
           {sneaker.sold && sneaker.soldDate && (
             <p className="text-md">
               Sold{' '}
-              <time dateTime={sneaker.soldDate.toISOString()}>
+              <time dateTime={sneaker.soldDate}>
                 {formatDate(sneaker.soldDate)}{' '}
                 {sneaker.soldPrice && <>For {formatMoney(sneaker.soldPrice)}</>}
               </time>
@@ -284,10 +301,10 @@ const SneakerPage: React.VFC = () => {
           )}
 
           <Link
-            to={`/${sneaker.User.username}/yir/${year}`}
+            to={`/${sneaker.User.username}/yir/${purchaseDate.getFullYear()}`}
             className="block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
           >
-            See others purchased in {year}
+            See others purchased in {purchaseDate.getFullYear()}
           </Link>
 
           <div className="flex justify-between mt-auto">
@@ -304,7 +321,7 @@ const SneakerPage: React.VFC = () => {
               className="text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
               onClick={() => {
                 if (navigator.share) {
-                  const date = formatDate(sneaker.purchaseDate, {
+                  const date = formatDate(purchaseDate, {
                     month: 'long',
                     day: 'numeric',
                     year: 'numeric',
