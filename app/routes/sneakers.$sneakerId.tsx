@@ -236,15 +236,15 @@ const SneakerPage: React.VFC = () => {
   const emoji = getEmoji(sneaker.price, sneaker.retailPrice);
 
   const image1x = getCloudinaryURL(sneaker.imagePublicId, {
-    width: '400',
+    width: '200',
     crop: 'pad',
   });
   const image2x = getCloudinaryURL(sneaker.imagePublicId, {
-    width: '800',
+    width: '400',
     crop: 'pad',
   });
   const image3x = getCloudinaryURL(sneaker.imagePublicId, {
-    width: '1200',
+    width: '600',
     crop: 'pad',
   });
 

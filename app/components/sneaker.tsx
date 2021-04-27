@@ -22,15 +22,15 @@ const Sneaker: React.VFC<SneakerWithBrand> = ({
 }) => {
   const image1x = getCloudinaryURL(imagePublicId, {
     crop: 'pad',
-    width: '400',
+    width: '200',
   });
   const image2x = getCloudinaryURL(imagePublicId, {
     crop: 'pad',
-    width: '800',
+    width: '400',
   });
   const image3x = getCloudinaryURL(imagePublicId, {
     crop: 'pad',
-    width: '1200',
+    width: '600',
   });
 
   return (

@@ -82,7 +82,7 @@ const EditSneakerPage: React.VFC = () => {
 
   const { imagePublicId } = sneaker;
   const image1x = getCloudinaryURL(imagePublicId, {
-    width: '400',
+    width: '200',
     crop: 'pad',
   });
   const image2x = getCloudinaryURL(imagePublicId, {
@@ -90,7 +90,7 @@ const EditSneakerPage: React.VFC = () => {
     crop: 'pad',
   });
   const image3x = getCloudinaryURL(imagePublicId, {
-    width: '400',
+    width: '600',
     crop: 'pad',
   });
 
