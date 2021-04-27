@@ -29,6 +29,7 @@ module.exports = {
   },
   plugins: [
     require('@tailwindcss/aspect-ratio'),
+    require('@tailwindcss/forms'),
     plugin(({ addVariant, e }) => {
       addVariant('hidden', ({ modifySelectors, separator }) => {
         modifySelectors(

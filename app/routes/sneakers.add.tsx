@@ -2,6 +2,7 @@ import React from 'react';
 import { Form, usePendingFormSubmit } from '@remix-run/react';
 import type { ActionFunction, LoaderFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
+import { ValidationError } from 'yup';
 
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
 import { prisma } from '../db';
@@ -10,6 +11,7 @@ import { flashMessage } from '../flash-message';
 import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 import { cloudinary } from '../lib/cloudinary.server';
 import { withSession } from '../lib/with-session';
+import { createSneakerSchema } from '../lib/schemas/sneaker';
 
 const meta = () => ({
   title: 'Add a sneaker to your collection',
@@ -52,22 +54,33 @@ const action: ActionFunction = ({ request }) =>
       const colorway = formData.get('colorway') as string;
       const price = parseInt(formData.get('price') as string, 10);
       const retailPrice = parseInt(formData.get('retailPrice') as string, 10);
-      const purchaseDate = new Date();
+      const purchaseDate = formData.get('purchaseDate');
       const size = parseInt(formData.get('size') as string, 10);
       const image = formData.get('image');
 
+      const valid = await createSneakerSchema.validate({
+        brand,
+        model,
+        colorway,
+        price,
+        retailPrice,
+        purchaseDate,
+        size,
+        imagePublicId: image,
+      });
+
       let imagePublicId = '';
-      if (image) {
+      if (valid.imagePublicId) {
         // image was already uploaded to our cloudinary bucket
-        if (image.startsWith('shoes/')) {
-          imagePublicId = image;
+        if (valid.imagePublicId.startsWith('shoes/')) {
+          imagePublicId = valid.imagePublicId;
         } else if (
           /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi.test(
-            image
+            valid.imagePublicId
           )
         ) {
           // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
-          const res = await cloudinary.v2.uploader.upload(image, {
+          const res = await cloudinary.v2.uploader.upload(valid.imagePublicId, {
             resource_type: 'image',
             folder: 'shoes',
           });
@@ -81,22 +94,16 @@ const action: ActionFunction = ({ request }) =>
       const sneaker = await prisma.sneaker.create({
         data: {
           User: { connect: { id: userId } },
-          brand,
-          colorway,
-          model,
-          price,
-          purchaseDate,
-          retailPrice,
-          size,
+          brand: valid.brand,
+          colorway: valid.colorway,
+          model: valid.model,
+          price: valid.price,
+          purchaseDate: valid.purchaseDate,
+          retailPrice: valid.retailPrice,
+          size: valid.size,
           imagePublicId,
         },
-        include: {
-          User: {
-            select: {
-              username: true,
-            },
-          },
-        },
+        include: { User: { select: { username: true } } },
       });
 
       const prefix = `https://snkrs.mcan.sh/${sneaker.User.username}`;
@@ -109,13 +116,19 @@ const action: ActionFunction = ({ request }) =>
 
       return redirect(`/sneakers/${sneaker.id}`);
     } catch (error) {
+      console.error(error);
+
       if (error instanceof AuthorizationError) {
         session.flash(flashMessageKey, flashMessage(error.message, 'error'));
         session.flash(redirectKey, `/sneakers/add`);
         return redirect('/login');
       }
 
-      console.error(error);
+      if (error instanceof ValidationError) {
+        session.flash(flashMessageKey, flashMessage(error.message, 'error'));
+        return redirect('/sneakers/add');
+      }
+
       return redirect('/sneakers/add');
     }
   });
@@ -129,59 +142,98 @@ const NewSneakerPage: React.VFC = () => {
       <Form method="post">
         <fieldset
           disabled={!!pendingForm}
-          className="w-full space-y-2 sm:grid sm:items-center sm:gap-2 sm:grid-cols-2 sm:space-y-0"
+          className="w-full space-y-2 sm:grid sm:items-center sm:gap-x-4 sm:gap-y-6 sm:grid-cols-2 sm:space-y-0"
         >
-          <input
-            className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
-            type="text"
-            placeholder="Brand"
-            name="brand"
-          />
-          <input
-            className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
-            type="text"
-            placeholder="Model"
-            name="model"
-          />
-          <input
-            className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
-            type="text"
-            placeholder="Colorway"
-            name="colorway"
-          />
-          <input
-            className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
-            type="number"
-            placeholder="Price"
-            name="price"
-          />
-          <input
-            className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
-            type="number"
-            placeholder="Retail Price"
-            name="retailPrice"
-          />
-          <input
-            className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
-            type="datetime-local"
-            placeholder="Purchase Date"
-            name="purchaseDate"
-          />
-          <input
-            className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
-            type="number"
-            placeholder="Size"
-            name="size"
-          />
-          <input
-            className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
-            type="text"
-            name="image"
-            placeholder="1200x1200 photo or cloudinary publicId"
-          />
+          <label>
+            <span className="block text-sm font-medium text-gray-700">
+              Brand
+            </span>
+            <input
+              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              type="text"
+              placeholder="Nike"
+              name="brand"
+            />
+          </label>
+          <label>
+            <span className="block text-sm font-medium text-gray-700">
+              Model
+            </span>
+            <input
+              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              type="text"
+              placeholder="Air Max 1"
+              name="model"
+            />
+          </label>
+          <label>
+            <span className="block text-sm font-medium text-gray-700">
+              Colorway
+            </span>
+            <input
+              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              type="text"
+              placeholder="Anniversary Royal"
+              name="colorway"
+            />
+          </label>
+          <label>
+            <span className="block text-sm font-medium text-gray-700">
+              Price
+            </span>
+            <input
+              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              type="number"
+              placeholder="34000"
+              name="price"
+            />
+          </label>
+          <label>
+            <span className="block text-sm font-medium text-gray-700">
+              Retail Price
+            </span>
+            <input
+              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              type="number"
+              placeholder="12000"
+              name="retailPrice"
+            />
+          </label>
+          <label>
+            <span className="block text-sm font-medium text-gray-700">
+              Purchase Date
+            </span>
+            <input
+              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              type="datetime-local"
+              name="purchaseDate"
+            />
+          </label>
+          <label>
+            <span className="block text-sm font-medium text-gray-700">
+              Size
+            </span>
+            <input
+              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              type="number"
+              placeholder="10"
+              name="size"
+            />
+          </label>
+          <label>
+            <span className="block text-sm font-medium text-gray-700">
+              Image
+            </span>
+            <input
+              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              type="text"
+              name="image"
+              placeholder="1200x1200 photo or cloudinary publicId"
+            />
+          </label>
           <button
             type="submit"
-            className="self-start w-auto col-span-2 px-4 py-2 text-left text-white bg-blue-500 rounded disabled:bg-blue-200 disabled:cursor-not-allowed"
+            className="self-start w-auto col-span-2 px-4 py-2 text-sm font-medium text-left text-white bg-indigo-600 border border-transparent rounded-md shadow-sm disabled:bg-blue-200 disabled:cursor-not-allowed hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Add{!!pendingForm && 'ing'} to collection
           </button>
