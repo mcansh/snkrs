@@ -1,4 +1,3 @@
-const defaultConfig = require('tailwindcss/defaultConfig');
 const defaultTheme = require('tailwindcss/defaultTheme');
 const plugin = require('tailwindcss/plugin');
 
@@ -21,12 +20,15 @@ module.exports = {
     },
   },
   variants: {
-    backgroundColor: [...defaultConfig.variants.borderColor, 'disabled'],
-    borderColor: [...defaultConfig.variants.borderColor, 'focus-within'],
-    opacity: [...defaultConfig.variants.opacity, 'disabled'],
-    cursor: [...defaultConfig.variants.cursor, 'disabled'],
+    extend: {
+      backgroundColor: ['disabled'],
+      borderColor: ['focus-within'],
+      opacity: ['disabled'],
+      cursor: ['disabled'],
+    },
   },
   plugins: [
+    require('@tailwindcss/aspect-ratio'),
     plugin(({ addVariant, e }) => {
       addVariant('hidden', ({ modifySelectors, separator }) => {
         modifySelectors(

@@ -16,49 +16,50 @@ const Sneaker: React.FC<SneakerType> = ({
   purchaseDate,
   sold,
 }) => {
-  const alt = `${brand} ${model} – ${colorway}`;
-
   const image1x = getCloudinaryURL(imagePublicId, {
-    width: '400',
     crop: 'pad',
+    width: '400',
   });
   const image2x = getCloudinaryURL(imagePublicId, {
-    width: '800',
     crop: 'pad',
+    width: '800',
   });
   const image3x = getCloudinaryURL(imagePublicId, {
-    width: '1200',
     crop: 'pad',
+    width: '1200',
   });
 
   return (
-    <li className="overflow-hidden transition-shadow duration-200 ease-linear bg-white rounded-lg shadow-md hover:shadow-lg">
-      <Link to={`/sneakers/${id}`} className="flex flex-col h-full">
-        <div className="relative flex items-center justify-center flex-grow">
-          <img
-            src={image1x}
-            srcSet={`${image1x} 1x, ${image2x} 2x, ${image3x} 3x`}
-            alt={alt}
-            height={1200}
-            width={1200}
-            className="w-full h-full"
-            loading="lazy"
-          />
-          {sold && (
-            <div className="absolute w-full p-1 text-xl font-bold text-center text-white transform -translate-x-1/2 -translate-y-1/2 bg-red-400 bg-opacity-75 top-1/2 left-1/2">
-              Sold!
-            </div>
-          )}
-        </div>
-        <div className="px-4 py-2">
-          <h2 className="text-xl truncate">
-            {brand} {model}
-          </h2>
-          <p className="text-lg truncate">{colorway}</p>
-          {price && <p>{formatMoney(price)}</p>}
-          <p>Purchased {formatDate(purchaseDate)}</p>
-        </div>
-      </Link>
+    <li>
+      <div className="block w-full overflow-hidden bg-gray-100 rounded-lg group aspect-w-1 aspect-h-1 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-blue-500">
+        <img
+          src={image2x}
+          srcSet={`${image1x} 1x, ${image2x} 2x, ${image3x} 3x`}
+          alt=""
+          className="object-cover pointer-events-none group-hover:opacity-75"
+        />
+        {sold && (
+          <span className="absolute flex items-center justify-center text-lg text-white bg-black text-opacity-60 bg-opacity-40">
+            Sold!
+          </span>
+        )}
+        <Link
+          to={`/sneakers/${id}`}
+          className="absolute inset-0 focus:outline-none"
+        >
+          <span className="sr-only">View details for {brand}</span>
+        </Link>
+      </div>
+      <div className="text-sm font-medium pointer-events-none">
+        <p className="mt-2 text-gray-900 truncate">
+          {brand} {model}
+        </p>
+        <p className="text-gray-500 truncate">{colorway}</p>
+        <p className="text-gray-500 truncate">{formatMoney(price)}</p>
+        <p className="text-gray-500 truncate">
+          Purchased {formatDate(purchaseDate)}
+        </p>
+      </div>
     </li>
   );
 };
