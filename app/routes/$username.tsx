@@ -129,7 +129,6 @@ const sortOptions = [
 const UserSneakersPage = () => {
   const { isCurrentUser, user, brands } = useRouteData<RouteData>();
   const navigate = useNavigate();
-
   const [search] = useSearchParams();
 
   if (!user) {
