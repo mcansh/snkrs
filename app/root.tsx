@@ -16,6 +16,7 @@ import toast from 'react-hot-toast';
 import clsx from 'clsx';
 
 import globalCSS from './styles/global.css';
+import interCSS from './styles/inter.css';
 import type { Flash } from './@types/flash';
 import { flashMessageKey } from './constants';
 import { withSession } from './lib/with-session';
@@ -27,7 +28,10 @@ interface RouteData {
   flash?: Flash;
 }
 
-const links: LinksFunction = () => [{ rel: 'stylesheet', href: globalCSS }];
+const links: LinksFunction = () => [
+  { rel: 'stylesheet', href: globalCSS },
+  { rel: 'stylesheet', href: interCSS },
+];
 
 const loader: LoaderFunction = ({ request }) =>
   withSession(request, session => {
@@ -95,7 +99,6 @@ const App: React.VFC = () => {
         />
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
-        <link rel="preload" href="https://rsms.me/inter/inter.css" as="style" />
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
         <meta name="apple-mobile-web-app-title" content="Sneakers" />
         <meta name="application-name" content="Sneakers" />

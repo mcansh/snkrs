@@ -12,8 +12,7 @@ const cspSettings = {
     'https://res.cloudinary.com',
     'https://kiwi.mcan.sh',
   ],
-  'style-src': ["'self'", "'unsafe-inline'", 'https://rsms.me/inter/inter.css'],
-  'font-src': ['https://rsms.me/inter/font-files/'],
+  'style-src': ["'self'", "'unsafe-inline'"],
   'script-src': ["'self'", "'unsafe-inline'", 'https://kiwi.mcan.sh/script.js'],
   'connect-src': [
     ...(process.env.NODE_ENV === 'production'
