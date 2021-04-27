@@ -1,12 +1,16 @@
 import * as React from 'react';
-import type { Sneaker as SneakerType } from '@prisma/client';
+import type { Brand, Sneaker as SneakerType } from '@prisma/client';
 import { Link } from '@remix-run/react';
 
 import { getCloudinaryURL } from '../utils/cloudinary';
 import { formatMoney } from '../utils/format-money';
 import { formatDate } from '../utils/format-date';
 
-const Sneaker: React.FC<SneakerType> = ({
+interface SneakerWithBrand extends SneakerType {
+  brand: Brand;
+}
+
+const Sneaker: React.VFC<SneakerWithBrand> = ({
   id,
   model,
   colorway,
@@ -47,12 +51,12 @@ const Sneaker: React.FC<SneakerType> = ({
           to={`/sneakers/${id}`}
           className="absolute inset-0 focus:outline-none"
         >
-          <span className="sr-only">View details for {brand}</span>
+          <span className="sr-only">View details for {brand.name}</span>
         </Link>
       </div>
       <div className="text-sm font-medium pointer-events-none">
         <p className="mt-2 text-gray-900 truncate">
-          {brand} {model}
+          {brand.name} {model}
         </p>
         <p className="text-gray-500 truncate">{colorway}</p>
         <p className="text-gray-500 truncate">{formatMoney(price)}</p>

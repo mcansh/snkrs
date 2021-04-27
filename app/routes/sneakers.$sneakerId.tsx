@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Sneaker as SneakerType, User } from '@prisma/client';
+import type { Brand, Sneaker as SneakerType, User } from '@prisma/client';
 import type { HeadersFunction } from '@remix-run/react';
 import { block, Link, useRouteData } from '@remix-run/react';
 import type {
@@ -8,6 +8,7 @@ import type {
   LoaderFunction,
 } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
+import slugify from 'slugify';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
@@ -19,12 +20,14 @@ import { AuthorizationError } from '../errors';
 import { flashMessage } from '../flash-message';
 import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 import { withSession } from '../lib/with-session';
+import { updateSneakerSchema } from '../lib/schemas/sneaker';
 
 type SneakerWithUser = SneakerType & {
+  brand: Brand;
   soldDate: string;
   purchaseDate: string;
   updatedAt: string;
-  User: Pick<User, 'givenName' | 'familyName' | 'id' | 'username'>;
+  user: Pick<User, 'givenName' | 'familyName' | 'id' | 'username'>;
 };
 
 interface RouteData {
@@ -58,7 +61,8 @@ const loader: LoaderFunction = ({ params, request }) =>
     const sneaker = await prisma.sneaker.findUnique({
       where: { id: params.sneakerId },
       include: {
-        User: {
+        brand: true,
+        user: {
           select: {
             givenName: true,
             familyName: true,
@@ -73,7 +77,7 @@ const loader: LoaderFunction = ({ params, request }) =>
       return json({ id: params.sneakerId }, { status: 404 });
     }
 
-    const userCreatedSneaker = sneaker?.User.id === session.get(sessionKey);
+    const userCreatedSneaker = sneaker?.user.id === session.get(sessionKey);
 
     return json(
       {
@@ -95,6 +99,7 @@ const action: ActionFunction = ({ request, params }) =>
   withSession(request, async session => {
     const userId = session.get(sessionKey);
     const { sneakerId } = params;
+    const { pathname } = new URL(request.url);
 
     try {
       const reqBody = await request.text();
@@ -104,62 +109,57 @@ const action: ActionFunction = ({ request, params }) =>
         throw new AuthorizationError();
       }
 
-      // const sneaker = await prisma.sneaker.findUnique({
-      //   where: { id },
-      // });
-
-      // if (!sneaker) {
-      //   return res.status(404).json({ error: 'No sneaker with that id' });
-      // }
-
-      // if (sneaker.userId !== userId) {
-      //   return res.status(401).json({ error: "you don't own that sneaker" });
-      // }
-
-      const bodyObj = Object.fromEntries(body);
-
-      const purchaseDate = bodyObj.purchaseDate
-        ? new Date(bodyObj.purchaseDate as string)
-        : undefined;
-
-      const soldDate = bodyObj.soldDate
-        ? new Date(bodyObj.soldDate as string)
-        : undefined;
-
-      const price = bodyObj.price
-        ? parseInt(bodyObj.price as string, 10)
-        : undefined;
-
-      const retailPrice = bodyObj.retailPrice
-        ? parseInt(bodyObj.retailPrice as string, 10)
-        : undefined;
-
-      const soldPrice = bodyObj.soldPrice
-        ? parseInt(bodyObj.soldPrice as string, 10)
-        : undefined;
+      const valid = await updateSneakerSchema.validate({
+        brand: body.get('brand'),
+        colorway: body.get('colorway'),
+        imagePublicId: body.get('image'),
+        model: body.get('model'),
+        price: body.get('price'),
+        purchaseDate: body.get('purchaseDate'),
+        retailPrice: body.get('retailPrice'),
+        size: body.get('size'),
+        sold: body.get('sold'),
+        soldDate: body.get('soldDate'),
+        soldPrice: body.get('soldPrice'),
+      });
 
       const updatedSneaker = await prisma.sneaker.update({
         where: { id: sneakerId },
         data: {
-          ...bodyObj,
-          soldDate,
-          purchaseDate,
-          price,
-          retailPrice,
-          soldPrice,
+          brand: {
+            connectOrCreate: {
+              create: {
+                name: valid.brand,
+                slug: slugify(valid.brand, { lower: true }),
+              },
+              where: {
+                name: valid.name,
+              },
+            },
+          },
+          colorway: valid.colorway,
+          imagePublicId: valid.imagePublicId,
+          model: valid.model,
+          price: valid.price,
+          purchaseDate: valid.purchaseDate,
+          retailPrice: valid.retail,
+          size: valid.size,
+          sold: valid.sold,
+          soldDate: valid.soldDate,
+          soldPrice: valid.soldPrice,
         },
         select: {
-          User: { select: { username: true } },
+          user: { select: { username: true } },
           brand: true,
           purchaseDate: true,
         },
       });
 
-      const prefix = `https://snkrs.mcan.sh/${updatedSneaker.User.username}`;
+      const prefix = `https://snkrs.mcan.sh/${updatedSneaker.user.username}`;
       await purgeCloudflareCache([
         `https://snkrs.mcan.sh/sneakers/${sneakerId}`,
         `${prefix}`,
-        `${prefix}/${updatedSneaker.brand}`,
+        `${prefix}/${updatedSneaker.brand.name}`,
         `${prefix}/yir/${updatedSneaker.purchaseDate.getFullYear()}`,
       ]);
 
@@ -168,16 +168,16 @@ const action: ActionFunction = ({ request, params }) =>
         flashMessage(`Updated ${sneakerId}`, 'success')
       );
 
-      return redirect(`/sneakers/${sneakerId}`);
+      return redirect(pathname);
     } catch (error) {
+      session.flash(flashMessageKey, flashMessage(error.message, 'error'));
       if (error instanceof AuthorizationError) {
-        session.flash(redirectKey, `/sneakers/${sneakerId}`);
-        session.flash(flashMessageKey, flashMessage(error.message, 'error'));
-      } else {
-        console.error(error);
+        session.flash(redirectKey, pathname);
+        return redirect(`/login`);
       }
 
-      return redirect(`/login`);
+      console.error(error);
+      return redirect(pathname);
     }
   });
 
@@ -194,12 +194,12 @@ const meta = ({ data }: { data: RouteData }) => {
     year: 'numeric',
   });
 
-  const fullName = `${data.sneaker.User.givenName} ${data.sneaker.User.familyName}`;
+  const fullName = `${data.sneaker.user.givenName} ${data.sneaker.user.familyName}`;
 
-  const description = `${fullName} bought the ${data.sneaker.brand} ${data.sneaker.model} on ${date}`;
+  const description = `${fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`;
 
   return {
-    title: `${data.sneaker.brand} ${data.sneaker.model} – ${data.sneaker.colorway}`,
+    title: `${data.sneaker.brand.name} ${data.sneaker.model} – ${data.sneaker.colorway}`,
     description,
   };
 };
@@ -229,7 +229,7 @@ const SneakerPage: React.VFC = () => {
     );
   }
 
-  const title = `${sneaker.brand} ${sneaker.model} – ${sneaker.colorway}`;
+  const title = `${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`;
   const purchaseDate = new Date(sneaker.purchaseDate);
 
   const atRetail = sneaker.retailPrice === sneaker.price;
@@ -301,7 +301,7 @@ const SneakerPage: React.VFC = () => {
           )}
 
           <Link
-            to={`/${sneaker.User.username}/yir/${purchaseDate.getFullYear()}`}
+            to={`/${sneaker.user.username}/yir/${purchaseDate.getFullYear()}`}
             className="block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
           >
             See others purchased in {purchaseDate.getFullYear()}
@@ -327,11 +327,11 @@ const SneakerPage: React.VFC = () => {
                     year: 'numeric',
                   });
 
-                  const fullName = `${sneaker.User.givenName} ${sneaker.User.familyName}`;
+                  const fullName = `${sneaker.user.givenName} ${sneaker.user.familyName}`;
 
                   return navigator.share({
-                    title: `${sneaker.brand} ${sneaker.model} – ${sneaker.colorway}`,
-                    text: `${fullName} bought the ${sneaker.brand} ${sneaker.model} on ${date}`,
+                    title: `${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`,
+                    text: `${fullName} bought the ${sneaker.brand.name} ${sneaker.model} on ${date}`,
                     url: location.href,
                   });
                 }

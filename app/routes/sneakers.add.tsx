@@ -3,6 +3,7 @@ import { Form, usePendingFormSubmit } from '@remix-run/react';
 import type { ActionFunction, LoaderFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { ValidationError } from 'yup';
+import slugify from 'slugify';
 
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
 import { prisma } from '../db';
@@ -93,8 +94,18 @@ const action: ActionFunction = ({ request }) =>
 
       const sneaker = await prisma.sneaker.create({
         data: {
-          User: { connect: { id: userId } },
-          brand: valid.brand,
+          user: { connect: { id: userId } },
+          brand: {
+            connectOrCreate: {
+              where: {
+                name: brand,
+              },
+              create: {
+                name: brand,
+                slug: slugify(brand, { lower: true }),
+              },
+            },
+          },
           colorway: valid.colorway,
           model: valid.model,
           price: valid.price,
@@ -103,14 +114,14 @@ const action: ActionFunction = ({ request }) =>
           size: valid.size,
           imagePublicId,
         },
-        include: { User: { select: { username: true } } },
+        include: { user: { select: { username: true } }, brand: true },
       });
 
-      const prefix = `https://snkrs.mcan.sh/${sneaker.User.username}`;
+      const prefix = `https://snkrs.mcan.sh/${sneaker.user.username}`;
 
       await purgeCloudflareCache([
         `${prefix}`,
-        `${prefix}/${sneaker.brand}`,
+        `${prefix}/${sneaker.brand.name}`,
         `${prefix}/yir/${sneaker.purchaseDate.getFullYear()}`,
       ]);
 

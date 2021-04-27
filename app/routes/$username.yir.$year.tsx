@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Sneaker as SneakerType, User } from '@prisma/client';
+import type { Brand, Sneaker as SneakerType, User } from '@prisma/client';
 import { useRouteData } from '@remix-run/react';
 import type { LoaderFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
@@ -12,7 +12,7 @@ import FourOhFour, { meta as fourOhFourMeta } from './404';
 
 interface SneakerYearProps {
   user: Pick<User, 'username' | 'familyName' | 'givenName'> & {
-    sneakers: SneakerType[];
+    sneakers: Array<SneakerType & { brand: Brand }>;
   };
   year: number;
 }
@@ -34,6 +34,7 @@ const loader: LoaderFunction = async ({ params }) => {
         username: true,
         sneakers: {
           orderBy: { purchaseDate: 'asc' },
+          include: { brand: true },
           where: {
             purchaseDate: {
               gte: new Date(year, 0, 1),

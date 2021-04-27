@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Sneaker as SneakerType } from '@prisma/client';
+import type { Brand, Sneaker as SneakerType } from '@prisma/client';
 import {
   Form,
   Link,
@@ -23,6 +23,7 @@ interface Props {
   sneaker: SneakerType & {
     soldDate?: string;
     purchaseDate: string;
+    brand: Brand;
   };
 }
 
@@ -32,7 +33,8 @@ const loader: LoaderFunction = ({ params, request }) =>
       const sneaker = await prisma.sneaker.findUnique({
         where: { id: params.sneakerId },
         include: {
-          User: { select: { familyName: true, givenName: true, id: true } },
+          user: { select: { familyName: true, givenName: true, id: true } },
+          brand: true,
         },
       });
 
@@ -40,7 +42,7 @@ const loader: LoaderFunction = ({ params, request }) =>
 
       const userId = session.get(sessionKey);
 
-      const userCreatedSneaker = sneaker?.User.id === userId;
+      const userCreatedSneaker = sneaker?.user.id === userId;
 
       if (!userId || !userCreatedSneaker) {
         throw new AuthorizationError();
@@ -76,7 +78,7 @@ const EditSneakerPage: React.VFC = () => {
     );
   }
 
-  const title = `Editing ${sneaker.brand} ${sneaker.model} – ${sneaker.colorway}`;
+  const title = `Editing ${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`;
 
   const { imagePublicId } = sneaker;
   const image1x = getCloudinaryURL(imagePublicId, {
@@ -128,7 +130,7 @@ const EditSneakerPage: React.VFC = () => {
               <input
                 className="p-1 border-2 border-gray-200 rounded appearance-none"
                 type="text"
-                defaultValue={sneaker.brand}
+                defaultValue={sneaker.brand.name}
                 placeholder="Brand"
                 name="brand"
               />

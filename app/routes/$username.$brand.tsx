@@ -1,11 +1,12 @@
 import React from 'react';
 import { useRouteData } from '@remix-run/react';
-import type { Sneaker as SneakerType } from '@prisma/client';
+import type { Brand, Sneaker as SneakerType } from '@prisma/client';
 import type { LoaderFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { Listbox, Transition } from '@headlessui/react';
 import clsx from 'clsx';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import uniqBy from 'lodash.uniqby';
 
 import { Sneaker } from '../components/sneaker';
 import { NotFoundError } from '../errors';
@@ -16,9 +17,9 @@ import checkIcon from '../icons/outline/check.svg';
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
 interface Props {
-  sneakers: SneakerType[];
+  sneakers: Array<SneakerType & { brand: Brand }>;
   selectedBrand: string;
-  brands: Array<string>;
+  brands: Array<Brand>;
   user: {
     username: string;
     givenName: string;
@@ -47,33 +48,33 @@ const loader: LoaderFunction = async ({ params }) => {
     const [sneakers, allSneakers] = await Promise.all([
       prisma.sneaker.findMany({
         where: {
-          User: { id: user.id },
+          user: { id: user.id },
           brand: {
-            equals: brand,
-            mode: 'insensitive',
+            slug: {
+              equals: brand,
+              mode: 'insensitive',
+            },
           },
         },
+        include: { brand: true },
         orderBy: { purchaseDate: 'desc' },
       }),
       prisma.sneaker.findMany({
-        where: { User: { username } },
+        where: { user: { username } },
         select: { brand: true },
       }),
     ]);
 
-    const uniqueBrands = [
-      ...new Set<string>(
-        allSneakers
-          .sort((a, b) => a.brand.localeCompare(b.brand))
-          .map(sneaker => sneaker.brand)
-      ),
-    ];
+    const uniqueBrands = uniqBy(
+      allSneakers.map(sneaker => sneaker.brand),
+      'name'
+    ).sort((a, b) => a.name.localeCompare(b.name));
 
     return json({
-      brands: ['Show All', ...uniqueBrands],
+      brands: [{ name: 'Show All', id: '/', slug: '/' }, ...uniqueBrands],
       sneakers,
       user,
-      selectedBrand: sneakers[0].brand ?? brand,
+      selectedBrand: sneakers[0].brand.name,
     });
   } catch (error) {
     if (error instanceof NotFoundError) {
@@ -137,12 +138,9 @@ const UserSneakerBrandPage = () => {
       <div className="grid grid-cols-2 gap-2 mb-2 sm:gap-3 md:gap-4">
         <Listbox
           value={selectedBrand}
-          onChange={newBrand => {
-            if (newBrand === 'Show All') {
-              return navigate(`/${user.username}`);
-            }
-            return navigate(`/${user.username}/${newBrand.toLowerCase()}`);
-          }}
+          onChange={newBrand =>
+            navigate(`/${user.username}/${newBrand.toLowerCase()}`)
+          }
         >
           {({ open }) => (
             <div className="relative">
@@ -168,8 +166,8 @@ const UserSneakerBrandPage = () => {
                 >
                   {brands.map(brand => (
                     <Listbox.Option
-                      key={brand}
-                      value={brand}
+                      key={brand.id}
+                      value={brand.slug}
                       className={({ active }) =>
                         clsx(
                           active ? 'text-white bg-indigo-600' : 'text-gray-900',
@@ -185,7 +183,7 @@ const UserSneakerBrandPage = () => {
                               'block truncate'
                             )}
                           >
-                            {brand}
+                            {brand.name}
                           </span>
 
                           {selected && (

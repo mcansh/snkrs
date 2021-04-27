@@ -1,13 +1,14 @@
 import React from 'react';
 import type { HeadersFunction } from '@remix-run/react';
 import { block, useRouteData } from '@remix-run/react';
-import type { Sneaker as SneakerType, User } from '@prisma/client';
+import type { Brand, Sneaker as SneakerType, User } from '@prisma/client';
 import { useNavigate } from 'react-router';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Listbox, Transition } from '@headlessui/react';
 import type { LinksFunction, LoaderFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import clsx from 'clsx';
+import uniqBy from 'lodash.uniqby';
 
 import { Sneaker } from '../components/sneaker';
 import { prisma } from '../db';
@@ -21,9 +22,9 @@ import checkIcon from '../icons/outline/check.svg';
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
 interface RouteData {
-  brands: Array<string>;
+  brands: Array<Brand>;
   user: Pick<
-    User & { sneakers: Array<SneakerType> },
+    User & { sneakers: Array<SneakerType & { brand: Brand }> },
     'username' | 'familyName' | 'givenName' | 'sneakers' | 'id'
   >;
   isCurrentUser: boolean;
@@ -83,7 +84,12 @@ const loader: LoaderFunction = ({ request, params }) =>
           givenName: true,
           familyName: true,
           username: true,
-          sneakers: { orderBy: { purchaseDate: 'desc' } },
+          sneakers: {
+            orderBy: { purchaseDate: 'desc' },
+            include: {
+              brand: true,
+            },
+          },
           id: true,
         },
       });
@@ -92,18 +98,19 @@ const loader: LoaderFunction = ({ request, params }) =>
         throw new NotFoundError();
       }
 
-      const uniqueBrands = [
-        ...new Set<string>(
-          [...user.sneakers]
-            .sort((a, b) => a.brand.localeCompare(b.brand))
-            .map(sneaker => sneaker.brand)
-        ),
-      ];
+      const uniqueBrands = uniqBy(
+        user.sneakers.map(sneaker => sneaker.brand),
+        'name'
+      ).sort((a, b) => a.name.localeCompare(b.name));
 
       const isCurrentUser = user.id === userID;
 
       return json(
-        { brands: ['Show All', ...uniqueBrands], user, isCurrentUser },
+        {
+          brands: [{ name: 'Show All', id: '/', slug: '/' }, ...uniqueBrands],
+          user,
+          isCurrentUser,
+        },
         {
           headers: {
             'Cache-Control': isCurrentUser
@@ -175,7 +182,7 @@ const UserSneakersPage = () => {
         <Listbox
           value={selectedBrand}
           onChange={newBrand => {
-            if (newBrand === 'Show All') {
+            if (newBrand === '/') {
               return navigate(`/${user.username}`);
             }
             return navigate(newBrand.toLowerCase());
@@ -205,8 +212,8 @@ const UserSneakersPage = () => {
                 >
                   {brands.map(brand => (
                     <Listbox.Option
-                      key={brand}
-                      value={brand}
+                      key={brand.id}
+                      value={brand.slug}
                       className={({ active }) =>
                         clsx(
                           active ? 'text-white bg-indigo-600' : 'text-gray-900',
@@ -222,7 +229,7 @@ const UserSneakersPage = () => {
                               'block truncate'
                             )}
                           >
-                            {brand}
+                            {brand.name}
                           </span>
 
                           {selected && (

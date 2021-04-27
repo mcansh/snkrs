@@ -8,9 +8,10 @@ datasource postgresql {
 }
 
 model Sneaker {
-  brand         String
-  colorway      String
   id            String    @id @default(uuid())
+  brand         Brand     @relation(fields: [brandId], references: [id])
+  brandId       String
+  colorway      String
   imagePublicId String
   model         String
   purchaseDate  DateTime
@@ -20,10 +21,17 @@ model Sneaker {
   sold          Boolean   @default(false)
   soldDate      DateTime?
   soldPrice     Int?
-  userId        String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @default(now()) @updatedAt
-  User          User      @relation(fields: [userId], references: [id])
+  user          User      @relation(fields: [userId], references: [id])
+  userId        String
+}
+
+model Brand {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  slug     String    @unique
+  sneakers Sneaker[]
 }
 
 model User {
