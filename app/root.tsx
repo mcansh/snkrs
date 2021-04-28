@@ -194,7 +194,9 @@ const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
           If you are not the developer, please click back in your browser and
           try again.
         </p>
-        <pre className="px-4 py-2 border-4 border-white">{error.message}</pre>
+        <pre className="px-4 py-2 overflow-auto border-4 border-white">
+          {error.message}
+        </pre>
         <p>
           There was an uncaught exception in your application. Check the browser
           console and/or the server console to inspect the error.
