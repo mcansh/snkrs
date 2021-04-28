@@ -181,7 +181,7 @@ const UserSneakersPage = () => {
     sortQuery === 'asc' ? [...user.sneakers].reverse() : user.sneakers;
 
   return (
-    <div className="container min-h-full p-4 pb-6 mx-auto">
+    <main className="container h-full p-4 pb-6 mx-auto">
       <div className="flex items-center justify-between pb-2 space-x-2">
         <h1 className="text-xl xs:text-2xl sm:text-4xl">
           Sneaker Collection – {user.sneakers.length} and counting
@@ -348,7 +348,7 @@ const UserSneakersPage = () => {
           <Sneaker key={sneaker.id} {...sneaker} />
         ))}
       </ul>
-    </div>
+    </main>
   );
 };
 

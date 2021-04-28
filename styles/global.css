@@ -2,17 +2,6 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-@layer base {
-  html,
-  body {
-    @apply h-full;
-  }
-
-  body {
-    @apply bg-gray-100;
-  }
-}
-
 [data-loading-button] {
   /* make it a grid so we can stack the child states */
   display: inline-grid;

@@ -89,7 +89,7 @@ const App: React.VFC = () => {
   });
 
   return (
-    <html lang="en">
+    <html lang="en" className="h-full">
       <head>
         <meta charSet="utf-8" />
         <link
@@ -120,7 +120,12 @@ const App: React.VFC = () => {
         <Meta />
         <Links />
       </head>
-      <body>
+      <body
+        className={clsx(
+          'h-full bg-gray-100',
+          pendingLocation ? 'opacity-60 cursor-not-allowed' : ''
+        )}
+      >
         <Notifications />
 
         {pendingLocation && (
@@ -131,14 +136,7 @@ const App: React.VFC = () => {
           </div>
         )}
 
-        <main
-          className={clsx(
-            'container min-h-full p-4 pb-6 mx-auto',
-            pendingLocation ? 'opacity-60 cursor-not-allowed' : ''
-          )}
-        >
-          <Outlet />
-        </main>
+        <Outlet />
         {includeScripts && <Scripts />}
       </body>
     </html>

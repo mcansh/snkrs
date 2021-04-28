@@ -148,7 +148,7 @@ const NewSneakerPage: React.VFC = () => {
   const pendingForm = usePendingFormSubmit();
 
   return (
-    <div className="container min-h-full p-4 pb-6 mx-auto">
+    <main className="container h-full p-4 pb-6 mx-auto">
       <h2 className="py-4 text-lg">Add a sneaker to your collection</h2>
       <Form method="post">
         <fieldset
@@ -250,7 +250,7 @@ const NewSneakerPage: React.VFC = () => {
           </button>
         </fieldset>
       </Form>
-    </div>
+    </main>
   );
 };
 
