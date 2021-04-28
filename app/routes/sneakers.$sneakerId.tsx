@@ -1,12 +1,8 @@
 import React from 'react';
 import type { Brand, Sneaker as SneakerType, User } from '@prisma/client';
 import type { HeadersFunction } from '@remix-run/react';
-import { block, Link, useRouteData } from '@remix-run/react';
-import type {
-  ActionFunction,
-  LinksFunction,
-  LoaderFunction,
-} from '@remix-run/node';
+import { Link, useRouteData } from '@remix-run/react';
+import type { ActionFunction, LoaderFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import slugify from 'slugify';
 
@@ -35,22 +31,6 @@ interface RouteData {
   id: string;
   userCreatedSneaker: boolean;
 }
-
-const links: LinksFunction = ({ data }: { data: RouteData }) => {
-  if (!data.sneaker) return [];
-  const sizes = [200, 400, 600];
-
-  return sizes.map(size =>
-    block({
-      rel: 'preload',
-      as: 'image',
-      href: getCloudinaryURL(data.sneaker.imagePublicId, {
-        width: size,
-        crop: 'pad',
-      }),
-    })
-  );
-};
 
 const headers: HeadersFunction = ({ loaderHeaders }) => ({
   'Cache-Control': loaderHeaders.get('Cache-Control') ?? 'no-cache',
@@ -347,4 +327,4 @@ const SneakerPage: React.VFC = () => {
 };
 
 export default SneakerPage;
-export { action, headers, meta, links, loader };
+export { action, headers, meta, loader };
