@@ -1,5 +1,6 @@
 import * as React from 'react';
 import type {
+  ErrorBoundaryComponent,
   LinksFunction,
   LoaderFunction,
   MetaFunction,
@@ -143,5 +144,66 @@ const App: React.VFC = () => {
   );
 };
 
+const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
+  useLiveReload();
+
+  React.useEffect(() => {
+    Fathom.load('HIUAENVC', {
+      excludedDomains: ['localhost'],
+      url: 'https://kiwi.mcan.sh/script.js',
+    });
+  }, []);
+
+  return (
+    <html lang="en" className="h-full">
+      <head>
+        <meta charSet="utf-8" />
+        <link
+          rel="icon"
+          href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext x='0' y='14'%3E👟%3C/text%3E%3C/svg%3E"
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href="/apple-touch-icon.png"
+        />
+        <link
+          rel="alternate icon"
+          type="image/png"
+          sizes="32x32"
+          href="/favicon-32x32.png"
+        />
+        <link
+          rel="alternate icon"
+          type="image/png"
+          sizes="16x16"
+          href="/favicon-16x16.png"
+        />
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
+        <meta property="og:type" content="website" />
+        <meta property="og:locale" content="en_US" />
+        <Meta />
+        <Links />
+      </head>
+      <body className="h-full w-[90%] max-w-5xl mx-auto mt-20 space-y-4 font-mono text-center text-white bg-blue-bsod">
+        <h1 className="inline-block text-3xl font-bold bg-white text-blue-bsod">
+          Uncaught Exception!
+        </h1>
+        <p>
+          If you are not the developer, please click back in your browser and
+          try again.
+        </p>
+        <pre className="px-4 py-2 border-4 border-white">{error.message}</pre>
+        <p>
+          There was an uncaught exception in your application. Check the browser
+          console and/or the server console to inspect the error.
+        </p>
+        <Scripts />
+      </body>
+    </html>
+  );
+};
+
 export default App;
-export { links, loader, meta };
+export { ErrorBoundary, links, loader, meta };

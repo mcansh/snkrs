@@ -17,6 +17,11 @@ module.exports = {
       screens: {
         xs: '475px',
       },
+      colors: {
+        blue: {
+          bsod: '#0827F5',
+        },
+      },
     },
   },
   variants: {
