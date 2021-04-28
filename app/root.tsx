@@ -1,5 +1,9 @@
 import * as React from 'react';
-import type { LinksFunction, LoaderFunction } from '@remix-run/node';
+import type {
+  LinksFunction,
+  LoaderFunction,
+  MetaFunction,
+} from '@remix-run/node';
 import { json } from '@remix-run/node';
 import {
   Links,
@@ -27,6 +31,18 @@ import refresh from './icons/outline/refresh.svg';
 interface RouteData {
   flash?: Flash;
 }
+
+const meta: MetaFunction = () => ({
+  'apple-mobile-web-app-title': 'Sneakers',
+  'application-name': 'Sneakers',
+  'msapplication-TileColor': '#000000',
+  'theme-color': '#f7f7f7',
+  'apple-mobile-web-app-capable': 'yes',
+  'apple-mobile-web-app-status-bar-style': 'black-translucent',
+  viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
+  robots: 'index,follow',
+  googlebot: 'index,follow',
+});
 
 const links: LinksFunction = () => [
   { rel: 'stylesheet', href: globalCSS },
@@ -99,21 +115,6 @@ const App: React.VFC = () => {
         />
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
-        <meta name="apple-mobile-web-app-title" content="Sneakers" />
-        <meta name="application-name" content="Sneakers" />
-        <meta name="msapplication-TileColor" content="#000000" />
-        <meta name="theme-color" content="#f7f7f7" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, viewport-fit=cover"
-        />
-        <meta name="robots" content="index,follow" />
-        <meta name="googlebot" content="index,follow" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@loganmcansh" />
-        <meta name="twitter:creator" content="@loganmcansh" />
         <meta property="og:type" content="website" />
         <meta property="og:locale" content="en_US" />
         <Meta />
@@ -145,4 +146,4 @@ const App: React.VFC = () => {
 };
 
 export default App;
-export { links, loader };
+export { links, loader, meta };

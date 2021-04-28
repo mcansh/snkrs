@@ -78,7 +78,7 @@ const loader: LoaderFunction = async ({ params }) => {
     });
   } catch (error) {
     if (error instanceof NotFoundError) {
-      return json({}, { status: 404 });
+      return json({ notFound: true }, { status: 404 });
     }
     console.error(error);
     return json({}, { status: 500 });

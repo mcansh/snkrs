@@ -38,7 +38,7 @@ interface RouteData {
 
 const links: LinksFunction = ({ data }: { data: RouteData }) => {
   if (!data.sneaker) return [];
-  const sizes = [400, 800, 1200];
+  const sizes = [200, 400, 600];
 
   return sizes.map(size =>
     block({
@@ -87,9 +87,7 @@ const loader: LoaderFunction = ({ params, request }) =>
       },
       {
         headers: {
-          'Cache-Control': userCreatedSneaker
-            ? `max-age=60`
-            : `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
+          'Cache-Control': `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
         },
       }
     );

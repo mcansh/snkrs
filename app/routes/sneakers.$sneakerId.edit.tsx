@@ -29,6 +29,7 @@ interface Props {
 
 const loader: LoaderFunction = ({ params, request }) =>
   withSession(request, async session => {
+    const { pathname } = new URL(request.url);
     try {
       const sneaker = await prisma.sneaker.findUnique({
         where: { id: params.sneakerId },
@@ -55,7 +56,7 @@ const loader: LoaderFunction = ({ params, request }) =>
       });
     } catch (error) {
       if (error instanceof AuthorizationError) {
-        session.flash(redirectKey, `/sneakers/${params.sneakerId}/edit`);
+        session.flash(redirectKey, pathname);
       } else {
         console.error(error);
       }

@@ -5,7 +5,11 @@ import type { Brand, Sneaker as SneakerType, User } from '@prisma/client';
 import { useNavigate } from 'react-router';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Listbox, Transition } from '@headlessui/react';
-import type { LinksFunction, LoaderFunction } from '@remix-run/node';
+import type {
+  LinksFunction,
+  LoaderFunction,
+  MetaFunction,
+} from '@remix-run/node';
 import { json } from '@remix-run/node';
 import clsx from 'clsx';
 import uniqBy from 'lodash.uniqby';
@@ -18,6 +22,7 @@ import { withSession } from '../lib/with-session';
 import plusCircleIcon from '../icons/outline/plus-circle.svg';
 import selectorIcon from '../icons/outline/selector.svg';
 import checkIcon from '../icons/outline/check.svg';
+import { getCloudinaryURL } from '../utils/cloudinary';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
@@ -51,7 +56,7 @@ const links: LinksFunction = () => [
   }),
 ];
 
-const meta = ({ data }: { data: RouteData }) => {
+const meta: MetaFunction = ({ data }: { data: RouteData }) => {
   if (!data.user) {
     return fourOhFourMeta();
   }
@@ -62,9 +67,22 @@ const meta = ({ data }: { data: RouteData }) => {
 
   const nameEndsWithS = usernameEndsWithS ? `${fullName}'` : `${fullName}'s`;
 
+  const [latestCop] = data.user.sneakers;
+
   return {
     title: `${nameEndsWithS} Sneaker Collection`,
     description: `${nameEndsWithS} sneaker collection`,
+    'twitter:card': 'summary_large_image',
+    'twitter:site': '@loganmcansh',
+    // TODO: add support for linking your twitter account
+    'twitter:creator': '@loganmcansh',
+    'twitter:description': `${nameEndsWithS} sneaker collection`,
+
+    // TODO: add support for user avatar, for now just link to latest purchase
+    'twitter:image': latestCop ? getCloudinaryURL(latestCop.imagePublicId) : '',
+    'twitter:image:alt': latestCop
+      ? `${latestCop.brand.name} ${latestCop.model} in the ${latestCop.colorway} colorway`
+      : '',
   };
 };
 
@@ -121,7 +139,7 @@ const loader: LoaderFunction = ({ request, params }) =>
       );
     } catch (error) {
       if (error instanceof NotFoundError) {
-        return json({}, { status: 404 });
+        return json({ notFound: true }, { status: 404 });
       }
       console.error(error);
       return json({}, { status: 500 });

@@ -52,7 +52,7 @@ const loader: LoaderFunction = async ({ params }) => {
     return json({ year, user }, {});
   } catch (error) {
     if (error instanceof NotFoundError) {
-      return json({}, { status: 404 });
+      return json({ notFound: true }, { status: 404 });
     }
     console.error(error);
     return json({}, { status: 500 });
