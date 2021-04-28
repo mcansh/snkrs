@@ -1,356 +1,304 @@
-import React from 'react';
-import type { HeadersFunction } from '@remix-run/react';
-import { block, useRouteData } from '@remix-run/react';
-import type { Brand, Sneaker as SneakerType, User } from '@prisma/client';
-import { useNavigate } from 'react-router';
-import { Link, useSearchParams } from 'react-router-dom';
-import { Listbox, Transition } from '@headlessui/react';
+import * as React from 'react';
 import type {
-  LinksFunction,
+  RouteComponent,
   LoaderFunction,
-  MetaFunction,
+  LinksFunction,
 } from '@remix-run/node';
 import { json } from '@remix-run/node';
-import clsx from 'clsx';
+import { block, useRouteData } from '@remix-run/react';
+import type { Brand, User } from '@prisma/client';
+import { Link, Outlet, useSearchParams } from 'react-router-dom';
 import uniqBy from 'lodash.uniqby';
+import { Dialog, Transition } from '@headlessui/react';
 
-import { Sneaker } from '../components/sneaker';
+import x from '../icons/outline/x.svg';
+import menuAlt2 from '../icons/outline/menu-alt-2.svg';
 import { prisma } from '../db';
 import { NotFoundError } from '../errors';
-import { sessionKey } from '../constants';
-import { withSession } from '../lib/with-session';
-import plusCircleIcon from '../icons/outline/plus-circle.svg';
-import selectorIcon from '../icons/outline/selector.svg';
-import checkIcon from '../icons/outline/check.svg';
-import { getCloudinaryURL } from '../utils/cloudinary';
 
-import FourOhFour, { meta as fourOhFourMeta } from './404';
+import FourOhFour from './404';
 
 interface RouteData {
   brands: Array<Brand>;
-  user: Pick<
-    User & { sneakers: Array<SneakerType & { brand: Brand }> },
-    'username' | 'familyName' | 'givenName' | 'sneakers' | 'id'
-  >;
-  isCurrentUser: boolean;
+  user: Pick<User, 'username' | 'id'> & {
+    fullName: string;
+  };
 }
 
 const links: LinksFunction = () => [
   block({
     rel: 'preload',
-    href: plusCircleIcon,
+    href: x,
     as: 'image',
     type: 'image/svg+xml',
   }),
   block({
     rel: 'preload',
-    href: selectorIcon,
-    as: 'image',
-    type: 'image/svg+xml',
-  }),
-  block({
-    rel: 'preload',
-    href: checkIcon,
+    href: menuAlt2,
     as: 'image',
     type: 'image/svg+xml',
   }),
 ];
 
-const meta: MetaFunction = ({ data }: { data: RouteData }) => {
-  if (!data.user) {
-    return fourOhFourMeta();
-  }
-
-  const fullName = `${data.user.givenName} ${data.user.familyName}`;
-
-  const usernameEndsWithS = fullName.toLowerCase().endsWith('s');
-
-  const nameEndsWithS = usernameEndsWithS ? `${fullName}'` : `${fullName}'s`;
-
-  const [latestCop] = data.user.sneakers;
-
-  return {
-    title: `${nameEndsWithS} Sneaker Collection`,
-    description: `${nameEndsWithS} sneaker collection`,
-    'twitter:card': 'summary_large_image',
-    'twitter:site': '@loganmcansh',
-    // TODO: add support for linking your twitter account
-    'twitter:creator': '@loganmcansh',
-    'twitter:description': `${nameEndsWithS} sneaker collection`,
-
-    // TODO: add support for user avatar, for now just link to latest purchase
-    'twitter:image': latestCop ? getCloudinaryURL(latestCop.imagePublicId) : '',
-    'twitter:image:alt': latestCop
-      ? `${latestCop.brand.name} ${latestCop.model} in the ${latestCop.colorway} colorway`
-      : '',
-  };
-};
-
-const headers: HeadersFunction = ({ loaderHeaders }) => ({
-  'Cache-Control': loaderHeaders.get('Cache-Control') ?? 'no-cache',
-});
-
-const loader: LoaderFunction = ({ request, params }) =>
-  withSession(request, async session => {
-    const userID = session.get(sessionKey);
-    const { username } = params;
-
-    try {
-      const user = await prisma.user.findUnique({
-        where: { username },
-        select: {
-          givenName: true,
-          familyName: true,
-          username: true,
-          sneakers: {
-            orderBy: { purchaseDate: 'desc' },
-            include: {
-              brand: true,
-            },
-          },
-          id: true,
+const loader: LoaderFunction = async ({ params }) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        username: params.username,
+      },
+      select: {
+        username: true,
+        id: true,
+        givenName: true,
+        familyName: true,
+        sneakers: {
+          include: { brand: true },
         },
-      });
+      },
+    });
 
-      if (!user) {
-        throw new NotFoundError();
-      }
-
-      const uniqueBrands = uniqBy(
-        user.sneakers.map(sneaker => sneaker.brand),
-        'name'
-      ).sort((a, b) => a.name.localeCompare(b.name));
-
-      const isCurrentUser = user.id === userID;
-
-      return json(
-        {
-          brands: [{ name: 'Show All', id: '/', slug: '/' }, ...uniqueBrands],
-          user,
-          isCurrentUser,
-        },
-        {
-          headers: {
-            'Cache-Control': isCurrentUser
-              ? `max-age=60`
-              : `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
-          },
-        }
-      );
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        return json({ notFound: true }, { status: 404 });
-      }
-      console.error(error);
-      return json({}, { status: 500 });
+    if (!user) {
+      throw new NotFoundError();
     }
-  });
+
+    const uniqueBrands = uniqBy(
+      user.sneakers.map(sneaker => sneaker.brand),
+      'name'
+    ).sort((a, b) => a.name.localeCompare(b.name));
+
+    return {
+      user: {
+        ...user,
+        fullName: `${user.givenName} ${user.familyName}`,
+      },
+      brands: uniqueBrands,
+    };
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      return json({ notFound: true }, { status: 404 });
+    }
+    console.error(error);
+    return json({}, { status: 500 });
+  }
+};
 
 const sortOptions = [
   { value: 'desc', display: 'Recent first' },
   { value: 'asc', display: 'Oldest first' },
 ];
 
-const UserSneakersPage = () => {
-  const { isCurrentUser, user, brands } = useRouteData<RouteData>();
-  const navigate = useNavigate();
+const UserSneakersPage: RouteComponent = () => {
+  const data = useRouteData<RouteData>();
   const [search] = useSearchParams();
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
-  if (!user) {
+  if (!data.user) {
     return <FourOhFour />;
   }
 
-  if (!user.sneakers.length) {
-    return (
-      <div className="flex items-center justify-center w-full h-full text-lg text-center">
-        {isCurrentUser ? (
-          <Link to="/sneakers/add" className="text-purple-600">
-            Add a pair to your collection
-          </Link>
-        ) : (
-          <p>No sneakers</p>
-        )}
-      </div>
-    );
-  }
+  const brandQuery = search.get('brand');
+  const brandQueryItems = brandQuery ? brandQuery.split(',') : [];
+  const selectedBrands = brandQueryItems
+    ? data.brands.filter(brand => brandQueryItems.includes(brand.slug))
+    : [];
 
-  const selectedBrand = 'Show All';
-  const sortQuery = search.get('sort');
-  const sort = sortOptions.find(s => s.value === sortQuery) ?? sortOptions[0];
-  const sorted =
-    sortQuery === 'asc' ? [...user.sneakers].reverse() : user.sneakers;
+  const selectedBrandSlugs = selectedBrands.map(brand => brand.slug);
+
+  const sortQuery = search.get('sort') ?? 'desc';
 
   return (
-    <main className="container h-full p-4 pb-6 mx-auto">
-      <div className="flex items-center justify-between pb-2 space-x-2">
-        <h1 className="text-xl xs:text-2xl sm:text-4xl">
-          Sneaker Collection – {user.sneakers.length} and counting
-        </h1>
-        {isCurrentUser && (
-          <Link to="/sneakers/add">
-            <span className="sr-only">Add to collection</span>
-            <svg className="w-6 h-6 text-purple-600">
-              <use href={`${plusCircleIcon}#plusCircle`} />
+    <div className="h-full grid-cols-[200px,1fr] block md:grid">
+      <Transition.Root show={sidebarOpen} as={React.Fragment}>
+        <Dialog
+          as="div"
+          static
+          className="fixed inset-0 z-40 flex md:hidden"
+          open={sidebarOpen}
+          onClose={setSidebarOpen}
+        >
+          <Transition.Child
+            as={React.Fragment}
+            enter="transition-opacity ease-linear duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="transition-opacity ease-linear duration-300"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <Dialog.Overlay className="fixed inset-0 bg-gray-600 bg-opacity-75" />
+          </Transition.Child>
+          <Transition.Child
+            as={React.Fragment}
+            enter="transition ease-in-out duration-300 transform"
+            enterFrom="-translate-x-full"
+            enterTo="translate-x-0"
+            leave="transition ease-in-out duration-300 transform"
+            leaveFrom="translate-x-0"
+            leaveTo="-translate-x-full"
+          >
+            <div className="relative flex flex-col flex-1 w-full max-w-xs pt-5 pb-4 bg-indigo-700">
+              <Transition.Child
+                as={React.Fragment}
+                enter="ease-in-out duration-300"
+                enterFrom="opacity-0"
+                enterTo="opacity-100"
+                leave="ease-in-out duration-300"
+                leaveFrom="opacity-100"
+                leaveTo="opacity-0"
+              >
+                <div className="absolute top-0 right-0 pt-2 -mr-12">
+                  <button
+                    type="button"
+                    className="flex items-center justify-center w-10 h-10 ml-1 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <span className="sr-only">Close sidebar</span>
+                    <svg className="w-6 h-6 text-white" aria-hidden="true">
+                      <use href={`${x}#x`} />
+                    </svg>
+                  </button>
+                </div>
+              </Transition.Child>
+              <div className="flex-1 h-0 mt-5 overflow-y-auto">
+                <div className="space-y-10">
+                  <div>
+                    <p>Filter by brand</p>
+                    <ul>
+                      {data.brands.map(brand => (
+                        <li key={brand.id}>
+                          <Link
+                            to={{
+                              search: `?brand=${[
+                                ...selectedBrandSlugs,
+                                brand.slug,
+                              ].join()}&sort=${sortQuery}`,
+                            }}
+                            className="space-x-2"
+                          >
+                            <input
+                              className="rounded-full"
+                              type="checkbox"
+                              value={brand.slug}
+                              defaultChecked={selectedBrandSlugs.includes(
+                                brand.slug
+                              )}
+                            />
+                            <span>{brand.name}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <p>Sort by</p>
+                    <ul>
+                      {sortOptions.map(option => (
+                        <li key={option.value}>
+                          <Link
+                            to={{
+                              search: `?brand=${brandQuery}&sort=${option.value}`,
+                            }}
+                            className="space-x-2"
+                          >
+                            <input
+                              className="rounded-full"
+                              type="checkbox"
+                              value={option.value}
+                              defaultChecked={sortQuery === option.value}
+                            />
+                            <span>{option.display}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Transition.Child>
+          <div className="flex-shrink-0 w-14" aria-hidden="true">
+            {/* Dummy element to force sidebar to shrink to fit close icon */}
+          </div>
+        </Dialog>
+      </Transition.Root>
+
+      <div className="flex flex-col flex-1 overflow-hidden md:hidden">
+        <div className="relative z-10 flex flex-shrink-0 h-16 bg-white shadow">
+          <button
+            type="button"
+            className="px-4 text-gray-500 border-r border-gray-200 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 md:hidden"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <span className="sr-only">Open sidebar</span>
+            <svg className="w-6 h-6" aria-hidden="true">
+              <use href={`${menuAlt2}#menu-alt-2`} />
             </svg>
-          </Link>
-        )}
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 mb-2 sm:gap-3 md:gap-4">
-        <Listbox
-          value={selectedBrand}
-          onChange={newBrand => {
-            if (newBrand === '/') {
-              return navigate(`/${user.username}`);
-            }
-            return navigate(newBrand.toLowerCase());
-          }}
-        >
-          {({ open }) => (
-            <div className="relative">
-              <Listbox.Button className="relative w-full py-2 pl-3 pr-10 text-left bg-white border border-gray-300 rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                <span className="block truncate">{selectedBrand}</span>
-                <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-400" aria-hidden="true">
-                    <use href={`${selectorIcon}#selector`} />
-                  </svg>
-                </span>
-              </Listbox.Button>
-
-              <Transition
-                show={open}
-                leave="transition ease-in duration-100"
-                leaveFrom="opacity-100"
-                leaveTo="opacity-0"
-                as={React.Fragment}
-              >
-                <Listbox.Options
-                  static
-                  className="absolute z-10 w-full py-1 mt-1 overflow-auto text-base bg-white rounded-md shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
-                >
-                  {brands.map(brand => (
-                    <Listbox.Option
-                      key={brand.id}
+      <aside className="hidden w-full px-4 py-6 bg-blue-50 md:block">
+        <div className="space-y-10 md:sticky top-6">
+          <div>
+            <p>Filter by brand</p>
+            <ul>
+              {data.brands.map(brand => (
+                <li key={brand.id}>
+                  <Link
+                    to={{
+                      search: `?brand=${[
+                        ...selectedBrandSlugs,
+                        brand.slug,
+                      ].join()}&sort=${sortQuery}`,
+                    }}
+                    className="space-x-2"
+                  >
+                    <input
+                      className="rounded-full"
+                      type="checkbox"
                       value={brand.slug}
-                      className={({ active }) =>
-                        clsx(
-                          active ? 'text-white bg-indigo-600' : 'text-gray-900',
-                          'cursor-default select-none relative py-2 pl-3 pr-9'
-                        )
-                      }
-                    >
-                      {({ active, selected }) => (
-                        <>
-                          <span
-                            className={clsx(
-                              selected ? 'font-semibold' : 'font-normal',
-                              'block truncate'
-                            )}
-                          >
-                            {brand.name}
-                          </span>
+                      defaultChecked={selectedBrandSlugs.includes(brand.slug)}
+                    />
+                    <span>{brand.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-                          {selected && (
-                            <span
-                              className={clsx(
-                                active ? 'text-white' : 'text-indigo-600',
-                                'absolute inset-y-0 right-0 flex items-center pr-4'
-                              )}
-                            >
-                              <svg className="w-5 h-5" aria-hidden="true">
-                                <use href={`${checkIcon}#check`} />
-                              </svg>
-                            </span>
-                          )}
-                        </>
-                      )}
-                    </Listbox.Option>
-                  ))}
-                </Listbox.Options>
-              </Transition>
-            </div>
-          )}
-        </Listbox>
+          <div>
+            <p>Sort by</p>
+            <ul>
+              {sortOptions.map(option => (
+                <li key={option.value}>
+                  <Link
+                    to={{
+                      search: `?brand=${brandQuery}&sort=${option.value}`,
+                    }}
+                    className="space-x-2"
+                  >
+                    <input
+                      className="rounded-full"
+                      type="checkbox"
+                      value={option.value}
+                      defaultChecked={sortQuery === option.value}
+                    />
+                    <span>{option.display}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </aside>
 
-        <Listbox
-          value={sort}
-          onChange={newSort => navigate({ search: `?sort=${newSort}` })}
-        >
-          {({ open }) => (
-            <div className="relative">
-              <Listbox.Button className="relative w-full py-2 pl-3 pr-10 text-left bg-white border border-gray-300 rounded-md shadow-sm cursor-default focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                <span className="block truncate">{sort.display}</span>
-                <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                  <svg className="w-5 h-5 text-gray-400" aria-hidden="true">
-                    <use href={`${selectorIcon}#selector`} />
-                  </svg>
-                </span>
-              </Listbox.Button>
-
-              <Transition
-                show={open}
-                leave="transition ease-in duration-100"
-                leaveFrom="opacity-100"
-                leaveTo="opacity-0"
-                as={React.Fragment}
-              >
-                <Listbox.Options
-                  static
-                  className="absolute z-10 w-full py-1 mt-1 overflow-auto text-base bg-white rounded-md shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
-                >
-                  {sortOptions.map(sortOption => (
-                    <Listbox.Option
-                      key={sortOption.display}
-                      value={sortOption.value}
-                      className={({ active }) =>
-                        clsx(
-                          active ? 'text-white bg-indigo-600' : 'text-gray-900',
-                          'cursor-default select-none relative py-2 pl-3 pr-9'
-                        )
-                      }
-                    >
-                      {({ active, selected }) => (
-                        <>
-                          <span
-                            className={clsx(
-                              selected ? 'font-semibold' : 'font-normal',
-                              'block truncate'
-                            )}
-                          >
-                            {sortOption.display}
-                          </span>
-
-                          {selected && (
-                            <span
-                              className={clsx(
-                                active ? 'text-white' : 'text-indigo-600',
-                                'absolute inset-y-0 right-0 flex items-center pr-4'
-                              )}
-                            >
-                              <svg className="w-5 h-5" aria-hidden="true">
-                                <use href={`${checkIcon}#check`} />
-                              </svg>
-                            </span>
-                          )}
-                        </>
-                      )}
-                    </Listbox.Option>
-                  ))}
-                </Listbox.Options>
-              </Transition>
-            </div>
-          )}
-        </Listbox>
-      </div>
-
-      <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8">
-        {sorted.map(sneaker => (
-          <Sneaker key={sneaker.id} {...sneaker} />
-        ))}
-      </ul>
-    </main>
+      <main className="w-full">
+        <Outlet />
+      </main>
+    </div>
   );
 };
 
 export default UserSneakersPage;
-export { headers, links, loader, meta };
+export { links, loader };
