@@ -43,7 +43,7 @@ const links: LinksFunction = ({ data }: { data: RouteData }) => {
   return sizes.map(size =>
     block({
       rel: 'preload',
-      type: 'image',
+      as: 'image',
       href: getCloudinaryURL(data.sneaker.imagePublicId, {
         width: size,
         crop: 'pad',
@@ -261,7 +261,7 @@ const SneakerPage: React.VFC = () => {
             loading="lazy"
           />
         </div>
-        <div className="flex flex-col">
+        <div>
           <h1 className="text-2xl">{title}</h1>
 
           {atRetail ? (
