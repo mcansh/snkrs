@@ -7,7 +7,7 @@ import type {
 import { json } from '@remix-run/node';
 import { block, useRouteData } from '@remix-run/react';
 import type { Brand, User } from '@prisma/client';
-import { Link, Outlet, useSearchParams } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 import uniqBy from 'lodash.uniqby';
 import { Dialog, Transition } from '@headlessui/react';
 
@@ -23,6 +23,8 @@ interface RouteData {
   user: Pick<User, 'username' | 'id'> & {
     fullName: string;
   };
+  selectedBrands: Array<string>;
+  sort?: 'asc' | 'desc';
 }
 
 const links: LinksFunction = () => [
@@ -40,8 +42,10 @@ const links: LinksFunction = () => [
   }),
 ];
 
-const loader: LoaderFunction = async ({ params }) => {
+const loader: LoaderFunction = async ({ params, request }) => {
   try {
+    const { searchParams } = new URL(request.url);
+
     const user = await prisma.user.findUnique({
       where: {
         username: params.username,
@@ -66,12 +70,23 @@ const loader: LoaderFunction = async ({ params }) => {
       'name'
     ).sort((a, b) => a.name.localeCompare(b.name));
 
+    const selectedBrandQuery = searchParams.get('brand');
+    const selectedBrands = selectedBrandQuery
+      ? selectedBrandQuery.split(',')
+      : [];
+
+    const sortQuery = searchParams.get('sort');
+    const sort =
+      sortQuery && ['asc', 'desc'].includes(sortQuery) ? sortQuery : undefined;
+
     return {
       user: {
         ...user,
         fullName: `${user.givenName} ${user.familyName}`,
       },
       brands: uniqueBrands,
+      selectedBrands,
+      sort,
     };
   } catch (error) {
     if (error instanceof NotFoundError) {
@@ -89,22 +104,40 @@ const sortOptions = [
 
 const UserSneakersPage: RouteComponent = () => {
   const data = useRouteData<RouteData>();
-  const [search] = useSearchParams();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
   if (!data.user) {
     return <FourOhFour />;
   }
 
-  const brandQuery = search.get('brand');
-  const brandQueryItems = brandQuery ? brandQuery.split(',') : [];
-  const selectedBrands = brandQueryItems
-    ? data.brands.filter(brand => brandQueryItems.includes(brand.slug))
-    : [];
+  function makeBrandLink(brand: string) {
+    let newBrandQueryItems = [];
+    if (data.selectedBrands.includes(brand)) {
+      newBrandQueryItems = data.selectedBrands.filter(i => i !== brand);
+    } else {
+      newBrandQueryItems = [...data.selectedBrands, brand];
+    }
 
-  const selectedBrandSlugs = selectedBrands.map(brand => brand.slug);
+    const searchParams = new URLSearchParams();
+    if (newBrandQueryItems.length) {
+      searchParams.set('brand', newBrandQueryItems.join());
+    }
+    if (data.sort) {
+      searchParams.set('sort', data.sort);
+    }
 
-  const sortQuery = search.get('sort') ?? 'desc';
+    return `?${searchParams.toString()}`;
+  }
+
+  function makeSortLink(sort: string) {
+    const searchParams = new URLSearchParams();
+    if (data.selectedBrands.length) {
+      searchParams.set('brand', data.selectedBrands.join());
+    }
+    searchParams.set('sort', sort);
+
+    return `?${searchParams.toString()}`;
+  }
 
   return (
     <div className="h-full grid-cols-[200px,1fr] block md:grid">
@@ -167,19 +200,14 @@ const UserSneakersPage: RouteComponent = () => {
                       {data.brands.map(brand => (
                         <li key={brand.id}>
                           <Link
-                            to={{
-                              search: `?brand=${[
-                                ...selectedBrandSlugs,
-                                brand.slug,
-                              ].join()}&sort=${sortQuery}`,
-                            }}
+                            to={{ search: makeBrandLink(brand.slug) }}
                             className="space-x-2"
                           >
                             <input
                               className="rounded-full"
                               type="checkbox"
                               value={brand.slug}
-                              defaultChecked={selectedBrandSlugs.includes(
+                              defaultChecked={data.selectedBrands.includes(
                                 brand.slug
                               )}
                             />
@@ -197,7 +225,7 @@ const UserSneakersPage: RouteComponent = () => {
                         <li key={option.value}>
                           <Link
                             to={{
-                              search: `?brand=${brandQuery}&sort=${option.value}`,
+                              search: makeSortLink(option.value),
                             }}
                             className="space-x-2"
                           >
@@ -205,7 +233,7 @@ const UserSneakersPage: RouteComponent = () => {
                               className="rounded-full"
                               type="checkbox"
                               value={option.value}
-                              defaultChecked={sortQuery === option.value}
+                              defaultChecked={data.sort === option.value}
                             />
                             <span>{option.display}</span>
                           </Link>
@@ -238,27 +266,22 @@ const UserSneakersPage: RouteComponent = () => {
         </div>
       </div>
 
-      <aside className="hidden w-full px-4 py-6 bg-blue-50 md:block">
+      <aside className="hidden w-full px-4 py-6 font-medium text-white bg-purple-500 md:block">
         <div className="space-y-10 md:sticky top-6">
-          <div>
+          <div className="space-y-2">
             <p>Filter by brand</p>
             <ul>
               {data.brands.map(brand => (
                 <li key={brand.id}>
                   <Link
-                    to={{
-                      search: `?brand=${[
-                        ...selectedBrandSlugs,
-                        brand.slug,
-                      ].join()}&sort=${sortQuery}`,
-                    }}
+                    to={{ search: makeBrandLink(brand.slug) }}
                     className="space-x-2"
                   >
                     <input
                       className="rounded-full"
                       type="checkbox"
                       value={brand.slug}
-                      defaultChecked={selectedBrandSlugs.includes(brand.slug)}
+                      defaultChecked={data.selectedBrands.includes(brand.slug)}
                     />
                     <span>{brand.name}</span>
                   </Link>
@@ -267,22 +290,20 @@ const UserSneakersPage: RouteComponent = () => {
             </ul>
           </div>
 
-          <div>
+          <div className="space-y-2">
             <p>Sort by</p>
             <ul>
               {sortOptions.map(option => (
                 <li key={option.value}>
                   <Link
-                    to={{
-                      search: `?brand=${brandQuery}&sort=${option.value}`,
-                    }}
+                    to={{ search: makeSortLink(option.value) }}
                     className="space-x-2"
                   >
                     <input
                       className="rounded-full"
                       type="checkbox"
                       value={option.value}
-                      defaultChecked={sortQuery === option.value}
+                      defaultChecked={data.sort === option.value}
                     />
                     <span>{option.display}</span>
                   </Link>
