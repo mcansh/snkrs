@@ -1,158 +1,115 @@
 import React from 'react';
-import type { HeadersFunction } from '@remix-run/react';
-import { block, useRouteData } from '@remix-run/react';
-import type { Brand, Sneaker as SneakerType, User } from '@prisma/client';
-import { useNavigate } from 'react-router';
-import { Link, useSearchParams } from 'react-router-dom';
-import { Listbox, Transition } from '@headlessui/react';
-import type {
-  LinksFunction,
-  LoaderFunction,
-  MetaFunction,
-} from '@remix-run/node';
+import { useRouteData } from '@remix-run/react';
+import type { Brand, Sneaker as SneakerType } from '@prisma/client';
+import type { LoaderFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
+import { Listbox, Transition } from '@headlessui/react';
 import clsx from 'clsx';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import uniqBy from 'lodash.uniqby';
 
 import { Sneaker } from '../components/sneaker';
-import { prisma } from '../db';
 import { NotFoundError } from '../errors';
-import { sessionKey } from '../constants';
-import { withSession } from '../lib/with-session';
-import plusCircleIcon from '../icons/outline/plus-circle.svg';
+import { prisma } from '../db';
 import selectorIcon from '../icons/outline/selector.svg';
 import checkIcon from '../icons/outline/check.svg';
-import { getCloudinaryURL } from '../utils/cloudinary';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
-interface RouteData {
+interface Props {
+  sneakers: Array<SneakerType & { brand: Brand }>;
+  selectedBrand: string;
   brands: Array<Brand>;
-  user: Pick<
-    User & { sneakers: Array<SneakerType & { brand: Brand }> },
-    'username' | 'familyName' | 'givenName' | 'sneakers' | 'id'
-  >;
-  isCurrentUser: boolean;
+  user: {
+    username: string;
+    givenName: string;
+    familyName: string;
+  };
 }
 
-const links: LinksFunction = () => [
-  block({
-    rel: 'preload',
-    href: plusCircleIcon,
-    as: 'image',
-    type: 'image/svg+xml',
-  }),
-  block({
-    rel: 'preload',
-    href: selectorIcon,
-    as: 'image',
-    type: 'image/svg+xml',
-  }),
-  block({
-    rel: 'preload',
-    href: checkIcon,
-    as: 'image',
-    type: 'image/svg+xml',
-  }),
-];
+const loader: LoaderFunction = async ({ params }) => {
+  const { brand, username } = params;
 
-const meta: MetaFunction = ({ data }: { data: RouteData }) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { username },
+      select: {
+        givenName: true,
+        familyName: true,
+        username: true,
+        id: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundError();
+    }
+
+    const [sneakers, allSneakers] = await Promise.all([
+      prisma.sneaker.findMany({
+        where: {
+          user: { id: user.id },
+          brand: {
+            slug: {
+              equals: brand,
+              mode: 'insensitive',
+            },
+          },
+        },
+        include: { brand: true },
+        orderBy: { purchaseDate: 'desc' },
+      }),
+      prisma.sneaker.findMany({
+        where: { user: { username } },
+        select: { brand: true },
+      }),
+    ]);
+
+    const uniqueBrands = uniqBy(
+      allSneakers.map(sneaker => sneaker.brand),
+      'name'
+    ).sort((a, b) => a.name.localeCompare(b.name));
+
+    return json({
+      brands: [{ name: 'Show All', id: '/', slug: '/' }, ...uniqueBrands],
+      sneakers,
+      user,
+      selectedBrand: sneakers[0].brand.name,
+    });
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      return json({ notFound: true }, { status: 404 });
+    }
+    console.error(error);
+    return json({}, { status: 500 });
+  }
+};
+
+const meta = ({ data }: { data: Props }) => {
   if (!data.user) {
     return fourOhFourMeta();
   }
 
   const fullName = `${data.user.givenName} ${data.user.familyName}`;
-
   const usernameEndsWithS = fullName.toLowerCase().endsWith('s');
 
-  const nameEndsWithS = usernameEndsWithS ? `${fullName}'` : `${fullName}'s`;
-
-  const [latestCop] = data.user.sneakers;
+  const usernameWithApostrophe = usernameEndsWithS
+    ? `${fullName}'`
+    : `${fullName}'s`;
 
   return {
-    title: `${nameEndsWithS} Sneaker Collection`,
-    description: `${nameEndsWithS} sneaker collection`,
-    'twitter:card': 'summary_large_image',
-    'twitter:site': '@loganmcansh',
-    // TODO: add support for linking your twitter account
-    'twitter:creator': '@loganmcansh',
-    'twitter:description': `${nameEndsWithS} sneaker collection`,
-
-    // TODO: add support for user avatar, for now just link to latest purchase
-    'twitter:image': latestCop ? getCloudinaryURL(latestCop.imagePublicId) : '',
-    'twitter:image:alt': latestCop
-      ? `${latestCop.brand.name} ${latestCop.model} in the ${latestCop.colorway} colorway`
-      : '',
+    title: `${data.selectedBrand} | ${usernameWithApostrophe} Sneaker Collection`,
+    description: `${usernameWithApostrophe} ${data.selectedBrand} sneaker collection`,
   };
 };
-
-const headers: HeadersFunction = ({ loaderHeaders }) => ({
-  'Cache-Control': loaderHeaders.get('Cache-Control') ?? 'no-cache',
-});
-
-const loader: LoaderFunction = ({ request, params }) =>
-  withSession(request, async session => {
-    const userID = session.get(sessionKey);
-    const { username } = params;
-
-    try {
-      const user = await prisma.user.findUnique({
-        where: { username },
-        select: {
-          givenName: true,
-          familyName: true,
-          username: true,
-          sneakers: {
-            orderBy: { purchaseDate: 'desc' },
-            include: {
-              brand: true,
-            },
-          },
-          id: true,
-        },
-      });
-
-      if (!user) {
-        throw new NotFoundError();
-      }
-
-      const uniqueBrands = uniqBy(
-        user.sneakers.map(sneaker => sneaker.brand),
-        'name'
-      ).sort((a, b) => a.name.localeCompare(b.name));
-
-      const isCurrentUser = user.id === userID;
-
-      return json(
-        {
-          brands: [{ name: 'Show All', id: '/', slug: '/' }, ...uniqueBrands],
-          user,
-          isCurrentUser,
-        },
-        {
-          headers: {
-            'Cache-Control': isCurrentUser
-              ? `max-age=60`
-              : `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
-          },
-        }
-      );
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        return json({ notFound: true }, { status: 404 });
-      }
-      console.error(error);
-      return json({}, { status: 500 });
-    }
-  });
 
 const sortOptions = [
   { value: 'desc', display: 'Recent first' },
   { value: 'asc', display: 'Oldest first' },
 ];
 
-const UserSneakersPage = () => {
-  const { isCurrentUser, user, brands } = useRouteData<RouteData>();
+const UserSneakerBrandPage = () => {
+  const { user, sneakers, selectedBrand, brands } = useRouteData<Props>();
   const navigate = useNavigate();
   const [search] = useSearchParams();
 
@@ -160,51 +117,30 @@ const UserSneakersPage = () => {
     return <FourOhFour />;
   }
 
-  if (!user.sneakers.length) {
+  if (!sneakers.length) {
     return (
       <div className="flex items-center justify-center w-full h-full text-lg text-center">
-        {isCurrentUser ? (
-          <Link to="/sneakers/add" className="text-purple-600">
-            Add a pair to your collection
-          </Link>
-        ) : (
-          <p>No sneakers</p>
-        )}
+        <p>No sneakers</p>
       </div>
     );
   }
 
-  const selectedBrand = 'Show All';
   const sortQuery = search.get('sort');
   const sort = sortOptions.find(s => s.value === sortQuery) ?? sortOptions[0];
-  const sorted =
-    sortQuery === 'asc' ? [...user.sneakers].reverse() : user.sneakers;
+  const sorted = sortQuery === 'asc' ? [...sneakers].reverse() : sneakers;
 
   return (
     <main className="container h-full p-4 pb-6 mx-auto">
-      <div className="flex items-center justify-between pb-2 space-x-2">
-        <h1 className="text-xl xs:text-2xl sm:text-4xl">
-          Sneaker Collection – {user.sneakers.length} and counting
-        </h1>
-        {isCurrentUser && (
-          <Link to="/sneakers/add">
-            <span className="sr-only">Add to collection</span>
-            <svg className="w-6 h-6 text-purple-600">
-              <use href={`${plusCircleIcon}#plusCircle`} />
-            </svg>
-          </Link>
-        )}
-      </div>
+      <h1 className="pb-2 text-xl xs:text-2xl sm:text-4xl">
+        {selectedBrand} Sneaker Collection – {sneakers.length} and counting
+      </h1>
 
       <div className="grid grid-cols-2 gap-2 mb-2 sm:gap-3 md:gap-4">
         <Listbox
           value={selectedBrand}
-          onChange={newBrand => {
-            if (newBrand === '/') {
-              return navigate(`/${user.username}`);
-            }
-            return navigate(newBrand.toLowerCase());
-          }}
+          onChange={newBrand =>
+            navigate(`/${user.username}/${newBrand.toLowerCase()}`)
+          }
         >
           {({ open }) => (
             <div className="relative">
@@ -352,5 +288,5 @@ const UserSneakersPage = () => {
   );
 };
 
-export default UserSneakersPage;
-export { headers, links, loader, meta };
+export default UserSneakerBrandPage;
+export { meta, loader };

@@ -4,7 +4,7 @@ import { useRouteData } from '@remix-run/react';
 import type { LoaderFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 
-import { SneakerCard } from '../components/sneaker';
+import { Sneaker } from '../components/sneaker';
 import { prisma } from '../db';
 import { NotFoundError } from '../errors';
 
@@ -97,7 +97,7 @@ const SneakersYearInReview: React.VFC = () => {
 
       <ul className="grid grid-cols-1 gap-2 sm:gap-3 md:gap-4 sm:grid-cols-2 md:grid-cols-4">
         {user.sneakers.map(sneaker => (
-          <SneakerCard key={sneaker.id} {...sneaker} />
+          <Sneaker key={sneaker.id} {...sneaker} />
         ))}
       </ul>
     </main>
