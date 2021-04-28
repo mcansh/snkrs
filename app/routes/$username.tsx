@@ -205,7 +205,7 @@ const UserSneakersPage: RouteComponent = () => {
                         <li key={brand.id}>
                           <Link
                             to={{ search: makeBrandLink(brand.slug) }}
-                            className="space-x-2"
+                            className="flex items-center space-x-2"
                           >
                             <input
                               className="rounded-full"
