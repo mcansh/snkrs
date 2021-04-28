@@ -106,6 +106,10 @@ const UserSneakersPage: RouteComponent = () => {
   const data = useRouteData<RouteData>();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
+  React.useEffect(() => {
+    setSidebarOpen(false);
+  }, [data.selectedBrands, data.sort]);
+
   if (!data.user) {
     return <FourOhFour />;
   }
@@ -169,7 +173,7 @@ const UserSneakersPage: RouteComponent = () => {
             leaveFrom="translate-x-0"
             leaveTo="-translate-x-full"
           >
-            <div className="relative flex flex-col flex-1 w-full max-w-xs pt-5 pb-4 bg-indigo-700">
+            <div className="relative flex flex-col flex-1 w-full max-w-xs px-4 pt-5 pb-4 font-medium text-white bg-purple-500">
               <Transition.Child
                 as={React.Fragment}
                 enter="ease-in-out duration-300"
