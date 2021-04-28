@@ -10,7 +10,7 @@ interface SneakerWithBrand extends SneakerType {
   brand: Brand;
 }
 
-const SneakerCard: React.VFC<SneakerWithBrand> = ({
+const Sneaker: React.VFC<SneakerWithBrand> = ({
   id,
   model,
   colorway,
@@ -68,4 +68,4 @@ const SneakerCard: React.VFC<SneakerWithBrand> = ({
   );
 };
 
-export { SneakerCard };
+export { Sneaker };
