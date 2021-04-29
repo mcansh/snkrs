@@ -126,7 +126,7 @@ const UserSneakersPage: RouteComponent = () => {
   }
 
   return (
-    <div className="h-full md:grid-cols-[250px,1fr] block md:grid">
+    <div className="h-full md:grid-cols-[275px,1fr] block md:grid">
       <Disclosure as="nav" className="bg-white shadow">
         {({ open }) => (
           <>
@@ -154,13 +154,13 @@ const UserSneakersPage: RouteComponent = () => {
                     </h1>
 
                     <form method="get">
-                      <fieldset className="grid grid-cols-1 gap-2">
+                      <fieldset className="space-y-2">
                         <div>
                           <div>Filter by brand:</div>
-                          <ul className="pb-4">
+                          <ul className="pb-4 my-1 space-y-1">
                             {data.brands.map(brand => (
                               <li key={brand.id}>
-                                <label className="flex items-center space-x-2">
+                                <label className="flex items-center space-x-2 text-sm cursor-pointer">
                                   <input
                                     type="checkbox"
                                     name="brand"
