@@ -58,9 +58,11 @@ const loader: LoaderFunction = async ({ params, request }) => {
       throw new NotFoundError();
     }
 
-    const sneakers = user.sneakers.filter(sneaker =>
-      selectedBrands.includes(sneaker.brand.slug)
-    );
+    const sneakers = selectedBrands.length
+      ? user.sneakers.filter(sneaker =>
+          selectedBrands.includes(sneaker.brand.slug)
+        )
+      : user.sneakers;
 
     const uniqueBrands = uniqBy(
       user.sneakers.map(sneaker => sneaker.brand),
