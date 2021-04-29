@@ -186,7 +186,7 @@ const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
         <Meta />
         <Links />
       </head>
-      <body className="h-full w-[90%] max-w-5xl mx-auto mt-20 space-y-4 font-mono text-center text-white bg-blue-bsod">
+      <body className="h-full w-[90%] max-w-5xl mx-auto pt-20 space-y-4 font-mono text-center text-white bg-blue-bsod">
         <h1 className="inline-block text-3xl font-bold bg-white text-blue-bsod">
           Uncaught Exception!
         </h1>
