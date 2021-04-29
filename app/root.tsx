@@ -4,17 +4,17 @@ import type {
   LinksFunction,
   LoaderFunction,
   MetaFunction,
-} from '@remix-run/node';
-import { json } from '@remix-run/node';
+} from 'remix';
 import {
+  json,
   Links,
   Meta,
   Scripts,
   usePendingLocation,
   useRouteData,
-  useLiveReload,
   useMatches,
-} from '@remix-run/react';
+  LiveReload,
+} from 'remix';
 import * as Fathom from 'fathom-client';
 import { Outlet } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -64,8 +64,6 @@ const App: React.VFC = () => {
   const pendingLocation = usePendingLocation();
   const matches = useMatches();
   const includeScripts = matches.some(match => match.handle?.hydrate !== false);
-
-  useLiveReload();
 
   React.useEffect(() => {
     Fathom.load('HIUAENVC', {
@@ -139,14 +137,13 @@ const App: React.VFC = () => {
 
         <Outlet />
         {includeScripts && <Scripts />}
+        <LiveReload />
       </body>
     </html>
   );
 };
 
 const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
-  useLiveReload();
-
   React.useEffect(() => {
     Fathom.load('HIUAENVC', {
       excludedDomains: ['localhost'],
@@ -202,6 +199,7 @@ const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
           console and/or the server console to inspect the error.
         </p>
         <Scripts />
+        <LiveReload />
       </body>
     </html>
   );

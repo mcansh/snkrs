@@ -4,9 +4,8 @@ import type {
   LoaderFunction,
   LinksFunction,
   MetaFunction,
-} from '@remix-run/node';
-import { json } from '@remix-run/node';
-import { useRouteData } from '@remix-run/react';
+} from 'remix';
+import { json, useRouteData } from 'remix';
 import type { Brand, Sneaker, User } from '@prisma/client';
 import uniqBy from 'lodash.uniqby';
 import { Disclosure } from '@headlessui/react';

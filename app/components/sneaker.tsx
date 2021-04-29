@@ -1,6 +1,6 @@
 import * as React from 'react';
 import type { Brand, Sneaker as SneakerType } from '@prisma/client';
-import { Link } from '@remix-run/react';
+import { Link } from 'remix';
 
 import { getCloudinaryURL } from '../utils/cloudinary';
 import { formatMoney } from '../utils/format-money';

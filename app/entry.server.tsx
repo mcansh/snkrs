@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { renderToString } from 'react-dom/server';
-import { RemixServer } from '@remix-run/react';
-import type { EntryContext } from '@remix-run/node';
+import { RemixServer } from 'remix';
+import type { EntryContext } from 'remix';
 
 // https://securityheaders.com
 const cspSettings = {

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type { RouteComponent } from '@remix-run/node';
+import type { RouteComponent } from 'remix';
 
 import FourOhFour from '../404';
 import { SneakerCard } from '../../components/sneaker';
