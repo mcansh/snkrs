@@ -59,15 +59,17 @@ const loader: LoaderFunction = ({ params, request }) =>
             },
           },
         }),
-        prisma.user.findUnique({
-          where: {
-            id: userId,
-          },
-          select: {
-            givenName: true,
-            id: true,
-          },
-        }),
+        userId
+          ? prisma.user.findUnique({
+              where: {
+                id: userId,
+              },
+              select: {
+                givenName: true,
+                id: true,
+              },
+            })
+          : undefined,
       ]);
 
       if (!user) {
