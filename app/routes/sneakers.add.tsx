@@ -1,7 +1,6 @@
 import React from 'react';
-import { Form, usePendingFormSubmit } from '@remix-run/react';
-import type { ActionFunction, LoaderFunction } from '@remix-run/node';
-import { json, redirect } from '@remix-run/node';
+import { Form, usePendingFormSubmit, json, redirect } from 'remix';
+import type { ActionFunction, LoaderFunction } from 'remix';
 import { ValidationError } from 'yup';
 import slugify from 'slugify';
 

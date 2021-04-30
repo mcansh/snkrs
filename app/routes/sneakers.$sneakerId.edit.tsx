@@ -5,10 +5,11 @@ import {
   Link,
   usePendingFormSubmit,
   useRouteData,
-} from '@remix-run/react';
+  json,
+  redirect,
+} from 'remix';
 import { format, parseISO } from 'date-fns';
-import type { LoaderFunction } from '@remix-run/node';
-import { json, redirect } from '@remix-run/node';
+import type { LoaderFunction } from 'remix';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';

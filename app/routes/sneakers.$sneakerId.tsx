@@ -1,9 +1,7 @@
 import React from 'react';
 import type { Brand, Sneaker as SneakerType, User } from '@prisma/client';
-import type { HeadersFunction } from '@remix-run/react';
-import { Link, useRouteData } from '@remix-run/react';
-import type { ActionFunction, LoaderFunction } from '@remix-run/node';
-import { json, redirect } from '@remix-run/node';
+import type { HeadersFunction, ActionFunction, LoaderFunction } from 'remix';
+import { Link, useRouteData, json, redirect } from 'remix';
 import slugify from 'slugify';
 
 import { formatDate } from '../utils/format-date';

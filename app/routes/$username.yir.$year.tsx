@@ -1,8 +1,8 @@
 import React from 'react';
 import type { Brand, Sneaker as SneakerType, User } from '@prisma/client';
-import { useRouteData } from '@remix-run/react';
-import type { LoaderFunction } from '@remix-run/node';
-import { json } from '@remix-run/node';
+import { useRouteData, json } from 'remix';
+import type { LoaderFunction } from 'remix';
+import { endOfYear, startOfYear } from 'date-fns';
 
 import { SneakerCard } from '../components/sneaker';
 import { prisma } from '../db';
@@ -21,8 +21,10 @@ const loader: LoaderFunction = async ({ params }) => {
   const { username } = params;
   const year = parseInt(params.year, 10);
 
+  const now = new Date();
+
   try {
-    if (year > new Date().getFullYear()) {
+    if (year > now.getFullYear()) {
       throw new NotFoundError();
     }
 
@@ -37,8 +39,8 @@ const loader: LoaderFunction = async ({ params }) => {
           include: { brand: true },
           where: {
             purchaseDate: {
-              gte: new Date(year, 0, 1),
-              lte: new Date(year, 11, 31),
+              gte: startOfYear(now),
+              lte: endOfYear(now),
             },
           },
         },

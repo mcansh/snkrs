@@ -1,11 +1,6 @@
 import * as React from 'react';
-import type {
-  ActionFunction,
-  LoaderFunction,
-  MetaFunction,
-} from '@remix-run/node';
-import { redirect } from '@remix-run/node';
-import { Form, usePendingFormSubmit } from '@remix-run/react';
+import type { ActionFunction, LoaderFunction, MetaFunction } from 'remix';
+import { redirect, Form, usePendingFormSubmit } from 'remix';
 import { ValidationError } from 'yup';
 
 import { withSession } from '../lib/with-session';

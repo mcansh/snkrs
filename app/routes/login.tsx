@@ -4,14 +4,10 @@ import {
   Form,
   usePendingFormSubmit,
   useRouteData,
-} from '@remix-run/react';
+  redirect,
+} from 'remix';
 import { useLocation } from 'react-router-dom';
-import type {
-  ActionFunction,
-  LinksFunction,
-  LoaderFunction,
-} from '@remix-run/node';
-import { redirect } from '@remix-run/node';
+import type { ActionFunction, LinksFunction, LoaderFunction } from 'remix';
 import clsx from 'clsx';
 
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
