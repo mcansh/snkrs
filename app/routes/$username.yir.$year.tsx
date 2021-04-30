@@ -22,6 +22,7 @@ const loader: LoaderFunction = async ({ params }) => {
   const year = parseInt(params.year, 10);
 
   const now = new Date();
+  const date = new Date(year, now.getMonth(), now.getDate());
 
   try {
     if (year > now.getFullYear()) {
@@ -39,8 +40,8 @@ const loader: LoaderFunction = async ({ params }) => {
           include: { brand: true },
           where: {
             purchaseDate: {
-              gte: startOfYear(now),
-              lte: endOfYear(now),
+              gte: startOfYear(date),
+              lte: endOfYear(date),
             },
           },
         },
