@@ -5,7 +5,7 @@ import type {
   LinksFunction,
   MetaFunction,
 } from 'remix';
-import { json, useRouteData } from 'remix';
+import { Link, json, useRouteData } from 'remix';
 import type { Brand, Sneaker, User } from '@prisma/client';
 import uniqBy from 'lodash.uniqby';
 import { Disclosure } from '@headlessui/react';
@@ -15,6 +15,8 @@ import { NotFoundError } from '../errors';
 import { DataOutlet } from '../components/data-outlet';
 import x from '../icons/outline/x.svg';
 import menu from '../icons/outline/menu.svg';
+import { withSession } from '../lib/with-session';
+import { sessionKey } from '../constants';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
@@ -27,72 +29,87 @@ export interface RouteData {
   };
   selectedBrands: Array<string>;
   sort?: 'asc' | 'desc';
+  sessionUser?: Pick<User, 'id' | 'givenName'>;
 }
 
-const loader: LoaderFunction = async ({ params, request }) => {
-  try {
-    const { searchParams } = new URL(request.url);
+const loader: LoaderFunction = ({ params, request }) =>
+  withSession(request, async session => {
+    try {
+      const { searchParams } = new URL(request.url);
+      const userId = session.get(sessionKey);
 
-    const selectedBrands = searchParams.getAll('brand');
-    const sortQuery = searchParams.get('sort');
+      const selectedBrands = searchParams.getAll('brand');
+      const sortQuery = searchParams.get('sort');
 
-    const user = await prisma.user.findUnique({
-      where: {
-        username: params.username,
-      },
-      select: {
-        username: true,
-        id: true,
-        givenName: true,
-        familyName: true,
-        sneakers: {
-          include: { brand: true },
-          orderBy: {
-            purchaseDate: sortQuery === 'asc' ? 'asc' : 'desc',
+      const [user, sessionUser] = await Promise.all([
+        prisma.user.findUnique({
+          where: {
+            username: params.username,
           },
+          select: {
+            username: true,
+            id: true,
+            givenName: true,
+            familyName: true,
+            sneakers: {
+              include: { brand: true },
+              orderBy: {
+                purchaseDate: sortQuery === 'asc' ? 'asc' : 'desc',
+              },
+            },
+          },
+        }),
+        prisma.user.findUnique({
+          where: {
+            id: userId,
+          },
+          select: {
+            givenName: true,
+            id: true,
+          },
+        }),
+      ]);
+
+      if (!user) {
+        throw new NotFoundError();
+      }
+
+      const sneakers = selectedBrands.length
+        ? user.sneakers.filter(sneaker =>
+            selectedBrands.includes(sneaker.brand.slug)
+          )
+        : user.sneakers;
+
+      const uniqueBrands = uniqBy(
+        user.sneakers.map(sneaker => sneaker.brand),
+        'name'
+      ).sort((a, b) => a.name.localeCompare(b.name));
+
+      const fullName = `${user.givenName} ${user.familyName}`;
+      const endsPossessive = fullName.toLowerCase().endsWith('s');
+
+      const nameEndsWithS = endsPossessive ? `${fullName}'` : `${fullName}'s`;
+
+      return {
+        user: {
+          ...user,
+          fullName,
+          sneakers,
+          possessive: nameEndsWithS,
         },
-      },
-    });
-
-    if (!user) {
-      throw new NotFoundError();
+        brands: uniqueBrands,
+        selectedBrands,
+        sort: sortQuery === 'asc' ? 'asc' : 'desc',
+        sessionUser,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        return json({ notFound: true }, { status: 404 });
+      }
+      console.error(error);
+      return json({}, { status: 500 });
     }
-
-    const sneakers = selectedBrands.length
-      ? user.sneakers.filter(sneaker =>
-          selectedBrands.includes(sneaker.brand.slug)
-        )
-      : user.sneakers;
-
-    const uniqueBrands = uniqBy(
-      user.sneakers.map(sneaker => sneaker.brand),
-      'name'
-    ).sort((a, b) => a.name.localeCompare(b.name));
-
-    const fullName = `${user.givenName} ${user.familyName}`;
-    const endsPossessive = fullName.toLowerCase().endsWith('s');
-
-    const nameEndsWithS = endsPossessive ? `${fullName}'` : `${fullName}'s`;
-
-    return {
-      user: {
-        ...user,
-        fullName,
-        sneakers,
-        possessive: nameEndsWithS,
-      },
-      brands: uniqueBrands,
-      selectedBrands,
-      sort: sortQuery === 'asc' ? 'asc' : 'desc',
-    };
-  } catch (error) {
-    if (error instanceof NotFoundError) {
-      return json({ notFound: true }, { status: 404 });
-    }
-    console.error(error);
-    return json({}, { status: 500 });
-  }
-};
+  });
 
 const links: LinksFunction = () => [];
 
@@ -123,6 +140,27 @@ const UserSneakersPage: RouteComponent = () => {
 
   if (!data.user) {
     return <FourOhFour />;
+  }
+
+  if (
+    data.sessionUser &&
+    data.user.sneakers.length === 0 &&
+    data.user.id === data.sessionUser.id
+  ) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full">
+        <h1 className="mb-2 text-lg">
+          {data.sessionUser.givenName}, welcome to SNKRS
+        </h1>
+        <h2 className="mb-2 text-2xl font-bold">Let&apos;s Get Started</h2>
+        <Link
+          className="text-purple-600 transition-colors duration-150 ease-in-out hover:text-purple-300"
+          to="/sneakers/add"
+        >
+          Add a sneaker to your collection
+        </Link>
+      </div>
+    );
   }
 
   return (
