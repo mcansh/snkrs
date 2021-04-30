@@ -1,14 +1,16 @@
 import * as React from 'react';
-import type { Brand, Sneaker as SneakerType } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { Link } from 'remix';
 
 import { getCloudinaryURL } from '../utils/cloudinary';
 import { formatMoney } from '../utils/format-money';
 import { formatDate } from '../utils/format-date';
 
-interface SneakerWithBrand extends SneakerType {
-  brand: Brand;
-}
+const sneakerWithBrand = Prisma.validator<Prisma.SneakerArgs>()({
+  include: { brand: true },
+});
+
+type SneakerWithBrand = Prisma.SneakerGetPayload<typeof sneakerWithBrand>;
 
 const SneakerCard: React.VFC<SneakerWithBrand> = ({
   id,

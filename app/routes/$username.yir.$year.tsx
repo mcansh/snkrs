@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Brand, Sneaker as SneakerType, User } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { useRouteData, json } from 'remix';
 import type { LoaderFunction } from 'remix';
 import { endOfYear, startOfYear } from 'date-fns';
@@ -10,10 +10,15 @@ import { NotFoundError } from '../errors';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
+const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
+  select: { username: true },
+  include: { sneakers: { include: { brand: true } } },
+});
+
+type UserWithSneakers = Prisma.UserGetPayload<typeof userWithSneakers>;
+
 interface SneakerYearProps {
-  user: Pick<User, 'username' | 'familyName' | 'givenName'> & {
-    sneakers: Array<SneakerType & { brand: Brand }>;
-  };
+  user: UserWithSneakers;
   year: number;
 }
 
@@ -32,8 +37,6 @@ const loader: LoaderFunction = async ({ params }) => {
     const user = await prisma.user.findUnique({
       where: { username },
       select: {
-        givenName: true,
-        familyName: true,
         username: true,
         sneakers: {
           orderBy: { purchaseDate: 'asc' },

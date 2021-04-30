@@ -72,6 +72,7 @@ const action: ActionFunction = ({ request }) =>
           givenName: valid.givenName,
           password: hashed,
           username: valid.username,
+          fullName: `${valid.givenName} ${valid.familyName}`,
         },
       });
 

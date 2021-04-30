@@ -6,7 +6,8 @@ import type {
   MetaFunction,
 } from 'remix';
 import { Link, json, useRouteData } from 'remix';
-import type { Brand, Sneaker, User } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import type { Brand, User } from '@prisma/client';
 import uniqBy from 'lodash.uniqby';
 import { Disclosure } from '@headlessui/react';
 
@@ -20,13 +21,22 @@ import { sessionKey } from '../constants';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
+const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
+  select: {
+    username: true,
+    id: true,
+    fullName: true,
+    sneakers: {
+      include: { brand: true },
+    },
+  },
+});
+
+type UserWithSneakers = Prisma.UserGetPayload<typeof userWithSneakers>;
+
 export interface RouteData {
   brands: Array<Brand>;
-  user: Pick<User, 'username' | 'id'> & {
-    fullName: string;
-    possessive: string;
-    sneakers: Array<Sneaker & { brand: Brand }>;
-  };
+  user: UserWithSneakers;
   selectedBrands: Array<string>;
   sort?: 'asc' | 'desc';
   sessionUser?: Pick<User, 'id' | 'givenName'>;
@@ -49,8 +59,7 @@ const loader: LoaderFunction = ({ params, request }) =>
           select: {
             username: true,
             id: true,
-            givenName: true,
-            familyName: true,
+            fullName: true,
             sneakers: {
               include: { brand: true },
               orderBy: {
@@ -87,17 +96,10 @@ const loader: LoaderFunction = ({ params, request }) =>
         'name'
       ).sort((a, b) => a.name.localeCompare(b.name));
 
-      const fullName = `${user.givenName} ${user.familyName}`;
-      const endsPossessive = fullName.toLowerCase().endsWith('s');
-
-      const nameEndsWithS = endsPossessive ? `${fullName}'` : `${fullName}'s`;
-
       return {
         user: {
           ...user,
-          fullName,
           sneakers,
-          possessive: nameEndsWithS,
         },
         brands: uniqueBrands,
         selectedBrands,
@@ -120,14 +122,18 @@ const meta: MetaFunction = ({ data }: { data: RouteData }) => {
     return fourOhFourMeta();
   }
 
+  const name = `${data.user.fullName}${
+    data.user.fullName.endsWith('s') ? "'" : "'s"
+  }`;
+
   return {
-    title: `${data.user.possessive} Sneaker Collection`,
-    description: `${data.user.possessive} sneaker collection`,
+    title: `${name} Sneaker Collection`,
+    description: `${name} sneaker collection`,
     'twitter:card': 'summary_large_image',
     'twitter:site': '@loganmcansh',
     // TODO: add support for linking your twitter account
     'twitter:creator': '@loganmcansh',
-    'twitter:description': `${data.user.possessive} sneaker collection`,
+    'twitter:description': `${name} sneaker collection`,
     // TODO: add support for user avatar
   };
 };

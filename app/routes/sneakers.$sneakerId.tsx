@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Brand, Sneaker as SneakerType, User } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import type { HeadersFunction, ActionFunction, LoaderFunction } from 'remix';
 import { Link, useRouteData, json, redirect } from 'remix';
 import slugify from 'slugify';
@@ -16,12 +16,23 @@ import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 import { withSession } from '../lib/with-session';
 import { updateSneakerSchema } from '../lib/schemas/sneaker';
 
-type SneakerWithUser = SneakerType & {
-  brand: Brand;
+const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
+  include: {
+    brand: true,
+    user: {
+      select: {
+        fullName: true,
+        username: true,
+        id: true,
+      },
+    },
+  },
+});
+
+type SneakerWithUser = Prisma.SneakerGetPayload<typeof sneakerWithUser> & {
   soldDate: string;
   purchaseDate: string;
   updatedAt: string;
-  user: Pick<User, 'givenName' | 'familyName' | 'id' | 'username'>;
 };
 
 interface RouteData {
@@ -170,9 +181,7 @@ const meta = ({ data }: { data: RouteData }) => {
     year: 'numeric',
   });
 
-  const fullName = `${data.sneaker.user.givenName} ${data.sneaker.user.familyName}`;
-
-  const description = `${fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`;
+  const description = `${data.sneaker.user.fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`;
 
   return {
     title: `${data.sneaker.brand.name} ${data.sneaker.model} – ${data.sneaker.colorway}`,
@@ -239,59 +248,55 @@ const SneakerPage: React.VFC = () => {
             loading="lazy"
           />
         </div>
-        <div>
-          <h1 className="text-2xl">{title}</h1>
+        <div className="flex flex-col justify-between">
+          <div className="space-y-2">
+            <h1 className="text-2xl">{title}</h1>
 
-          {atRetail ? (
-            <p className="text-xl">{formatMoney(sneaker.price)}</p>
-          ) : (
-            <p className="text-xl">
-              Bought {sneaker.retailPrice > sneaker.price ? 'below' : 'above'}{' '}
-              retail ({formatMoney(sneaker.retailPrice)}) {emoji} for{' '}
-              {formatMoney(sneaker.price)}
-            </p>
-          )}
+            {atRetail ? (
+              <p className="text-xl">{formatMoney(sneaker.price)}</p>
+            ) : (
+              <p className="text-xl">
+                Bought {sneaker.retailPrice > sneaker.price ? 'below' : 'above'}{' '}
+                retail ({formatMoney(sneaker.retailPrice)}) {emoji} for{' '}
+                {formatMoney(sneaker.price)}
+              </p>
+            )}
 
-          <p className="text-md">
-            Purchased on{' '}
-            <time dateTime={purchaseDate.toISOString()}>
-              {formatDate(purchaseDate)}
-            </time>
-          </p>
-
-          <p>
-            Last Updated{' '}
-            <time dateTime={new Date(sneaker.updatedAt).toISOString()}>
-              {formatDate(sneaker.updatedAt)}
-            </time>
-          </p>
-
-          {sneaker.sold && sneaker.soldDate && (
             <p className="text-md">
-              Sold{' '}
-              <time dateTime={sneaker.soldDate}>
-                {formatDate(sneaker.soldDate)}{' '}
-                {sneaker.soldPrice && <>For {formatMoney(sneaker.soldPrice)}</>}
+              Purchased on{' '}
+              <time dateTime={purchaseDate.toISOString()}>
+                {formatDate(purchaseDate)}
               </time>
             </p>
-          )}
 
-          <Link
-            to={`/${sneaker.user.username}/yir/${purchaseDate.getFullYear()}`}
-            className="block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
-          >
-            See others purchased in {purchaseDate.getFullYear()}
-          </Link>
+            <p>
+              Last Updated{' '}
+              <time dateTime={new Date(sneaker.updatedAt).toISOString()}>
+                {formatDate(sneaker.updatedAt)}
+              </time>
+            </p>
 
-          <div className="flex justify-between mt-auto">
-            {userCreatedSneaker && (
-              <Link
-                to={`/sneakers/${sneaker.id}/edit`}
-                className="text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
-              >
-                Edit Sneaker
-              </Link>
+            {sneaker.sold && sneaker.soldDate && (
+              <p className="text-md">
+                Sold{' '}
+                <time dateTime={sneaker.soldDate}>
+                  {formatDate(sneaker.soldDate)}{' '}
+                  {sneaker.soldPrice && (
+                    <>For {formatMoney(sneaker.soldPrice)}</>
+                  )}
+                </time>
+              </p>
             )}
+
+            <Link
+              to={`/${sneaker.user.username}/yir/${purchaseDate.getFullYear()}`}
+              className="block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
+            >
+              See others purchased in {purchaseDate.getFullYear()}
+            </Link>
+          </div>
+
+          <div className="flex justify-between">
             <button
               type="button"
               className="text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
@@ -303,11 +308,9 @@ const SneakerPage: React.VFC = () => {
                     year: 'numeric',
                   });
 
-                  const fullName = `${sneaker.user.givenName} ${sneaker.user.familyName}`;
-
                   return navigator.share({
                     title: `${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`,
-                    text: `${fullName} bought the ${sneaker.brand.name} ${sneaker.model} on ${date}`,
+                    text: `${sneaker.user.fullName} bought the ${sneaker.brand.name} ${sneaker.model} on ${date}`,
                     url: location.href,
                   });
                 }
@@ -317,6 +320,14 @@ const SneakerPage: React.VFC = () => {
             >
               Permalink
             </button>
+            {userCreatedSneaker && (
+              <Link
+                to={`/sneakers/${sneaker.id}/edit`}
+                className="inline-block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
+              >
+                Edit Sneaker
+              </Link>
+            )}
           </div>
         </div>
       </div>

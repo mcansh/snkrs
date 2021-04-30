@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Brand, Sneaker as SneakerType } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import {
   Form,
   Link,
@@ -19,13 +19,18 @@ import { AuthorizationError } from '../errors';
 import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
 
+const sneakerWithBrand = Prisma.validator<Prisma.SneakerArgs>()({
+  include: { brand: true },
+});
+
+type SneakerWithBrand = Prisma.SneakerGetPayload<typeof sneakerWithBrand> & {
+  purchaseDate: string;
+  soldDate: string;
+};
+
 interface Props {
   id: string;
-  sneaker: SneakerType & {
-    soldDate?: string;
-    purchaseDate: string;
-    brand: Brand;
-  };
+  sneaker: SneakerWithBrand;
 }
 
 const loader: LoaderFunction = ({ params, request }) =>
