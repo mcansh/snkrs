@@ -39,6 +39,7 @@ model User {
   email      String    @unique
   givenName  String
   familyName String
+  fullName   String
   password   String
   username   String    @unique
   createdAt  DateTime  @default(now())
