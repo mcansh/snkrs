@@ -202,7 +202,7 @@ const UserSneakersPage: RouteComponent = () => {
                       </fieldset>
                       <button
                         type="submit"
-                        className="px-4 py-1 text-sm text-white bg-purple-600 rounded"
+                        className="px-4 py-2 text-sm text-white bg-purple-600 rounded"
                       >
                         Apply
                       </button>
@@ -268,7 +268,7 @@ const UserSneakersPage: RouteComponent = () => {
                     </fieldset>
                     <button
                       type="submit"
-                      className="px-4 py-1 text-sm text-white bg-purple-600 rounded"
+                      className="px-4 py-2 text-sm text-white bg-purple-600 rounded"
                     >
                       Apply
                     </button>
