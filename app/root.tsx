@@ -31,6 +31,10 @@ import refreshClockwise from './icons/refresh-clockwise.svg';
 
 interface RouteData {
   flash?: Flash;
+  ENV: {
+    FATHOM_SITE_ID: string;
+    FATHOM_SCRIPT_URL: string;
+  };
 }
 
 const meta: MetaFunction = () => ({
@@ -80,21 +84,27 @@ const loader: LoaderFunction = ({ request }) =>
 
     const parsed = flash ? safeParse(flash) : flash;
 
-    return json({ flash: parsed });
+    return json({
+      flash: parsed,
+      ENV: {
+        FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
+        FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
+      },
+    });
   });
 
 const App: React.VFC = () => {
-  const { flash } = useRouteData<RouteData>();
+  const { flash, ENV } = useRouteData<RouteData>();
   const pendingLocation = usePendingLocation();
   const matches = useMatches();
   const includeScripts = matches.some(match => match.handle?.hydrate !== false);
 
   React.useEffect(() => {
-    Fathom.load('HIUAENVC', {
+    Fathom.load(ENV.FATHOM_SITE_ID, {
       excludedDomains: ['localhost'],
-      url: 'https://kiwi.mcan.sh/script.js',
+      url: ENV.FATHOM_SCRIPT_URL,
     });
-  }, []);
+  }, [ENV]);
 
   React.useEffect(() => {
     if (flash) {
@@ -145,12 +155,14 @@ const App: React.VFC = () => {
 };
 
 const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
+  const { ENV } = useRouteData<RouteData>();
+
   React.useEffect(() => {
-    Fathom.load('HIUAENVC', {
+    Fathom.load(ENV.FATHOM_SITE_ID, {
       excludedDomains: ['localhost'],
-      url: 'https://kiwi.mcan.sh/script.js',
+      url: ENV.FATHOM_SCRIPT_URL,
     });
-  }, []);
+  }, [ENV]);
 
   return (
     <html lang="en" className="h-full">
