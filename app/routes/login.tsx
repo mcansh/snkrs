@@ -21,7 +21,7 @@ import { LoadingButton } from '../components/loading-button';
 import type { Flash } from '../@types/flash';
 import { safeParse } from '../utils/safe-parse';
 import checkIcon from '../icons/outline/check.svg';
-import cloudIcon from '../icons/outline/cloud.svg';
+import refreshIcon from '../icons/refresh-clockwise.svg';
 import exclamationCircleIcon from '../icons/outline/exclamation-circle.svg';
 import loginIcon from '../icons/outline/login.svg';
 
@@ -30,24 +30,6 @@ interface RouteData {
 }
 
 const links: LinksFunction = () => [
-  block({
-    rel: 'preload',
-    href: checkIcon,
-    as: 'image',
-    type: 'image/svg+xml',
-  }),
-  block({
-    rel: 'preload',
-    href: cloudIcon,
-    as: 'image',
-    type: 'image/svg+xml',
-  }),
-  block({
-    rel: 'preload',
-    href: exclamationCircleIcon,
-    as: 'image',
-    type: 'image/svg+xml',
-  }),
   block({
     rel: 'preload',
     href: loginIcon,
@@ -247,8 +229,8 @@ const LoginPage: React.VFC = () => {
               </svg>
             }
             iconLoading={
-              <svg className="w-6 h-6">
-                <use href={`${cloudIcon}#cloud`} />
+              <svg className="w-6 h-6 animate-spin">
+                <use href={`${refreshIcon}#refresh-clockwise`} />
               </svg>
             }
             iconSuccess={
