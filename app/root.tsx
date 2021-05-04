@@ -24,10 +24,10 @@ import globalCSS from './styles/global.css';
 import interCSS from './styles/inter.css';
 import type { Flash } from './@types/flash';
 import { flashMessageKey } from './constants';
-import { withSession } from './lib/with-session';
 import { safeParse } from './utils/safe-parse';
 import { Notifications } from './notifications';
 import refreshClockwise from './icons/refresh-clockwise.svg';
+import { getSession, commitSession } from './session';
 
 interface RouteData {
   flash?: Flash;
@@ -78,20 +78,37 @@ const links: LinksFunction = () => [
   { rel: 'mask-icon', href: '/safari-pinned-tab.svg', color: '#000000' },
 ];
 
-const loader: LoaderFunction = ({ request }) =>
-  withSession(request, session => {
-    const flash = session.get(flashMessageKey);
+const loader: LoaderFunction = async ({ request }) => {
+  const session = await getSession(request.headers.get('Cookie'));
+  const flash = session.get(flashMessageKey);
 
-    const parsed = flash ? safeParse(flash) : flash;
+  const parsed = flash ? safeParse(flash) : flash;
 
-    return json<RouteData>({
-      flash: parsed,
-      ENV: {
-        FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
-        FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
+  if (parsed) {
+    return json<RouteData>(
+      {
+        flash: parsed,
+        ENV: {
+          FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
+          FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
+        },
       },
-    });
+      {
+        headers: {
+          'Set-Cookie': await commitSession(session),
+        },
+      }
+    );
+  }
+
+  return json<RouteData>({
+    flash: parsed,
+    ENV: {
+      FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
+      FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
+    },
   });
+};
 
 const App: React.VFC = () => {
   const { flash, ENV } = useRouteData<RouteData>();
