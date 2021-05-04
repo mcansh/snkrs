@@ -1,8 +1,9 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
-import { useRouteData, json } from 'remix';
+import { useRouteData } from 'remix';
 import type { LoaderFunction } from 'remix';
 import { endOfYear, startOfYear } from 'date-fns';
+import { json } from 'remix-utils';
 
 import { SneakerCard } from '../components/sneaker';
 import { prisma } from '../db';
@@ -11,16 +12,20 @@ import { NotFoundError } from '../errors';
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
-  select: { username: true },
-  include: { sneakers: { include: { brand: true } } },
+  select: { username: true, sneakers: { include: { brand: true } } },
 });
 
 type UserWithSneakers = Prisma.UserGetPayload<typeof userWithSneakers>;
 
-interface SneakerYearProps {
-  user: UserWithSneakers;
-  year: number;
-}
+type RouteData =
+  | {
+      user: UserWithSneakers;
+      year: number;
+    }
+  | {
+      user?: never;
+      year: number;
+    };
 
 const loader: LoaderFunction = async ({ params }) => {
   const { username } = params;
@@ -55,17 +60,17 @@ const loader: LoaderFunction = async ({ params }) => {
       throw new NotFoundError();
     }
 
-    return json({ year, user }, {});
+    return json<RouteData>({ year, user }, {});
   } catch (error) {
     if (error instanceof NotFoundError) {
-      return json({ notFound: true }, { status: 404 });
+      return json<RouteData>({ year }, { status: 404 });
     }
     console.error(error);
-    return json({}, { status: 500 });
+    return json<RouteData>({ year }, { status: 500 });
   }
 };
 
-const meta = ({ data }: { data: SneakerYearProps }) => {
+const meta = ({ data }: { data: RouteData }) => {
   if (!data.user) {
     return fourOhFourMeta();
   }
@@ -78,7 +83,7 @@ const meta = ({ data }: { data: SneakerYearProps }) => {
 };
 
 const SneakersYearInReview: React.VFC = () => {
-  const { user, year } = useRouteData<SneakerYearProps>();
+  const { user, year } = useRouteData<RouteData>();
 
   if (!user || year > new Date().getFullYear()) {
     return <FourOhFour />;

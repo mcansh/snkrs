@@ -6,7 +6,6 @@ import type {
   MetaFunction,
 } from 'remix';
 import {
-  json,
   Links,
   Meta,
   Scripts,
@@ -19,6 +18,7 @@ import * as Fathom from 'fathom-client';
 import { Outlet } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
+import { json } from 'remix-utils';
 
 import globalCSS from './styles/global.css';
 import interCSS from './styles/inter.css';
@@ -84,7 +84,7 @@ const loader: LoaderFunction = ({ request }) =>
 
     const parsed = flash ? safeParse(flash) : flash;
 
-    return json({
+    return json<RouteData>({
       flash: parsed,
       ENV: {
         FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,

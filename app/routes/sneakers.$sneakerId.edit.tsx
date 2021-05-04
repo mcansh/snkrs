@@ -5,11 +5,12 @@ import {
   Link,
   usePendingFormSubmit,
   useRouteData,
-  json,
   redirect,
 } from 'remix';
 import { format, parseISO } from 'date-fns';
 import type { LoaderFunction } from 'remix';
+import { json } from 'remix-utils';
+import type { Except } from 'type-fest';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
@@ -19,19 +20,39 @@ import { AuthorizationError } from '../errors';
 import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
 
-const sneakerWithBrand = Prisma.validator<Prisma.SneakerArgs>()({
-  include: { brand: true },
+const sneakerWithBrandAndUser = Prisma.validator<Prisma.SneakerArgs>()({
+  include: {
+    brand: true,
+    user: {
+      select: {
+        familyName: true,
+        givenName: true,
+        id: true,
+      },
+    },
+  },
 });
 
-type SneakerWithBrand = Prisma.SneakerGetPayload<typeof sneakerWithBrand> & {
+type SneakerWithBrandAndUser = Except<
+  Prisma.SneakerGetPayload<typeof sneakerWithBrandAndUser>,
+  'createdAt' | 'purchaseDate' | 'soldDate'
+> & {
+  createdAt: string;
   purchaseDate: string;
-  soldDate: string;
+  soldDate?: string;
 };
 
-interface Props {
-  id: string;
-  sneaker: SneakerWithBrand;
-}
+type RouteData =
+  | {
+      id: string;
+      sneaker: SneakerWithBrandAndUser;
+      userCreatedSneaker: boolean;
+    }
+  | {
+      id: string;
+      sneaker?: never;
+      userCreatedSneaker?: never;
+    };
 
 const loader: LoaderFunction = ({ params, request }) =>
   withSession(request, async session => {
@@ -45,7 +66,8 @@ const loader: LoaderFunction = ({ params, request }) =>
         },
       });
 
-      if (!sneaker) return json({ id: params.sneakerId }, { status: 404 });
+      if (!sneaker)
+        return json<RouteData>({ id: params.sneakerId }, { status: 404 });
 
       const userId = session.get(sessionKey);
 
@@ -55,8 +77,13 @@ const loader: LoaderFunction = ({ params, request }) =>
         throw new AuthorizationError();
       }
 
-      return json({
-        sneaker,
+      return json<RouteData>({
+        sneaker: {
+          ...sneaker,
+          createdAt: sneaker.createdAt.toISOString(),
+          purchaseDate: sneaker.purchaseDate.toISOString(),
+          soldDate: sneaker.soldDate?.toISOString(),
+        },
         id: params.sneakerId,
         userCreatedSneaker,
       });
@@ -74,7 +101,7 @@ const loader: LoaderFunction = ({ params, request }) =>
 const formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
 const EditSneakerPage: React.VFC = () => {
-  const { sneaker, id } = useRouteData<Props>();
+  const { sneaker, id } = useRouteData<RouteData>();
   const pendingForm = usePendingFormSubmit();
 
   if (!sneaker) {

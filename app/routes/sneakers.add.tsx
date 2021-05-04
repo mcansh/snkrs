@@ -3,6 +3,7 @@ import { Form, usePendingFormSubmit, json, redirect } from 'remix';
 import type { ActionFunction, LoaderFunction } from 'remix';
 import { ValidationError } from 'yup';
 import slugify from 'slugify';
+import { parseBody } from 'remix-utils';
 
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
 import { prisma } from '../db';
@@ -40,8 +41,7 @@ const loader: LoaderFunction = ({ request }) =>
 const action: ActionFunction = ({ request }) =>
   withSession(request, async session => {
     try {
-      const reqBody = await request.text();
-      const formData = new URLSearchParams(reqBody);
+      const formData = await parseBody(request);
 
       const userId = session.get(sessionKey);
 

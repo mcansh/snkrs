@@ -5,11 +5,12 @@ import type {
   LinksFunction,
   MetaFunction,
 } from 'remix';
-import { Link, json, useRouteData } from 'remix';
+import { Link, useRouteData } from 'remix';
 import { Prisma } from '@prisma/client';
 import type { Brand, User } from '@prisma/client';
 import uniqBy from 'lodash.uniqby';
 import { Disclosure } from '@headlessui/react';
+import { json } from 'remix-utils';
 
 import { prisma } from '../db';
 import { NotFoundError } from '../errors';
@@ -18,6 +19,7 @@ import x from '../icons/outline/x.svg';
 import menu from '../icons/outline/menu.svg';
 import { withSession } from '../lib/with-session';
 import { sessionKey } from '../constants';
+import type { Maybe } from '../@types/maybe';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
@@ -34,13 +36,21 @@ const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
 
 type UserWithSneakers = Prisma.UserGetPayload<typeof userWithSneakers>;
 
-export interface RouteData {
-  brands: Array<Brand>;
-  user: UserWithSneakers;
-  selectedBrands: Array<string>;
-  sort?: 'asc' | 'desc';
-  sessionUser?: Pick<User, 'id' | 'givenName'>;
-}
+export type RouteData =
+  | {
+      brands: Array<Brand>;
+      user: UserWithSneakers;
+      selectedBrands: Array<string>;
+      sort?: 'asc' | 'desc';
+      sessionUser?: Maybe<Pick<User, 'id' | 'givenName'>>;
+    }
+  | {
+      brands?: never;
+      user?: never;
+      selectedBrands?: never;
+      sort?: never;
+      sessionUser?: never;
+    };
 
 const loader: LoaderFunction = ({ params, request }) =>
   withSession(request, async session => {
@@ -96,7 +106,7 @@ const loader: LoaderFunction = ({ params, request }) =>
         'name'
       ).sort((a, b) => a.name.localeCompare(b.name));
 
-      return {
+      return json<RouteData>({
         user: {
           ...user,
           sneakers,
@@ -105,13 +115,13 @@ const loader: LoaderFunction = ({ params, request }) =>
         selectedBrands,
         sort: sortQuery === 'asc' ? 'asc' : 'desc',
         sessionUser,
-      };
+      });
     } catch (error) {
       if (error instanceof NotFoundError) {
-        return json({ notFound: true }, { status: 404 });
+        return json<RouteData>({}, { status: 404 });
       }
       console.error(error);
-      return json({}, { status: 500 });
+      return json<RouteData>({}, { status: 500 });
     }
   });
 

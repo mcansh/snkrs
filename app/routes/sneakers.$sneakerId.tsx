@@ -1,8 +1,10 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
 import type { HeadersFunction, ActionFunction, LoaderFunction } from 'remix';
-import { Link, useRouteData, json, redirect } from 'remix';
+import { Link, useRouteData, redirect } from 'remix';
 import slugify from 'slugify';
+import { parseBody, json } from 'remix-utils';
+import type { Except } from 'type-fest';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
@@ -21,25 +23,36 @@ const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
     brand: true,
     user: {
       select: {
-        fullName: true,
-        username: true,
+        givenName: true,
+        familyName: true,
         id: true,
+        username: true,
       },
     },
   },
 });
 
-type SneakerWithUser = Prisma.SneakerGetPayload<typeof sneakerWithUser> & {
-  soldDate: string;
+type SneakerWithUser = Except<
+  Prisma.SneakerGetPayload<typeof sneakerWithUser>,
+  'soldDate' | 'purchaseDate' | 'updatedAt' | 'createdAt'
+> & {
+  soldDate?: string;
   purchaseDate: string;
   updatedAt: string;
+  createdAt: string;
 };
 
-interface RouteData {
-  sneaker: SneakerWithUser;
-  id: string;
-  userCreatedSneaker: boolean;
-}
+type RouteData =
+  | {
+      sneaker: SneakerWithUser;
+      id: string;
+      userCreatedSneaker: boolean;
+    }
+  | {
+      id: string;
+      sneaker?: never;
+      userCreatedSneaker?: never;
+    };
 
 const headers: HeadersFunction = ({ loaderHeaders }) => ({
   'Cache-Control': loaderHeaders.get('Cache-Control') ?? 'no-cache',
@@ -63,14 +76,20 @@ const loader: LoaderFunction = ({ params, request }) =>
     });
 
     if (!sneaker) {
-      return json({ id: params.sneakerId }, { status: 404 });
+      return json<RouteData>({ id: params.sneakerId }, { status: 404 });
     }
 
     const userCreatedSneaker = sneaker?.user.id === session.get(sessionKey);
 
-    return json(
+    return json<RouteData>(
       {
-        sneaker,
+        sneaker: {
+          ...sneaker,
+          createdAt: sneaker.createdAt.toISOString(),
+          soldDate: sneaker.soldDate?.toISOString(),
+          purchaseDate: sneaker.purchaseDate?.toISOString(),
+          updatedAt: sneaker.updatedAt?.toISOString(),
+        },
         id: params.sneakerId,
         userCreatedSneaker,
       },
@@ -89,8 +108,7 @@ const action: ActionFunction = ({ request, params }) =>
     const { pathname } = new URL(request.url);
 
     try {
-      const reqBody = await request.text();
-      const body = new URLSearchParams(reqBody);
+      const body = await parseBody(request);
 
       if (!userId) {
         throw new AuthorizationError();

@@ -9,6 +9,7 @@ import {
 import { useLocation } from 'react-router-dom';
 import type { ActionFunction, LinksFunction, LoaderFunction } from 'remix';
 import clsx from 'clsx';
+import { parseBody } from 'remix-utils';
 
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
 import { InvalidLoginError } from '../errors';
@@ -63,8 +64,7 @@ const loader: LoaderFunction = ({ request }) =>
 
 const action: ActionFunction = ({ request }) =>
   withSession(request, async session => {
-    const reqBody = await request.text();
-    const body = new URLSearchParams(reqBody);
+    const body = await parseBody(request);
     const email = body.get('email') as string;
     const password = body.get('password') as string;
 

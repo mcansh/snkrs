@@ -2,6 +2,7 @@ import * as React from 'react';
 import type { ActionFunction, LoaderFunction, MetaFunction } from 'remix';
 import { redirect, Form, usePendingFormSubmit } from 'remix';
 import { ValidationError } from 'yup';
+import { parseBody } from 'remix-utils';
 
 import { withSession } from '../lib/with-session';
 import { flashMessageKey, redirectKey, sessionKey } from '../constants';
@@ -30,8 +31,7 @@ const loader: LoaderFunction = ({ request }) =>
 
 const action: ActionFunction = ({ request }) =>
   withSession(request, async session => {
-    const reqBody = await request.text();
-    const body = new URLSearchParams(reqBody);
+    const body = await parseBody(request);
     const email = body.get('email') as string;
     const givenName = body.get('givenName') as string;
     const familyName = body.get('familyName') as string;
