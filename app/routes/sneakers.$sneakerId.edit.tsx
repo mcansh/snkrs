@@ -15,7 +15,7 @@ import type { Except } from 'type-fest';
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
 import { formatMoney } from '../utils/format-money';
-import { redirectKey, sessionKey } from '../constants';
+import { redirectAfterAuthKey, sessionKey } from '../constants';
 import { AuthorizationError } from '../errors';
 import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
@@ -56,7 +56,13 @@ type RouteData =
 
 const loader: LoaderFunction = ({ params, request }) =>
   withSession(request, async session => {
-    const { pathname } = new URL(request.url);
+    const url = new URL(request.url);
+
+    // in development, remix loses the port
+    if (process.env.NODE_ENV === 'development') {
+      url.port = process.env.PORT ?? '3000';
+    }
+
     try {
       const sneaker = await prisma.sneaker.findUnique({
         where: { id: params.sneakerId },
@@ -89,7 +95,7 @@ const loader: LoaderFunction = ({ params, request }) =>
       });
     } catch (error) {
       if (error instanceof AuthorizationError) {
-        session.flash(redirectKey, pathname);
+        return redirect(`/login?${redirectAfterAuthKey}=${url.toString()}`);
       } else {
         console.error(error);
       }

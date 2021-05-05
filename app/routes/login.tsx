@@ -11,7 +11,11 @@ import type { ActionFunction, LinksFunction, LoaderFunction } from 'remix';
 import clsx from 'clsx';
 import { parseBody } from 'remix-utils';
 
-import { flashMessageKey, redirectKey, sessionKey } from '../constants';
+import {
+  flashMessageKey,
+  redirectAfterAuthKey,
+  sessionKey,
+} from '../constants';
 import { InvalidLoginError } from '../errors';
 import { flashMessage } from '../flash-message';
 import { verify } from '../lib/auth';
@@ -68,7 +72,8 @@ const action: ActionFunction = ({ request }) =>
     const email = body.get('email') as string;
     const password = body.get('password') as string;
 
-    const redirectAfterLogin = session.get(redirectKey);
+    const url = new URL(request.url);
+    const redirectTo = url.searchParams.get(redirectAfterAuthKey);
 
     try {
       const foundUser = await prisma.user.findUnique({
@@ -90,7 +95,7 @@ const action: ActionFunction = ({ request }) =>
         flashMessageKey,
         flashMessage(`Welcome back ${foundUser.username}!`, 'success')
       );
-      return redirect(redirectAfterLogin ? redirectAfterLogin : '/');
+      return redirect(redirectTo ? redirectTo : '/');
     } catch (error) {
       if (error instanceof InvalidLoginError) {
         session.flash('loginError', flashMessage(error.message, 'error'));

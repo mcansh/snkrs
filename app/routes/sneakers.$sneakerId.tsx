@@ -10,13 +10,18 @@ import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
 import { formatMoney } from '../utils/format-money';
 import { copy } from '../utils/copy';
-import { flashMessageKey, redirectKey, sessionKey } from '../constants';
+import {
+  flashMessageKey,
+  redirectAfterAuthKey,
+  sessionKey,
+} from '../constants';
 import { prisma } from '../db';
 import { AuthorizationError } from '../errors';
 import { flashMessage } from '../flash-message';
 import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 import { withSession } from '../lib/with-session';
 import { updateSneakerSchema } from '../lib/schemas/sneaker';
+import { getCorrectUrl } from '../lib/get-correct-url';
 
 const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
@@ -105,7 +110,8 @@ const action: ActionFunction = ({ request, params }) =>
   withSession(request, async session => {
     const userId = session.get(sessionKey);
     const { sneakerId } = params;
-    const { pathname } = new URL(request.url);
+
+    const url = getCorrectUrl(request);
 
     try {
       const body = await parseBody(request);
@@ -173,16 +179,15 @@ const action: ActionFunction = ({ request, params }) =>
         flashMessage(`Updated ${sneakerId}`, 'success')
       );
 
-      return redirect(pathname);
+      return redirect(url.pathname);
     } catch (error) {
       session.flash(flashMessageKey, flashMessage(error.message, 'error'));
       if (error instanceof AuthorizationError) {
-        session.flash(redirectKey, pathname);
-        return redirect(`/login`);
+        return redirect(`/login?${redirectAfterAuthKey}=${url.toString()}`);
       }
 
       console.error(error);
-      return redirect(pathname);
+      return redirect(url.pathname);
     }
   });
 

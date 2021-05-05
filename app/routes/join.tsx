@@ -5,7 +5,11 @@ import { ValidationError } from 'yup';
 import { parseBody } from 'remix-utils';
 
 import { withSession } from '../lib/with-session';
-import { flashMessageKey, redirectKey, sessionKey } from '../constants';
+import {
+  flashMessageKey,
+  redirectAfterAuthKey,
+  sessionKey,
+} from '../constants';
 import { prisma } from '../db';
 import { flashMessage } from '../flash-message';
 import { EmailTakenJoinError, UsernameTakenJoinError } from '../errors';
@@ -38,7 +42,8 @@ const action: ActionFunction = ({ request }) =>
     const username = body.get('username') as string;
     const password = body.get('password') as string;
 
-    const redirectAfter = session.get(redirectKey);
+    const url = new URL(request.url);
+    const redirectTo = url.searchParams.get(redirectAfterAuthKey);
 
     try {
       const valid = await registerSchema.validate({
@@ -78,7 +83,7 @@ const action: ActionFunction = ({ request }) =>
 
       session.set(sessionKey, newUser.id);
 
-      return redirect(redirectAfter ? redirectAfter : `/${newUser.username}`);
+      return redirect(redirectTo ? redirectTo : `/${newUser.username}`);
     } catch (error) {
       console.error(error);
       if (error instanceof ValidationError) {

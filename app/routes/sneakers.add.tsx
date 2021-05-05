@@ -5,7 +5,11 @@ import { ValidationError } from 'yup';
 import slugify from 'slugify';
 import { parseBody } from 'remix-utils';
 
-import { flashMessageKey, redirectKey, sessionKey } from '../constants';
+import {
+  flashMessageKey,
+  redirectAfterAuthKey,
+  sessionKey,
+} from '../constants';
 import { prisma } from '../db';
 import { AuthorizationError } from '../errors';
 import { flashMessage } from '../flash-message';
@@ -13,6 +17,7 @@ import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 import { cloudinary } from '../lib/cloudinary.server';
 import { withSession } from '../lib/with-session';
 import { createSneakerSchema } from '../lib/schemas/sneaker';
+import { getCorrectUrl } from '../lib/get-correct-url';
 
 const meta = () => ({
   title: 'Add a sneaker to your collection',
@@ -21,6 +26,8 @@ const meta = () => ({
 const loader: LoaderFunction = ({ request }) =>
   withSession(request, session => {
     const userId = session.get(sessionKey);
+    const url = getCorrectUrl(request);
+
     try {
       if (!userId) {
         throw new AuthorizationError();
@@ -30,7 +37,7 @@ const loader: LoaderFunction = ({ request }) =>
     } catch (error) {
       if (error instanceof AuthorizationError) {
         session.flash(flashMessageKey, flashMessage(error.message, 'error'));
-        session.flash(redirectKey, '/sneakers/add');
+        return redirect(`/login?${redirectAfterAuthKey}=${url.toString()}`);
       } else {
         console.error(error);
       }
@@ -40,6 +47,7 @@ const loader: LoaderFunction = ({ request }) =>
 
 const action: ActionFunction = ({ request }) =>
   withSession(request, async session => {
+    const url = getCorrectUrl(request);
     try {
       const formData = await parseBody(request);
 
@@ -130,8 +138,8 @@ const action: ActionFunction = ({ request }) =>
 
       if (error instanceof AuthorizationError) {
         session.flash(flashMessageKey, flashMessage(error.message, 'error'));
-        session.flash(redirectKey, `/sneakers/add`);
-        return redirect('/login');
+
+        return redirect(`/login?${redirectAfterAuthKey}=${url.toString()}`);
       }
 
       if (error instanceof ValidationError) {

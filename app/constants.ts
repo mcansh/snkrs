@@ -1,5 +1,5 @@
 const sessionKey = 'userID';
 const flashMessageKey = 'globalMessage';
-const redirectKey = 'redirectAfterLogin';
+const redirectAfterAuthKey = 'returnTo';
 
-export { sessionKey, flashMessageKey, redirectKey };
+export { sessionKey, flashMessageKey, redirectAfterAuthKey };
