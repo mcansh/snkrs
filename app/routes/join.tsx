@@ -1,8 +1,19 @@
 import * as React from 'react';
-import type { ActionFunction, LoaderFunction, MetaFunction } from 'remix';
-import { redirect, Form, usePendingFormSubmit } from 'remix';
+import type {
+  ActionFunction,
+  LinksFunction,
+  LoaderFunction,
+  MetaFunction,
+} from 'remix';
+import {
+  useRouteData,
+  block,
+  redirect,
+  Form,
+  usePendingFormSubmit,
+} from 'remix';
 import { ValidationError } from 'yup';
-import { parseBody } from 'remix-utils';
+import { json, parseBody } from 'remix-utils';
 
 import { withSession } from '../lib/with-session';
 import {
@@ -13,14 +24,42 @@ import {
 import { prisma } from '../db';
 import { flashMessage } from '../flash-message';
 import { EmailTakenJoinError, UsernameTakenJoinError } from '../errors';
+import type { RegisterSchema } from '../lib/schemas/join';
 import { registerSchema } from '../lib/schemas/join';
 import { hash } from '../lib/auth';
+import checkIcon from '../icons/outline/check.svg';
+import refreshIcon from '../icons/refresh-clockwise.svg';
+import exclamationCircleIcon from '../icons/outline/exclamation-circle.svg';
+import loginIcon from '../icons/outline/login.svg';
+import type { LoadingButtonProps } from '../components/loading-button';
+import { LoadingButton } from '../components/loading-button';
+import { safeParse } from '../utils/safe-parse';
+import { yupToObject } from '../lib/yup-to-object';
+
+const links: LinksFunction = () => [
+  block({
+    rel: 'preload',
+    href: loginIcon,
+    as: 'image',
+    type: 'image/svg+xml',
+  }),
+];
+
+interface RouteData {
+  joinError?: Partial<RegisterSchema> & {
+    generic?: string;
+  };
+}
 
 const loader: LoaderFunction = ({ request }) =>
   withSession(request, async session => {
     const userId = session.get(sessionKey);
+
     if (userId) {
-      const user = await prisma.user.findUnique({ where: { id: userId } });
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { username: true },
+      });
 
       if (user) {
         return redirect(`/${user.username}`);
@@ -30,33 +69,40 @@ const loader: LoaderFunction = ({ request }) =>
       session.unset(sessionKey);
     }
 
-    return {};
+    const joinError = session.get('joinError');
+
+    const parsed = safeParse(joinError);
+
+    return json<RouteData>({ joinError: parsed });
   });
 
 const action: ActionFunction = ({ request }) =>
   withSession(request, async session => {
     const body = await parseBody(request);
-    const email = body.get('email') as string;
-    const givenName = body.get('givenName') as string;
-    const familyName = body.get('familyName') as string;
-    const username = body.get('username') as string;
-    const password = body.get('password') as string;
+    const email = body.get('email');
+    const givenName = body.get('givenName');
+    const familyName = body.get('familyName');
+    const username = body.get('username');
+    const password = body.get('password');
 
     const url = new URL(request.url);
     const redirectTo = url.searchParams.get(redirectAfterAuthKey);
 
     try {
-      const valid = await registerSchema.validate({
-        email,
-        givenName,
-        familyName,
-        username,
-        password,
-      });
+      const valid = await registerSchema.validate(
+        {
+          email,
+          givenName,
+          familyName,
+          username,
+          password,
+        },
+        { abortEarly: false }
+      );
 
       const foundUser = await prisma.user.findFirst({
         where: {
-          OR: [{ email }, { username }],
+          OR: [{ email: valid.email }, { username: valid.username }],
         },
       });
 
@@ -87,23 +133,25 @@ const action: ActionFunction = ({ request }) =>
     } catch (error) {
       console.error(error);
       if (error instanceof ValidationError) {
-        session.flash(flashMessageKey, flashMessage(error.message, 'error'));
+        const aggregateErrors = yupToObject<RegisterSchema>(error);
+
+        session.flash('joinError', JSON.stringify(aggregateErrors));
         return redirect(`/join`);
       }
 
       if (error instanceof UsernameTakenJoinError) {
-        session.flash(flashMessageKey, flashMessage(error.message, 'error'));
+        session.flash('joinError', JSON.stringify({ generic: error.message }));
         return redirect(`/join`);
       }
 
       if (error instanceof EmailTakenJoinError) {
-        session.flash(flashMessageKey, flashMessage(error.message, 'error'));
+        session.flash('joinError', JSON.stringify({ generic: error.message }));
         return redirect(`/join`);
       }
 
       session.flash(
         flashMessageKey,
-        flashMessage('something went wrong', 'error')
+        JSON.stringify({ generic: 'something went wrong' })
       );
 
       return redirect(`/join`);
@@ -116,8 +164,64 @@ const meta: MetaFunction = () => ({
 
 const JoinPage: React.VFC = () => {
   const pendingForm = usePendingFormSubmit();
+  const data = useRouteData<RouteData>();
+  const [state, setState] = React.useState<LoadingButtonProps['state']>('idle');
+  const timerRef = React.useRef<NodeJS.Timeout>();
+
+  const colors = {
+    idle: {
+      bg: 'bg-blue-500',
+      hover: 'hover:bg-blue-700',
+      ring: 'focus:bg-blue-700',
+      disabled: 'focus:bg-blue-200',
+    },
+    loading: {
+      bg: 'bg-indigo-500',
+      hover: 'hover:bg-indigo-700',
+      ring: 'focus:ring-indigo-700',
+      disabled: 'focus:ring-indigo-200',
+    },
+    error: {
+      bg: 'bg-red-500',
+      hover: 'hover:bg-red-700',
+      ring: 'focus:ring-red-700',
+      disabled: 'focus:ring-red-200',
+    },
+    success: {
+      bg: 'bg-green-500',
+      hover: 'hover:bg-green-700',
+      ring: 'focus:ring-green-700',
+      disabled: 'focus:ring-green-200',
+    },
+  };
+
+  React.useEffect(() => {
+    if (pendingForm) {
+      setState('loading');
+    } else if (data.joinError) {
+      setState('error');
+      timerRef.current = setTimeout(() => {
+        setState('idle');
+      }, 1500);
+    } else {
+      setState('idle');
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [data.joinError, pendingForm]);
+
   return (
     <div className="w-11/12 max-w-lg py-8 mx-auto">
+      {data.joinError?.generic && (
+        <div className="px-4 py-2 mb-2 text-sm text-white bg-red-500 rounded">
+          {data.joinError.generic}
+        </div>
+      )}
+
       <h1 className="pb-2 text-2xl font-medium">Join Snkrs</h1>
       <Form method="post" className="space-y-4">
         <fieldset disabled={!!pendingForm} className="flex flex-col space-y-4">
@@ -131,6 +235,7 @@ const JoinPage: React.VFC = () => {
               autoComplete="given-name"
             />
           </label>
+          {data.joinError?.givenName && <p>{data.joinError.givenName}</p>}
           <label htmlFor="familyName">
             <span>Last Name:</span>
             <input
@@ -141,6 +246,7 @@ const JoinPage: React.VFC = () => {
               autoComplete="family-name"
             />
           </label>
+          {data.joinError?.familyName && <p>{data.joinError.familyName}</p>}
           <label htmlFor="username">
             <span>Username:</span>
             <input
@@ -151,6 +257,7 @@ const JoinPage: React.VFC = () => {
               autoComplete="username"
             />
           </label>
+          {data.joinError?.username && <p>{data.joinError.username}</p>}
           <label htmlFor="email">
             <span>Email:</span>
             <input
@@ -161,6 +268,7 @@ const JoinPage: React.VFC = () => {
               autoComplete="email"
             />
           </label>
+          {data.joinError?.email && <p>{data.joinError.email}</p>}
           <label htmlFor="password">
             <span>Password:</span>
             <input
@@ -170,12 +278,38 @@ const JoinPage: React.VFC = () => {
               id="password"
             />
           </label>
-          <button
-            className="self-start w-auto px-4 py-2 text-left text-white transition-colors duration-100 ease-in-out bg-blue-500 rounded disabled:bg-blue-200 hover:bg-blue-700 disabled:cursor-not-allowed"
+          {data.joinError?.password && <p>{data.joinError.password}</p>}
+          <LoadingButton
             type="submit"
-          >
-            Join{pendingForm && 'ging...'}
-          </button>
+            state={state}
+            text={<span>Join</span>}
+            textLoading={<span>Joining</span>}
+            ariaText="Log in"
+            ariaLoadingAlert="Attempting to register"
+            ariaSuccessAlert="Successfully registered, redirecting..."
+            ariaErrorAlert="Error registering"
+            icon={
+              <svg className="w-6 h-6">
+                <use href={`${loginIcon}#login`} />
+              </svg>
+            }
+            iconError={
+              <svg className="w-6 h-6">
+                <use href={`${exclamationCircleIcon}#exclamation-circle`} />
+              </svg>
+            }
+            iconLoading={
+              <svg className="w-6 h-6 animate-spin">
+                <use href={`${refreshIcon}#refresh-clockwise`} />
+              </svg>
+            }
+            iconSuccess={
+              <svg className="w-6 h-6">
+                <use href={`${checkIcon}#check`} />
+              </svg>
+            }
+            className={`px-4 py-2 disabled:cursor-not-allowed border border-transparent shadow-sm text-base font-medium rounded text-white ${colors[state].bg} ${colors[state].hover} focus:outline-none focus:ring-2 focus:ring-offset-2 ${colors[state].ring}`}
+          />
         </fieldset>
       </Form>
     </div>
@@ -183,4 +317,4 @@ const JoinPage: React.VFC = () => {
 };
 
 export default JoinPage;
-export { action, loader, meta };
+export { action, links, loader, meta };

@@ -8,8 +8,8 @@ import {
 } from 'remix';
 import { useLocation } from 'react-router-dom';
 import type { ActionFunction, LinksFunction, LoaderFunction } from 'remix';
-import clsx from 'clsx';
-import { parseBody } from 'remix-utils';
+import { json, parseBody } from 'remix-utils';
+import { ValidationError } from 'yup';
 
 import {
   flashMessageKey,
@@ -23,15 +23,19 @@ import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
 import type { LoadingButtonProps } from '../components/loading-button';
 import { LoadingButton } from '../components/loading-button';
-import type { Flash } from '../@types/flash';
 import { safeParse } from '../utils/safe-parse';
 import checkIcon from '../icons/outline/check.svg';
 import refreshIcon from '../icons/refresh-clockwise.svg';
 import exclamationCircleIcon from '../icons/outline/exclamation-circle.svg';
 import loginIcon from '../icons/outline/login.svg';
+import type { LoginSchema } from '../lib/schemas/login';
+import { loginSchema } from '../lib/schemas/login';
+import { yupToObject } from '../lib/yup-to-object';
 
 interface RouteData {
-  loginError?: Flash;
+  loginError?: Partial<LoginSchema> & {
+    generic?: string;
+  };
 }
 
 const links: LinksFunction = () => [
@@ -46,9 +50,6 @@ const links: LinksFunction = () => [
 const loader: LoaderFunction = ({ request }) =>
   withSession(request, async session => {
     const userId = session.get(sessionKey);
-    const loginError = session.get('loginError');
-
-    const parsed = safeParse(loginError);
 
     if (userId) {
       const user = await prisma.user.findUnique({
@@ -56,37 +57,47 @@ const loader: LoaderFunction = ({ request }) =>
         select: { username: true },
       });
 
-      if (!user) {
-        session.unset(sessionKey);
-        return { loginError: parsed };
+      if (user) {
+        return redirect(`/${user.username}`);
       }
 
-      return redirect(`/${user.username}`);
+      session.flash(flashMessageKey, flashMessage('User not found', 'error'));
+      session.unset(sessionKey);
     }
-    return { loginError: parsed };
+
+    const loginError = session.get('loginError');
+
+    const parsed = safeParse(loginError);
+
+    return json<RouteData>({ loginError: parsed });
   });
 
 const action: ActionFunction = ({ request }) =>
   withSession(request, async session => {
     const body = await parseBody(request);
-    const email = body.get('email') as string;
-    const password = body.get('password') as string;
+    const email = body.get('email');
+    const password = body.get('password');
 
     const url = new URL(request.url);
     const redirectTo = url.searchParams.get(redirectAfterAuthKey);
 
     try {
+      const valid = await loginSchema.validate(
+        { email, password },
+        { abortEarly: false }
+      );
+
       const foundUser = await prisma.user.findUnique({
-        where: { email },
+        where: { email: valid.email },
       });
 
       if (!foundUser) {
         throw new InvalidLoginError();
       }
 
-      const valid = await verify(password, foundUser.password);
+      const validCredentials = await verify(valid.password, foundUser.password);
 
-      if (!valid) {
+      if (!validCredentials) {
         throw new InvalidLoginError();
       }
 
@@ -97,11 +108,22 @@ const action: ActionFunction = ({ request }) =>
       );
       return redirect(redirectTo ? redirectTo : '/');
     } catch (error) {
-      if (error instanceof InvalidLoginError) {
-        session.flash('loginError', flashMessage(error.message, 'error'));
-      } else {
-        console.error(error);
+      console.error(error);
+      if (error instanceof ValidationError) {
+        const aggregateErrors = yupToObject<LoginSchema>(error);
+
+        session.flash('loginError', JSON.stringify(aggregateErrors));
+        return redirect(`/login`);
       }
+
+      if (error instanceof InvalidLoginError) {
+        session.flash('loginError', JSON.stringify({ generic: error.message }));
+      }
+
+      session.flash(
+        'loginError',
+        JSON.stringify({ generic: 'something went wrong' })
+      );
 
       return redirect(`/login`);
     }
@@ -166,20 +188,9 @@ const LoginPage: React.VFC = () => {
 
   return (
     <div className="w-11/12 max-w-lg py-8 mx-auto">
-      {data.loginError && (
-        <div
-          className={clsx(
-            'px-4 py-2 mb-2 text-sm text-white rounded',
-            typeof data.loginError === 'string'
-              ? 'bg-purple-500'
-              : data.loginError.type === 'error'
-              ? 'bg-red-500'
-              : 'bg-purple-500'
-          )}
-        >
-          {typeof data.loginError === 'string'
-            ? data.loginError
-            : data.loginError.message}
+      {data.loginError?.generic && (
+        <div className="px-4 py-2 mb-2 text-sm text-white bg-red-500 rounded">
+          {data.loginError.generic}
         </div>
       )}
 
@@ -201,6 +212,7 @@ const LoginPage: React.VFC = () => {
               autoComplete="email"
             />
           </label>
+          {data.loginError?.email && <p>{data.loginError.email}</p>}
           <label htmlFor="password">
             <span>Password:</span>
             <input
@@ -210,6 +222,7 @@ const LoginPage: React.VFC = () => {
               id="password"
             />
           </label>
+          {data.loginError?.password && <p>{data.loginError.password}</p>}
 
           <LoadingButton
             type="submit"
