@@ -28,9 +28,8 @@ const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
     brand: true,
     user: {
       select: {
-        givenName: true,
-        familyName: true,
         id: true,
+        fullName: true,
         username: true,
       },
     },
@@ -71,10 +70,9 @@ const loader: LoaderFunction = ({ params, request }) =>
         brand: true,
         user: {
           select: {
-            givenName: true,
-            familyName: true,
             id: true,
             username: true,
+            fullName: true,
           },
         },
       },
