@@ -216,9 +216,6 @@ const LoginPage: React.VFC = () => {
             state={state}
             text={<span>Log in</span>}
             textLoading={<span>Logging in</span>}
-            textError={
-              <span>There was an error logging in, please try again.</span>
-            }
             ariaText="Log in"
             ariaLoadingAlert="Attempting to log in"
             ariaSuccessAlert="Successfully logged in, redirecting..."

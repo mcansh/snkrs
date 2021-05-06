@@ -11,7 +11,6 @@ export interface LoadingButtonProps {
   iconSuccess: React.ReactNode;
   state: 'idle' | 'loading' | 'success' | 'error';
   text: React.ReactNode;
-  textError: React.ReactNode;
   textLoading: React.ReactNode;
 }
 
@@ -28,7 +27,6 @@ const LoadingButton: React.VFC<LoadingButtonProps & ButtonProps> = ({
   iconSuccess,
   state,
   text,
-  textError,
   textLoading,
   ...props
 }) => {
@@ -85,7 +83,7 @@ const LoadingButton: React.VFC<LoadingButtonProps & ButtonProps> = ({
       aria-hidden={true}
       data-lb-direction={getDirection('error')}
     >
-      <span data-lb-icon>{iconError}</span>
+      <span data-lb-slider>{iconError}</span>
     </span>
   );
 
