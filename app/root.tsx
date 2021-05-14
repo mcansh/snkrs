@@ -54,8 +54,7 @@ const links: LinksFunction = () => [
   { rel: 'stylesheet', href: interCSS },
   {
     rel: 'icon',
-    href:
-      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext x='0' y='14'%3E👟%3C/text%3E%3C/svg%3E",
+    href: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext x='0' y='14'%3E👟%3C/text%3E%3C/svg%3E",
   },
   {
     rel: 'apple-touch-icon',
