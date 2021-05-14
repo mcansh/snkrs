@@ -19,7 +19,7 @@ function useParentRouteData<T>() {
     throw new Error(`useParentRouteData must be wrapped in a DataOutlet`);
   }
 
-  return (context as unknown) as T;
+  return context as unknown as T;
 }
 
 export { DataOutlet, useParentRouteData };

@@ -16,7 +16,7 @@ import { flashMessage } from '../flash-message';
 import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 import { cloudinary } from '../lib/cloudinary.server';
 import { withSession } from '../lib/with-session';
-import { createSneakerSchema } from '../lib/schemas/sneaker';
+import { sneakerSchema } from '../lib/schemas/sneaker';
 import { getCorrectUrl } from '../lib/get-correct-url';
 
 const meta = () => ({
@@ -66,7 +66,7 @@ const action: ActionFunction = ({ request }) =>
       const size = parseInt(formData.get('size') as string, 10);
       const image = formData.get('image');
 
-      const valid = await createSneakerSchema.validate({
+      const valid = await sneakerSchema.validate({
         brand,
         model,
         colorway,

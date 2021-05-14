@@ -1,27 +1,17 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
-import type { HeadersFunction, ActionFunction, LoaderFunction } from 'remix';
-import { Link, useRouteData, redirect } from 'remix';
-import slugify from 'slugify';
-import { parseBody, json } from 'remix-utils';
+import type { HeadersFunction, LoaderFunction } from 'remix';
+import { Link, useRouteData } from 'remix';
 import type { Except } from 'type-fest';
+import { json } from 'remix-utils';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
 import { formatMoney } from '../utils/format-money';
 import { copy } from '../utils/copy';
-import {
-  flashMessageKey,
-  redirectAfterAuthKey,
-  sessionKey,
-} from '../constants';
+import { sessionKey } from '../constants';
 import { prisma } from '../db';
-import { AuthorizationError } from '../errors';
-import { flashMessage } from '../flash-message';
-import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 import { withSession } from '../lib/with-session';
-import { updateSneakerSchema } from '../lib/schemas/sneaker';
-import { getCorrectUrl } from '../lib/get-correct-url';
 
 const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
@@ -102,91 +92,6 @@ const loader: LoaderFunction = ({ params, request }) =>
         },
       }
     );
-  });
-
-const action: ActionFunction = ({ request, params }) =>
-  withSession(request, async session => {
-    const userId = session.get(sessionKey);
-    const { sneakerId } = params;
-
-    const url = getCorrectUrl(request);
-
-    try {
-      const body = await parseBody(request);
-
-      if (!userId) {
-        throw new AuthorizationError();
-      }
-
-      const valid = await updateSneakerSchema.validate({
-        brand: body.get('brand'),
-        colorway: body.get('colorway'),
-        imagePublicId: body.get('image'),
-        model: body.get('model'),
-        price: body.get('price'),
-        purchaseDate: body.get('purchaseDate'),
-        retailPrice: body.get('retailPrice'),
-        size: body.get('size'),
-        sold: body.get('sold'),
-        soldDate: body.get('soldDate'),
-        soldPrice: body.get('soldPrice'),
-      });
-
-      const updatedSneaker = await prisma.sneaker.update({
-        where: { id: sneakerId },
-        data: {
-          brand: {
-            connectOrCreate: {
-              create: {
-                name: valid.brand,
-                slug: slugify(valid.brand, { lower: true }),
-              },
-              where: {
-                name: valid.name,
-              },
-            },
-          },
-          colorway: valid.colorway,
-          imagePublicId: valid.imagePublicId,
-          model: valid.model,
-          price: valid.price,
-          purchaseDate: valid.purchaseDate,
-          retailPrice: valid.retail,
-          size: valid.size,
-          sold: valid.sold,
-          soldDate: valid.soldDate,
-          soldPrice: valid.soldPrice,
-        },
-        select: {
-          user: { select: { username: true } },
-          brand: true,
-          purchaseDate: true,
-        },
-      });
-
-      const prefix = `https://snkrs.mcan.sh/${updatedSneaker.user.username}`;
-      await purgeCloudflareCache([
-        `https://snkrs.mcan.sh/sneakers/${sneakerId}`,
-        `${prefix}`,
-        `${prefix}/${updatedSneaker.brand.name}`,
-        `${prefix}/yir/${updatedSneaker.purchaseDate.getFullYear()}`,
-      ]);
-
-      session.flash(
-        flashMessageKey,
-        flashMessage(`Updated ${sneakerId}`, 'success')
-      );
-
-      return redirect(url.pathname);
-    } catch (error) {
-      session.flash(flashMessageKey, flashMessage(error.message, 'error'));
-      if (error instanceof AuthorizationError) {
-        return redirect(`/login?${redirectAfterAuthKey}=${url.toString()}`);
-      }
-
-      console.error(error);
-      return redirect(url.pathname);
-    }
   });
 
 const meta = ({ data }: { data: RouteData }) => {
@@ -357,4 +262,4 @@ const SneakerPage: React.VFC = () => {
 };
 
 export default SneakerPage;
-export { action, headers, meta, loader };
+export { headers, meta, loader };
