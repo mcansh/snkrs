@@ -31,6 +31,10 @@ export default function handleRequest(
   responseHeaders: Headers,
   remixContext: EntryContext
 ) {
+  if (process.env.NODE_ENV === 'development') {
+    responseHeaders.set('Cache-Control', 'no-cache');
+  }
+
   const markup = renderToString(
     <RemixServer url={request.url} context={remixContext} />
   );
