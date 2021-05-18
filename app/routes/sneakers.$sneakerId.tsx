@@ -146,18 +146,15 @@ const SneakerPage: React.VFC = () => {
   const atRetail = sneaker.retailPrice === sneaker.price;
   const emoji = getEmoji(sneaker.price, sneaker.retailPrice);
 
-  const image1x = getCloudinaryURL(sneaker.imagePublicId, {
-    width: '200',
-    crop: 'pad',
-  });
-  const image2x = getCloudinaryURL(sneaker.imagePublicId, {
-    width: '400',
-    crop: 'pad',
-  });
-  const image3x = getCloudinaryURL(sneaker.imagePublicId, {
-    width: '600',
-    crop: 'pad',
-  });
+  const sizes = [200, 400, 600];
+
+  const srcSet = sizes.map(
+    size =>
+      `${getCloudinaryURL(sneaker.imagePublicId, {
+        crop: 'pad',
+        width: size,
+      })} ${size}w`
+  );
 
   return (
     <main className="container h-full p-4 pb-6 mx-auto">
@@ -165,8 +162,8 @@ const SneakerPage: React.VFC = () => {
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
         <div className="relative" style={{ paddingBottom: '100%' }}>
           <img
-            src={image2x}
-            srcSet={`${image1x} 1x, ${image2x} 2x, ${image3x} 3x`}
+            src={srcSet[srcSet.length - 1]}
+            srcSet={srcSet.join()}
             alt={title}
             height={1200}
             width={1200}
