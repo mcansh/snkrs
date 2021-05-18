@@ -36,7 +36,8 @@ const SneakerCard: React.VFC<SneakerWithBrand> = ({
     <li>
       <div className="block w-full overflow-hidden bg-gray-100 rounded-lg group aspect-w-1 aspect-h-1 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-blue-500">
         <img
-          src={srcSet[srcSet.length - 1]}
+          src={getCloudinaryURL(imagePublicId, { crop: 'pad', width: 200 })}
+          sizes="(min-width: 1024px) 25vw, 50vw"
           srcSet={srcSet.join()}
           alt=""
           className="object-cover pointer-events-none group-hover:opacity-75"
@@ -50,7 +51,9 @@ const SneakerCard: React.VFC<SneakerWithBrand> = ({
           to={`/sneakers/${id}`}
           className="absolute inset-0 focus:outline-none"
         >
-          <span className="sr-only">View details for {brand.name}</span>
+          <span className="sr-only">
+            View details for {brand.name} {model}
+          </span>
         </Link>
       </div>
       <div className="text-sm font-medium pointer-events-none">

@@ -8,10 +8,7 @@ import {
   redirect,
 } from 'remix';
 import { format, parseISO } from 'date-fns';
-import type { LoaderFunction, ActionFunction } from 'remix';
 import { json, parseBody } from 'remix-utils';
-import type { Except } from 'type-fest';
-import type { MetaFunction } from '@remix-run/react/routeModules';
 import slugify from 'slugify';
 import clsx from 'clsx';
 
@@ -30,6 +27,10 @@ import { flashMessage } from '../flash-message';
 import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 import { sneakerSchema } from '../lib/schemas/sneaker';
 import { getCorrectUrl } from '../lib/get-correct-url';
+
+import type { MetaFunction } from '@remix-run/react/routeModules';
+import type { Except } from 'type-fest';
+import type { LoaderFunction, ActionFunction } from 'remix';
 
 const sneakerWithBrandAndUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
@@ -245,7 +246,11 @@ const EditSneakerPage: React.VFC = () => {
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
         <div className="relative" style={{ paddingBottom: '100%' }}>
           <img
-            src={srcSet[srcSet.length - 1]}
+            src={getCloudinaryURL(sneaker.imagePublicId, {
+              crop: 'pad',
+              width: 200,
+            })}
+            sizes="(min-width: 640px) 50vw, 100vw"
             srcSet={srcSet.join()}
             alt={title}
             height={1200}

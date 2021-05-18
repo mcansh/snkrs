@@ -1,8 +1,6 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
-import type { HeadersFunction, LoaderFunction } from 'remix';
 import { Link, useRouteData } from 'remix';
-import type { Except } from 'type-fest';
 import { json } from 'remix-utils';
 
 import { formatDate } from '../utils/format-date';
@@ -12,6 +10,9 @@ import { copy } from '../utils/copy';
 import { sessionKey } from '../constants';
 import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
+
+import type { Except } from 'type-fest';
+import type { HeadersFunction, LoaderFunction } from 'remix';
 
 const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
@@ -162,7 +163,11 @@ const SneakerPage: React.VFC = () => {
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
         <div className="relative" style={{ paddingBottom: '100%' }}>
           <img
-            src={srcSet[srcSet.length - 1]}
+            src={getCloudinaryURL(sneaker.imagePublicId, {
+              crop: 'pad',
+              width: 200,
+            })}
+            sizes="(min-width: 640px) 50vw, 100vw"
             srcSet={srcSet.join()}
             alt={title}
             height={1200}
