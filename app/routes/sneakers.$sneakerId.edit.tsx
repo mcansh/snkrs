@@ -87,9 +87,9 @@ const loader: LoaderFunction = ({ params, request }) =>
       if (!sneaker)
         return json<RouteData>({ id: params.sneakerId }, { status: 404 });
 
-      const userId = session.get(sessionKey);
+      const userId = session.get(sessionKey) as string | undefined;
 
-      const userCreatedSneaker = sneaker?.user.id === userId;
+      const userCreatedSneaker = sneaker.user.id === userId;
 
       if (!userId || !userCreatedSneaker) {
         throw new AuthorizationError();
@@ -105,7 +105,7 @@ const loader: LoaderFunction = ({ params, request }) =>
         id: params.sneakerId,
         userCreatedSneaker,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof AuthorizationError) {
         return redirect(`/login?${redirectAfterAuthKey}=${url.toString()}`);
       } else {
@@ -118,7 +118,7 @@ const loader: LoaderFunction = ({ params, request }) =>
 
 const action: ActionFunction = ({ request, params }) =>
   withSession(request, async session => {
-    const userId = session.get(sessionKey);
+    const userId = session.get(sessionKey) as string | undefined;
     const { sneakerId } = params;
 
     const url = getCorrectUrl(request);
@@ -196,8 +196,10 @@ const action: ActionFunction = ({ request, params }) =>
       );
 
       return redirect(url.pathname);
-    } catch (error) {
-      session.flash(flashMessageKey, flashMessage(error.message, 'error'));
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        session.flash(flashMessageKey, flashMessage(error.message, 'error'));
+      }
       if (error instanceof AuthorizationError) {
         return redirect(`/login?${redirectAfterAuthKey}=${url.toString()}`);
       }

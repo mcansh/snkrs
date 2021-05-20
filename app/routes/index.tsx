@@ -1,10 +1,11 @@
-import type { LoaderFunction } from 'remix';
 import { redirect } from 'remix';
 
 import { flashMessageKey, sessionKey } from '../constants';
 import { prisma } from '../db';
 import { flashMessage } from '../flash-message';
 import { withSession } from '../lib/with-session';
+
+import type { LoaderFunction } from 'remix';
 
 const loader: LoaderFunction = ({ request }) =>
   withSession(request, async session => {

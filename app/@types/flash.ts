@@ -1,3 +1,3 @@
 export type Flash =
-  | { message: string; type: 'success' | 'error' | 'info' }
-  | string;
+  | string
+  | { message: string; type: 'error' | 'info' | 'success' };

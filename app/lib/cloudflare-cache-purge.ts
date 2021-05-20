@@ -1,6 +1,6 @@
 const cloudflarePurgeUrl = `https://api.cloudflare.com/client/v4/zones/${process.env.CLOUDFLARE_ZONE_ID}/purge_cache`;
 
-async function purgeCloudflareCache(urlOrUrls: string | Array<string>) {
+async function purgeCloudflareCache(urlOrUrls: Array<string> | string) {
   const urls = Array.isArray(urlOrUrls) ? urlOrUrls : [urlOrUrls];
 
   const promise = await fetch(cloudflarePurgeUrl, {

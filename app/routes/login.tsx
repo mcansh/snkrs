@@ -7,7 +7,6 @@ import {
   redirect,
 } from 'remix';
 import { useLocation } from 'react-router-dom';
-import type { ActionFunction, LinksFunction, LoaderFunction } from 'remix';
 import { json, parseBody } from 'remix-utils';
 import { ValidationError } from 'yup';
 
@@ -21,16 +20,18 @@ import { flashMessage } from '../flash-message';
 import { verify } from '../lib/auth';
 import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
-import type { LoadingButtonProps } from '../components/loading-button';
 import { LoadingButton } from '../components/loading-button';
 import { safeParse } from '../utils/safe-parse';
 import checkIcon from '../icons/outline/check.svg';
 import refreshIcon from '../icons/refresh-clockwise.svg';
 import exclamationCircleIcon from '../icons/outline/exclamation-circle.svg';
 import loginIcon from '../icons/outline/login.svg';
-import type { LoginSchema } from '../lib/schemas/login';
 import { loginSchema } from '../lib/schemas/login';
 import { yupToObject } from '../lib/yup-to-object';
+
+import type { LoginSchema } from '../lib/schemas/login';
+import type { LoadingButtonProps } from '../components/loading-button';
+import type { ActionFunction, LinksFunction, LoaderFunction } from 'remix';
 
 interface RouteData {
   loginError?: Partial<LoginSchema> & {
@@ -65,11 +66,14 @@ const loader: LoaderFunction = ({ request }) =>
       session.unset(sessionKey);
     }
 
-    const loginError = session.get('loginError');
+    const loginError = session.get('loginError') as string | undefined;
 
-    const parsed = safeParse(loginError);
+    if (loginError) {
+      const parsed = safeParse(loginError);
+      return json<RouteData>({ loginError: parsed });
+    }
 
-    return json<RouteData>({ loginError: parsed });
+    return json<RouteData>({ loginError: undefined });
   });
 
 const action: ActionFunction = ({ request }) =>
@@ -107,7 +111,7 @@ const action: ActionFunction = ({ request }) =>
         flashMessage(`Welcome back ${foundUser.username}!`, 'success')
       );
       return redirect(redirectTo ? redirectTo : '/');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
       if (error instanceof ValidationError) {
         const aggregateErrors = yupToObject<LoginSchema>(error);

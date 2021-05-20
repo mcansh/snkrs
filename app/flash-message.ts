@@ -1,4 +1,4 @@
-function flashMessage(message: string, type: 'success' | 'error' | 'info') {
+function flashMessage(message: string, type: 'error' | 'info' | 'success') {
   return JSON.stringify({ message, type });
 }
 

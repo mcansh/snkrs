@@ -1,5 +1,6 @@
 import { createCookieSessionStorage } from 'remix';
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const { getSession, commitSession, destroySession } =
   createCookieSessionStorage({
     cookie: {

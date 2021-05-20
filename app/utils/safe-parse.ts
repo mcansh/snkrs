@@ -1,7 +1,7 @@
 function safeParse(json: string) {
   try {
     return JSON.parse(json);
-  } catch (error) {
+  } catch (error: unknown) {
     // not valid json
     return undefined;
   }

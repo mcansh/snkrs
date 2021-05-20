@@ -1,9 +1,10 @@
 import * as React from 'react';
-import type { RouteComponent } from 'remix';
 
 import FourOhFour from '../404';
 import { SneakerCard } from '../../components/sneaker';
 import { useParentRouteData } from '../../components/data-outlet';
+
+import type { RouteComponent } from 'remix';
 import type { RouteData } from '../$username';
 
 const UserSneakersChildPage: RouteComponent = () => {

@@ -7,7 +7,7 @@ const baseFormatDateOptions: Intl.DateTimeFormatOptions = {
 };
 
 function formatDate(
-  date: Date | string | number,
+  date: Date | number | string,
   additionalFormatOptions: Intl.DateTimeFormatOptions = {}
 ) {
   const formatter = new Intl.DateTimeFormat('en-US', {

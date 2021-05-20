@@ -1,5 +1,6 @@
-import type { RouteComponent, LoaderFunction } from 'remix';
 import { redirect } from 'remix';
+
+import type { RouteComponent, LoaderFunction } from 'remix';
 
 const loader: LoaderFunction = ({ params }) =>
   redirect(`/${params.username}?brand=${params.brand}`);

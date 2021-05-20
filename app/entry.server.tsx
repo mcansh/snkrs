@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { renderToString } from 'react-dom/server';
 import { RemixServer } from 'remix';
+
 import type { EntryContext } from 'remix';
 
 // https://securityheaders.com

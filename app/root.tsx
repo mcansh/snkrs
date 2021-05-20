@@ -1,10 +1,4 @@
 import * as React from 'react';
-import type {
-  ErrorBoundaryComponent,
-  LinksFunction,
-  LoaderFunction,
-  MetaFunction,
-} from 'remix';
 import {
   Links,
   Meta,
@@ -22,12 +16,19 @@ import { json } from 'remix-utils';
 
 import globalCSS from './styles/global.css';
 import interCSS from './styles/inter.css';
-import type { Flash } from './@types/flash';
 import { flashMessageKey } from './constants';
 import { safeParse } from './utils/safe-parse';
 import { Notifications } from './notifications';
 import refreshClockwise from './icons/refresh-clockwise.svg';
 import { getSession, commitSession } from './session';
+
+import type { Flash } from './@types/flash';
+import type {
+  ErrorBoundaryComponent,
+  LinksFunction,
+  LoaderFunction,
+  MetaFunction,
+} from 'remix';
 
 interface RouteData {
   flash?: Flash;
@@ -79,7 +80,7 @@ const links: LinksFunction = () => [
 
 const loader: LoaderFunction = async ({ request }) => {
   const session = await getSession(request.headers.get('Cookie'));
-  const flash = session.get(flashMessageKey);
+  const flash = session.get(flashMessageKey) as string | undefined;
 
   const parsed = flash ? safeParse(flash) : flash;
 

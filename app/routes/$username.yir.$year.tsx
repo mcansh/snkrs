@@ -1,7 +1,6 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
 import { useRouteData } from 'remix';
-import type { LoaderFunction } from 'remix';
 import { endOfYear, startOfYear } from 'date-fns';
 import { json } from 'remix-utils';
 
@@ -10,6 +9,8 @@ import { prisma } from '../db';
 import { NotFoundError } from '../errors';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
+
+import type { LoaderFunction } from 'remix';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
   select: { username: true, sneakers: { include: { brand: true } } },
@@ -61,7 +62,7 @@ const loader: LoaderFunction = async ({ params }) => {
     }
 
     return json<RouteData>({ year, user }, {});
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof NotFoundError) {
       return json<RouteData>({ year }, { status: 404 });
     }

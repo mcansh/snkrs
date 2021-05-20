@@ -1,13 +1,6 @@
 import * as React from 'react';
-import type {
-  RouteComponent,
-  LoaderFunction,
-  LinksFunction,
-  MetaFunction,
-} from 'remix';
 import { Link, useRouteData } from 'remix';
 import { Prisma } from '@prisma/client';
-import type { Brand, User } from '@prisma/client';
 import uniqBy from 'lodash.uniqby';
 import { Disclosure } from '@headlessui/react';
 import { json } from 'remix-utils';
@@ -19,9 +12,17 @@ import x from '../icons/outline/x.svg';
 import menu from '../icons/outline/menu.svg';
 import { withSession } from '../lib/with-session';
 import { sessionKey } from '../constants';
-import type { Maybe } from '../@types/maybe';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
+
+import type { Maybe } from '../@types/maybe';
+import type { Brand, User } from '@prisma/client';
+import type {
+  RouteComponent,
+  LoaderFunction,
+  LinksFunction,
+  MetaFunction,
+} from 'remix';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
   select: {
@@ -42,7 +43,7 @@ export type RouteData =
       user: UserWithSneakers;
       selectedBrands: Array<string>;
       sort?: 'asc' | 'desc';
-      sessionUser?: Maybe<Pick<User, 'id' | 'givenName'>>;
+      sessionUser?: Maybe<Pick<User, 'givenName' | 'id'>>;
     }
   | {
       brands?: never;
@@ -116,7 +117,7 @@ const loader: LoaderFunction = ({ params, request }) =>
         sort: sortQuery === 'asc' ? 'asc' : 'desc',
         sessionUser,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof NotFoundError) {
         return json<RouteData>({}, { status: 404 });
       }

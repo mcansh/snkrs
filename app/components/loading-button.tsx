@@ -9,14 +9,14 @@ export interface LoadingButtonProps {
   iconError: React.ReactNode;
   iconLoading: React.ReactNode;
   iconSuccess: React.ReactNode;
-  state: 'idle' | 'loading' | 'success' | 'error';
+  state: 'error' | 'idle' | 'loading' | 'success';
   text: React.ReactNode;
   textLoading: React.ReactNode;
 }
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
-const LoadingButton: React.VFC<LoadingButtonProps & ButtonProps> = ({
+const LoadingButton: React.VFC<ButtonProps & LoadingButtonProps> = ({
   ariaErrorAlert,
   ariaLoadingAlert,
   ariaSuccessAlert,

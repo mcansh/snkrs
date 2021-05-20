@@ -1,5 +1,5 @@
 function copy(textToCopy: string) {
-  if (navigator.clipboard) {
+  if ('clipboard' in navigator) {
     return navigator.clipboard.writeText(textToCopy);
   }
 

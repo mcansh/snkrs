@@ -29,7 +29,7 @@ const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
 
 type SneakerWithUser = Except<
   Prisma.SneakerGetPayload<typeof sneakerWithUser>,
-  'soldDate' | 'purchaseDate' | 'updatedAt' | 'createdAt'
+  'createdAt' | 'purchaseDate' | 'soldDate' | 'updatedAt'
 > & {
   soldDate?: string;
   purchaseDate: string;
@@ -39,14 +39,14 @@ type SneakerWithUser = Except<
 
 type RouteData =
   | {
-      sneaker: SneakerWithUser;
-      id: string;
-      userCreatedSneaker: boolean;
-    }
-  | {
       id: string;
       sneaker?: never;
       userCreatedSneaker?: never;
+    }
+  | {
+      sneaker: SneakerWithUser;
+      id: string;
+      userCreatedSneaker: boolean;
     };
 
 const headers: HeadersFunction = ({ loaderHeaders }) => ({
@@ -73,7 +73,7 @@ const loader: LoaderFunction = ({ params, request }) =>
       return json<RouteData>({ id: params.sneakerId }, { status: 404 });
     }
 
-    const userCreatedSneaker = sneaker?.user.id === session.get(sessionKey);
+    const userCreatedSneaker = sneaker.user.id === session.get(sessionKey);
 
     return json<RouteData>(
       {
@@ -81,8 +81,8 @@ const loader: LoaderFunction = ({ params, request }) =>
           ...sneaker,
           createdAt: sneaker.createdAt.toISOString(),
           soldDate: sneaker.soldDate?.toISOString(),
-          purchaseDate: sneaker.purchaseDate?.toISOString(),
-          updatedAt: sneaker.updatedAt?.toISOString(),
+          purchaseDate: sneaker.purchaseDate.toISOString(),
+          updatedAt: sneaker.updatedAt.toISOString(),
         },
         id: params.sneakerId,
         userCreatedSneaker,
@@ -229,7 +229,7 @@ const SneakerPage: React.VFC = () => {
               type="button"
               className="text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
               onClick={() => {
-                if (navigator.share) {
+                if ('share' in navigator) {
                   const date = formatDate(purchaseDate, {
                     month: 'long',
                     day: 'numeric',

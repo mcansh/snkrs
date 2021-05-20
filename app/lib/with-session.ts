@@ -1,7 +1,8 @@
-import type { ActionFunction, LoaderFunction, Session, Request } from 'remix';
-import { json } from 'remix';
+import { json, Response } from 'remix';
 
 import { commitSession, getSession } from '../session';
+
+import type { ActionFunction, LoaderFunction, Session, Request } from 'remix';
 
 export async function withSession(
   request: Request,
@@ -12,7 +13,7 @@ export async function withSession(
   const session = await getSession(request.headers.get('Cookie'));
 
   // pass the session to the loader/action and let it handle the response
-  let response = await next(session);
+  let response: Response = await next(session);
 
   // if they returned a plain object, turn it into a response
   if (!(response instanceof Response)) {

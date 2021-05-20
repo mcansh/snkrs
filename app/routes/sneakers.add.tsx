@@ -1,6 +1,5 @@
 import React from 'react';
 import { Form, usePendingFormSubmit, json, redirect } from 'remix';
-import type { ActionFunction, LoaderFunction } from 'remix';
 import { ValidationError } from 'yup';
 import slugify from 'slugify';
 import { parseBody } from 'remix-utils';
@@ -19,13 +18,15 @@ import { withSession } from '../lib/with-session';
 import { sneakerSchema } from '../lib/schemas/sneaker';
 import { getCorrectUrl } from '../lib/get-correct-url';
 
+import type { ActionFunction, LoaderFunction } from 'remix';
+
 const meta = () => ({
   title: 'Add a sneaker to your collection',
 });
 
 const loader: LoaderFunction = ({ request }) =>
   withSession(request, session => {
-    const userId = session.get(sessionKey);
+    const userId = session.get(sessionKey) as string | undefined;
     const url = getCorrectUrl(request);
 
     try {
@@ -34,7 +35,7 @@ const loader: LoaderFunction = ({ request }) =>
       }
 
       return json(null);
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof AuthorizationError) {
         session.flash(flashMessageKey, flashMessage(error.message, 'error'));
         return redirect(`/login?${redirectAfterAuthKey}=${url.toString()}`);
@@ -51,7 +52,7 @@ const action: ActionFunction = ({ request }) =>
     try {
       const formData = await parseBody(request);
 
-      const userId = session.get(sessionKey);
+      const userId = session.get(sessionKey) as string | undefined;
 
       if (!userId) {
         throw new AuthorizationError();
@@ -133,7 +134,7 @@ const action: ActionFunction = ({ request }) =>
       ]);
 
       return redirect(`/sneakers/${sneaker.id}`);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
 
       if (error instanceof AuthorizationError) {

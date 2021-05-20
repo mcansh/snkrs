@@ -1,10 +1,4 @@
 import * as React from 'react';
-import type {
-  ActionFunction,
-  LinksFunction,
-  LoaderFunction,
-  MetaFunction,
-} from 'remix';
 import {
   useRouteData,
   block,
@@ -24,17 +18,24 @@ import {
 import { prisma } from '../db';
 import { flashMessage } from '../flash-message';
 import { EmailTakenJoinError, UsernameTakenJoinError } from '../errors';
-import type { RegisterSchema } from '../lib/schemas/join';
 import { registerSchema } from '../lib/schemas/join';
 import { hash } from '../lib/auth';
 import checkIcon from '../icons/outline/check.svg';
 import refreshIcon from '../icons/refresh-clockwise.svg';
 import exclamationCircleIcon from '../icons/outline/exclamation-circle.svg';
 import loginIcon from '../icons/outline/login.svg';
-import type { LoadingButtonProps } from '../components/loading-button';
 import { LoadingButton } from '../components/loading-button';
 import { safeParse } from '../utils/safe-parse';
 import { yupToObject } from '../lib/yup-to-object';
+
+import type { LoadingButtonProps } from '../components/loading-button';
+import type { RegisterSchema } from '../lib/schemas/join';
+import type {
+  ActionFunction,
+  LinksFunction,
+  LoaderFunction,
+  MetaFunction,
+} from 'remix';
 
 const links: LinksFunction = () => [
   block({
@@ -69,11 +70,15 @@ const loader: LoaderFunction = ({ request }) =>
       session.unset(sessionKey);
     }
 
-    const joinError = session.get('joinError');
+    const joinError = session.get('joinError') as string | undefined;
 
-    const parsed = safeParse(joinError);
+    if (joinError) {
+      const parsed = safeParse(joinError);
 
-    return json<RouteData>({ joinError: parsed });
+      return json<RouteData>({ joinError: parsed });
+    }
+
+    return json<RouteData>({ joinError: undefined });
   });
 
 const action: ActionFunction = ({ request }) =>
@@ -130,7 +135,7 @@ const action: ActionFunction = ({ request }) =>
       session.set(sessionKey, newUser.id);
 
       return redirect(redirectTo ? redirectTo : `/${newUser.username}`);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
       if (error instanceof ValidationError) {
         const aggregateErrors = yupToObject<RegisterSchema>(error);

@@ -1,7 +1,7 @@
 import type { ValidationError } from 'yup';
 
 function yupToObject<Schema>(errors: ValidationError) {
-  if (!errors.inner || errors.inner.length === 0) return {};
+  if (errors.inner.length === 0) return {};
   return errors.inner.reduce<Partial<Schema>>((validationErrors, error) => {
     if (!error.path) return validationErrors;
 
