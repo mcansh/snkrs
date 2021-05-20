@@ -6,6 +6,7 @@ module.exports = {
     project: [path.join(process.cwd(), 'app/tsconfig.json')],
   },
   rules: {
+    '@typescript-eslint/no-unsafe-assignment': 'off',
     'import/no-extraneous-dependencies': [
       'error',
       {
