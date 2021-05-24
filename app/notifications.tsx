@@ -9,7 +9,7 @@ import type { Toast } from 'react-hot-toast/dist/core/types';
 const Notification: React.VFC<
   Toast & { startPause: VoidFunction; endPause: VoidFunction }
 > = ({ startPause, endPause, message, visible }) => {
-  const [isVisible, setIsVisible] = React.useState(() => visible);
+  const [isVisible, setIsVisible] = React.useState(visible);
 
   return (
     <div
@@ -60,6 +60,8 @@ const Notifications: React.VFC = () => {
   const { startPause, endPause } = handlers;
 
   const [toast] = toasts;
+
+  if (!toast as any) return null;
 
   return (
     <Portal>
