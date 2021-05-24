@@ -15,6 +15,7 @@ module.exports = {
           'lint-staged.config.js',
           'postcss.config.js',
           'tailwind.config.js',
+          'pm2.config.js',
         ],
       },
     ],
