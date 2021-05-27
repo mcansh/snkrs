@@ -10,9 +10,7 @@ async function purgeCloudflareCache(urlOrUrls: Array<string> | string) {
       'X-Auth-Key': process.env.CLOUDFLARE_PURGE_KEY,
       'Content-type': 'application/json',
     },
-    body: JSON.stringify({
-      files: urls,
-    }),
+    body: JSON.stringify({ files: urls }),
   });
 
   const response = await promise.json();
