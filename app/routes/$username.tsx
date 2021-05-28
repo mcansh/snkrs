@@ -183,8 +183,8 @@ const UserSneakersPage: RouteComponent = () => {
   }
 
   return (
-    <div className="h-full md:grid-cols-[275px,1fr] block md:grid">
-      <Disclosure as="nav" className="bg-white shadow">
+    <div className="md:flex">
+      <Disclosure as="nav" className="bg-white shadow md:hidden">
         {({ open }) => (
           <>
             <div className="px-2 mx-auto max-w-7xl md:px-6 lg:px-8">
@@ -204,80 +204,18 @@ const UserSneakersPage: RouteComponent = () => {
                     )}
                   </Disclosure.Button>
                 </div>
-                <aside className="hidden md:block">
-                  <div className="sticky top-0 px-4 py-6">
-                    <h1 className="mb-4 text-sm font-medium">
-                      {data.user.fullName}
-                    </h1>
-
-                    <form method="get">
-                      <fieldset className="space-y-2">
-                        <div>
-                          <div>Filter by brand:</div>
-                          <ul className="pb-4 my-1 space-y-1">
-                            {data.brands.map(brand => (
-                              <li key={brand.id}>
-                                <label className="flex items-center space-x-2 text-sm cursor-pointer">
-                                  <input
-                                    type="checkbox"
-                                    name="brand"
-                                    defaultChecked={data.selectedBrands.includes(
-                                      brand.slug
-                                    )}
-                                    value={brand.slug}
-                                    className="rounded-full"
-                                  />
-                                  <span>{brand.name}</span>
-                                </label>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <div>Sort by:</div>
-                          <ul className="pb-4">
-                            {sortOptions.map(sort => (
-                              <li key={sort.value}>
-                                <label className="flex items-center space-x-2">
-                                  <input
-                                    type="radio"
-                                    name="sort"
-                                    defaultChecked={
-                                      data.sort
-                                        ? data.sort.includes(sort.value)
-                                        : false
-                                    }
-                                    value={sort.value}
-                                    className="rounded-full"
-                                  />
-                                  <span>{sort.display}</span>
-                                </label>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </fieldset>
-                      <button
-                        type="submit"
-                        className="px-4 py-2 text-sm text-white bg-purple-600 rounded"
-                      >
-                        Apply
-                      </button>
-                    </form>
-                  </div>
-                </aside>
               </div>
             </div>
 
             <Disclosure.Panel className="md:hidden">
               <div>
-                <div className="px-4 py-6">
-                  <h1 className="mb-4 text-sm font-medium">
+                <div className="px-4 pb-6">
+                  <h1 className="mb-4 text-lg font-medium">
                     {data.user.fullName}
                   </h1>
 
                   <form method="get">
-                    <fieldset className="grid grid-cols-2 gap-2">
+                    <fieldset>
                       <div>
                         <div>Filter by brand:</div>
                         <ul className="pb-4">
@@ -337,7 +275,64 @@ const UserSneakersPage: RouteComponent = () => {
         )}
       </Disclosure>
 
-      <main>
+      <aside className="md:sticky md:top-0 md:h-full md:w-[275px] md:px-4 md:py-6 hidden md:block">
+        <h1 className="mb-4 text-xl font-medium">{data.user.fullName}</h1>
+
+        <form method="get">
+          <fieldset className="space-y-2">
+            <div>
+              <div>Filter by brand:</div>
+              <ul className="pb-4 my-1 space-y-1">
+                {data.brands.map(brand => (
+                  <li key={brand.id}>
+                    <label className="flex items-center py-0.5 space-x-2 text-sm cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="brand"
+                        defaultChecked={data.selectedBrands.includes(
+                          brand.slug
+                        )}
+                        value={brand.slug}
+                        className="rounded-full"
+                      />
+                      <span>{brand.name}</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <div>Sort by:</div>
+              <ul className="pb-4">
+                {sortOptions.map(sort => (
+                  <li key={sort.value}>
+                    <label className="py-0.5 cursor-pointer flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        name="sort"
+                        defaultChecked={
+                          data.sort ? data.sort.includes(sort.value) : false
+                        }
+                        value={sort.value}
+                        className="rounded-full"
+                      />
+                      <span>{sort.display}</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </fieldset>
+          <button
+            type="submit"
+            className="px-4 py-2 text-sm text-white bg-purple-600 rounded"
+          >
+            Apply
+          </button>
+        </form>
+      </aside>
+
+      <main className="w-full h-full">
         <DataOutlet data={data} />
       </main>
     </div>
