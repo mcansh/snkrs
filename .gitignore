@@ -12,3 +12,6 @@ app/styles
 
 app/icons/solid
 app/icons/outline
+
+# fly vpn
+wireguard.conf
