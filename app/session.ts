@@ -1,7 +1,9 @@
-import { createSessionStorage } from 'remix';
+import { createCookieSessionStorage, createSessionStorage } from 'remix';
 import Redis from 'ioredis';
 import cuid from 'cuid';
 import { addWeeks, differenceInMilliseconds } from 'date-fns';
+
+import type { SessionStorage } from 'remix';
 
 function createRedisSessionStorage({
   cookie,
@@ -51,18 +53,30 @@ function createRedisSessionStorage({
   });
 }
 
-const { getSession, commitSession, destroySession } = createRedisSessionStorage(
-  {
-    cookie: {
-      name: '__session',
-      secrets: [process.env.SESSION_PASSWORD],
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 14, // 2 weeks
-      httpOnly: true,
-      path: '/',
-      secure: process.env.NODE_ENV === 'production',
-    },
-  }
-);
+// eslint-disable-next-line jest/unbound-method
+const { getSession, commitSession, destroySession }: SessionStorage =
+  process.env.NODE_ENV === 'production'
+    ? createRedisSessionStorage({
+        cookie: {
+          name: '__session',
+          secrets: [process.env.SESSION_PASSWORD],
+          sameSite: 'strict',
+          maxAge: 60 * 60 * 24 * 14, // 2 weeks
+          httpOnly: true,
+          path: '/',
+          secure: true,
+        },
+      })
+    : createCookieSessionStorage({
+        cookie: {
+          name: '__session',
+          secrets: [process.env.SESSION_PASSWORD],
+          sameSite: 'strict',
+          maxAge: 60 * 60 * 24 * 14, // 2 weeks
+          httpOnly: true,
+          path: '/',
+          secure: false,
+        },
+      });
 
 export { getSession, commitSession, destroySession };
