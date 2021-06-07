@@ -22,7 +22,7 @@
   justify-content: center;
 
   /* make sure content gets centered vertically */
-  height: 100%;
+  height: auto;
 
   /* the top level animation between states */
   transition: opacity 300ms ease-in-out;
