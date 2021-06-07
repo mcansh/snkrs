@@ -8,7 +8,7 @@ function createRedisSessionStorage({
 }: {
   cookie: Parameters<typeof createSessionStorage>['0']['cookie'];
 }) {
-  const redis = new Redis(process.env.REDIS_URL, {
+  const redis = new Redis(process.env.FLY_REDIS_CACHE_URL, {
     keyPrefix: 'snkrs:',
   });
 
