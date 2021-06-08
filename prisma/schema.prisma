@@ -46,9 +46,3 @@ model User {
   updatedAt  DateTime  @default(now()) @updatedAt
   sneakers   Sneaker[]
 }
-
-model Session {
-  id      String   @id @default(cuid())
-  data    String
-  expires DateTime
-}
