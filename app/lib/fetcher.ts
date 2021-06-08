@@ -28,16 +28,14 @@ function checkStatus(response: Response) {
   return response;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const fetcher = <T = any>(
+async function fetcher<T = unknown>(
   input: RequestInfo,
   init: RequestInit | undefined = {}
-): Promise<T> =>
-  fetch(input, {
-    ...init,
-    credentials: 'omit',
-  })
-    .then(checkStatus)
-    .then(r => r.json());
+): Promise<T> {
+  const response = await fetch(input, init);
+  const verified = await checkStatus(response);
+  const result = await verified.json();
+  return result;
+}
 
 export { fetcher, checkStatus, HTTPError };

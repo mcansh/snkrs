@@ -36,6 +36,7 @@ export default function handleRequest(
     responseHeaders.set('Cache-Control', 'no-cache');
   }
 
+  // eslint-disable-next-line testing-library/render-result-naming-convention
   const markup = renderToString(
     <RemixServer url={request.url} context={remixContext} />
   );

@@ -28,9 +28,8 @@ import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 import { sneakerSchema } from '../lib/schemas/sneaker';
 import { getCorrectUrl } from '../lib/get-correct-url';
 
-import type { MetaFunction } from '@remix-run/react/routeModules';
+import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix';
 import type { Except } from 'type-fest';
-import type { LoaderFunction, ActionFunction } from 'remix';
 
 const sneakerWithBrandAndUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
