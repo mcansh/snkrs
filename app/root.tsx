@@ -177,6 +177,7 @@ const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
         <meta charSet="utf-8" />
         <meta property="og:type" content="website" />
         <meta property="og:locale" content="en_US" />
+        <title>Shoot...</title>
         <Meta />
         <Links />
       </head>

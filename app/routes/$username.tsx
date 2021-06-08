@@ -33,103 +33,86 @@ const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
 
 type UserWithSneakers = Prisma.UserGetPayload<typeof userWithSneakers>;
 
-export type RouteData =
-  | {
-      brands: Array<Brand>;
-      user: UserWithSneakers;
-      selectedBrands: Array<string>;
-      sort?: 'asc' | 'desc';
-      sessionUser?: Maybe<Pick<User, 'givenName' | 'id'>>;
-      status?: never;
-    }
-  | {
-      brands?: never;
-      user?: never;
-      selectedBrands?: never;
-      sort?: never;
-      sessionUser?: never;
-      status: number;
-    };
+export interface RouteData {
+  brands: Array<Brand>;
+  user?: UserWithSneakers;
+  selectedBrands: Array<string>;
+  sort?: 'asc' | 'desc';
+  sessionUser?: Maybe<Pick<User, 'givenName' | 'id'>>;
+}
 
 const loader: LoaderFunction = async ({ params, request }) => {
   const session = await getSession(request.headers.get('Cookie'));
-  try {
-    const { searchParams } = new URL(request.url);
-    const userId = session.get(sessionKey);
 
-    const selectedBrands = searchParams.getAll('brand');
-    const sortQuery = searchParams.get('sort');
+  const { searchParams } = new URL(request.url);
+  const userId = session.get(sessionKey);
 
-    const [userTime, user] = await time(() =>
-      prisma.user.findUnique({
-        where: {
-          username: params.username,
-        },
-        select: {
-          username: true,
-          id: true,
-          fullName: true,
-          sneakers: {
-            include: { brand: true },
-            orderBy: {
-              purchaseDate: sortQuery === 'asc' ? 'asc' : 'desc',
-            },
+  const selectedBrands = searchParams.getAll('brand');
+  const sortQuery = searchParams.get('sort');
+
+  const [userTime, user] = await time(() =>
+    prisma.user.findUnique({
+      where: {
+        username: params.username,
+      },
+      select: {
+        username: true,
+        id: true,
+        fullName: true,
+        sneakers: {
+          include: { brand: true },
+          orderBy: {
+            purchaseDate: sortQuery === 'asc' ? 'asc' : 'desc',
           },
         },
-      })
-    );
-
-    const [sessionUserTime, sessionUser] = userId
-      ? await time(() =>
-          prisma.user.findUnique({
-            where: {
-              id: userId,
-            },
-            select: {
-              givenName: true,
-              id: true,
-            },
-          })
-        )
-      : [0, undefined];
-
-    if (!user) {
-      throw new NotFoundError();
-    }
-
-    const sneakers = selectedBrands.length
-      ? user.sneakers.filter(sneaker =>
-          selectedBrands.includes(sneaker.brand.slug)
-        )
-      : user.sneakers;
-
-    const uniqueBrands = uniqBy(
-      user.sneakers.map(sneaker => sneaker.brand),
-      'name'
-    ).sort((a, b) => a.name.localeCompare(b.name));
-
-    return json<RouteData>(
-      {
-        user: { ...user, sneakers },
-        brands: uniqueBrands,
-        selectedBrands,
-        sort: sortQuery === 'asc' ? 'asc' : 'desc',
-        sessionUser,
       },
-      {
-        headers: {
-          'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}`,
-          'Set-Cookie': sessionUser ? await commitSession(session) : '',
-        },
-      }
-    );
-  } catch (error: unknown) {
-    if (error instanceof NotFoundError) {
-      return json<RouteData>({ status: 404 }, { status: 404 });
-    }
-    console.error(error);
-    return json<RouteData>({ status: 500 }, { status: 500 });
+    })
+  );
+
+  const [sessionUserTime, sessionUser] = userId
+    ? await time(() =>
+        prisma.user.findUnique({
+          where: {
+            id: userId,
+          },
+          select: {
+            givenName: true,
+            id: true,
+          },
+        })
+      )
+    : [0, undefined];
+
+  if (!user) {
+    throw new NotFoundError();
   }
+
+  const sneakers = selectedBrands.length
+    ? user.sneakers.filter(sneaker =>
+        selectedBrands.includes(sneaker.brand.slug)
+      )
+    : user.sneakers;
+
+  const uniqueBrands = uniqBy(
+    user.sneakers.map(sneaker => sneaker.brand),
+    'name'
+  ).sort((a, b) => a.name.localeCompare(b.name));
+
+  return json<RouteData>(
+    {
+      user: { ...user, sneakers },
+      brands: uniqueBrands,
+      selectedBrands,
+      sort: sortQuery === 'asc' ? 'asc' : 'desc',
+      sessionUser,
+    },
+    {
+      headers: {
+        'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}`,
+        'Set-Cookie': sessionUser ? await commitSession(session) : '',
+      },
+    }
+  );
 };
 
 const meta: MetaFunction = args => {
@@ -163,7 +146,7 @@ const sortOptions = [
 const UserSneakersPage: RouteComponent = () => {
   const data = useRouteData<RouteData>();
 
-  if (data.status === 404 || !data.user) {
+  if (data.user == null) {
     return <FourOhFour />;
   }
 
@@ -217,6 +200,7 @@ const UserSneakersPage: RouteComponent = () => {
               <div>
                 <div className="px-4 pb-6">
                   <h1 className="mb-4 text-lg font-medium">
+                    {/* @ts-expect-error this check happens above so im not sure why it's complaining here... */}
                     {data.user.fullName}
                   </h1>
 
