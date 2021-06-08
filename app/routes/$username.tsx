@@ -7,22 +7,18 @@ import { json } from 'remix-utils';
 
 import { prisma } from '../db';
 import { NotFoundError } from '../errors';
-import { DataOutlet } from '../components/data-outlet';
 import x from '../icons/outline/x.svg';
 import menu from '../icons/outline/menu.svg';
-import { withSession } from '../lib/with-session';
 import { sessionKey } from '../constants';
+import { time } from '../lib/time';
+import { SneakerCard } from '../components/sneaker';
+import { commitSession, getSession } from '../session';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
 import type { Maybe } from '../@types/maybe';
 import type { Brand, User } from '@prisma/client';
-import type {
-  RouteComponent,
-  LoaderFunction,
-  LinksFunction,
-  MetaFunction,
-} from 'remix';
+import type { RouteComponent, LoaderFunction, MetaFunction } from 'remix';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
   select: {
@@ -44,6 +40,7 @@ export type RouteData =
       selectedBrands: Array<string>;
       sort?: 'asc' | 'desc';
       sessionUser?: Maybe<Pick<User, 'givenName' | 'id'>>;
+      status?: never;
     }
   | {
       brands?: never;
@@ -51,86 +48,95 @@ export type RouteData =
       selectedBrands?: never;
       sort?: never;
       sessionUser?: never;
+      status: number;
     };
 
-const loader: LoaderFunction = ({ params, request }) =>
-  withSession(request, async session => {
-    try {
-      const { searchParams } = new URL(request.url);
-      const userId = session.get(sessionKey);
+const loader: LoaderFunction = async ({ params, request }) => {
+  const session = await getSession(request.headers.get('Cookie'));
+  try {
+    const { searchParams } = new URL(request.url);
+    const userId = session.get(sessionKey);
 
-      const selectedBrands = searchParams.getAll('brand');
-      const sortQuery = searchParams.get('sort');
+    const selectedBrands = searchParams.getAll('brand');
+    const sortQuery = searchParams.get('sort');
 
-      const [user, sessionUser] = await Promise.all([
-        prisma.user.findUnique({
-          where: {
-            username: params.username,
-          },
-          select: {
-            username: true,
-            id: true,
-            fullName: true,
-            sneakers: {
-              include: { brand: true },
-              orderBy: {
-                purchaseDate: sortQuery === 'asc' ? 'asc' : 'desc',
-              },
+    const [userTime, user] = await time(() =>
+      prisma.user.findUnique({
+        where: {
+          username: params.username,
+        },
+        select: {
+          username: true,
+          id: true,
+          fullName: true,
+          sneakers: {
+            include: { brand: true },
+            orderBy: {
+              purchaseDate: sortQuery === 'asc' ? 'asc' : 'desc',
             },
           },
-        }),
-        userId
-          ? prisma.user.findUnique({
-              where: {
-                id: userId,
-              },
-              select: {
-                givenName: true,
-                id: true,
-              },
-            })
-          : undefined,
-      ]);
-
-      if (!user) {
-        throw new NotFoundError();
-      }
-
-      const sneakers = selectedBrands.length
-        ? user.sneakers.filter(sneaker =>
-            selectedBrands.includes(sneaker.brand.slug)
-          )
-        : user.sneakers;
-
-      const uniqueBrands = uniqBy(
-        user.sneakers.map(sneaker => sneaker.brand),
-        'name'
-      ).sort((a, b) => a.name.localeCompare(b.name));
-
-      return json<RouteData>({
-        user: {
-          ...user,
-          sneakers,
         },
+      })
+    );
+
+    const [sessionUserTime, sessionUser] = userId
+      ? await time(() =>
+          prisma.user.findUnique({
+            where: {
+              id: userId,
+            },
+            select: {
+              givenName: true,
+              id: true,
+            },
+          })
+        )
+      : [0, undefined];
+
+    if (!user) {
+      throw new NotFoundError();
+    }
+
+    const sneakers = selectedBrands.length
+      ? user.sneakers.filter(sneaker =>
+          selectedBrands.includes(sneaker.brand.slug)
+        )
+      : user.sneakers;
+
+    const uniqueBrands = uniqBy(
+      user.sneakers.map(sneaker => sneaker.brand),
+      'name'
+    ).sort((a, b) => a.name.localeCompare(b.name));
+
+    return json<RouteData>(
+      {
+        user: { ...user, sneakers },
         brands: uniqueBrands,
         selectedBrands,
         sort: sortQuery === 'asc' ? 'asc' : 'desc',
         sessionUser,
-      });
-    } catch (error: unknown) {
-      if (error instanceof NotFoundError) {
-        return json<RouteData>({}, { status: 404 });
+      },
+      {
+        headers: {
+          'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}`,
+          'Set-Cookie': sessionUser ? await commitSession(session) : '',
+        },
       }
-      console.error(error);
-      return json<RouteData>({}, { status: 500 });
+    );
+  } catch (error: unknown) {
+    if (error instanceof NotFoundError) {
+      return json<RouteData>({ status: 404 }, { status: 404 });
     }
-  });
+    console.error(error);
+    return json<RouteData>({ status: 500 }, { status: 500 });
+  }
+};
 
-const links: LinksFunction = () => [];
+const meta: MetaFunction = args => {
+  const data = args.data as RouteData;
 
-const meta: MetaFunction = ({ data }: { data: RouteData }) => {
   if (!data.user) {
-    return fourOhFourMeta();
+    return fourOhFourMeta(args);
   }
 
   const name = `${data.user.fullName}${
@@ -157,7 +163,7 @@ const sortOptions = [
 const UserSneakersPage: RouteComponent = () => {
   const data = useRouteData<RouteData>();
 
-  if (!data.user) {
+  if (data.status === 404 || !data.user) {
     return <FourOhFour />;
   }
 
@@ -333,11 +339,15 @@ const UserSneakersPage: RouteComponent = () => {
       </aside>
 
       <main className="w-full h-full">
-        <DataOutlet data={data} />
+        <ul className="grid grid-cols-2 px-4 py-6 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8">
+          {data.user.sneakers.map(sneaker => (
+            <SneakerCard key={sneaker.id} {...sneaker} />
+          ))}
+        </ul>
       </main>
     </div>
   );
 };
 
 export default UserSneakersPage;
-export { links, loader, meta };
+export { loader, meta };
