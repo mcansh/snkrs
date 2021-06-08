@@ -5,7 +5,6 @@ import {
   Scripts,
   usePendingLocation,
   useRouteData,
-  useMatches,
   LiveReload,
 } from 'remix';
 import * as Fathom from 'fathom-client';
@@ -113,8 +112,6 @@ const loader: LoaderFunction = async ({ request }) => {
 const App: React.VFC = () => {
   const { flash, ENV } = useRouteData<RouteData>();
   const pendingLocation = usePendingLocation();
-  const matches = useMatches();
-  const includeScripts = matches.some(match => match.handle?.hydrate !== false);
 
   React.useEffect(() => {
     Fathom.load(ENV.FATHOM_SITE_ID, {
@@ -149,7 +146,7 @@ const App: React.VFC = () => {
       </head>
       <body
         className={clsx(
-          'h-full bg-gray-100',
+          'h-full',
           pendingLocation ? 'opacity-60 cursor-not-allowed' : ''
         )}
       >
@@ -164,42 +161,46 @@ const App: React.VFC = () => {
         )}
 
         <Outlet />
-        {includeScripts && <Scripts />}
+        <Scripts />
         <LiveReload />
       </body>
     </html>
   );
 };
 
-const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => (
-  <html lang="en" className="h-full">
-    <head>
-      <meta charSet="utf-8" />
-      <meta property="og:type" content="website" />
-      <meta property="og:locale" content="en_US" />
-      <Meta />
-      <Links />
-    </head>
-    <body className="h-full w-[90%] max-w-5xl mx-auto pt-20 space-y-4 font-mono text-center text-white bg-blue-bsod">
-      <h1 className="inline-block text-3xl font-bold bg-white text-blue-bsod">
-        Uncaught Exception!
-      </h1>
-      <p>
-        If you are not the developer, please click back in your browser and try
-        again.
-      </p>
-      <pre className="px-4 py-2 overflow-auto border-4 border-white">
-        {error.message}
-      </pre>
-      <p>
-        There was an uncaught exception in your application. Check the browser
-        console and/or the server console to inspect the error.
-      </p>
-      <Scripts />
-      <LiveReload />
-    </body>
-  </html>
-);
+const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
+  console.error('Check your server terminal output');
+
+  return (
+    <html lang="en" className="h-full">
+      <head>
+        <meta charSet="utf-8" />
+        <meta property="og:type" content="website" />
+        <meta property="og:locale" content="en_US" />
+        <Meta />
+        <Links />
+      </head>
+      <body className="h-full w-[90%] max-w-5xl mx-auto pt-20 space-y-4 font-mono text-center text-white bg-blue-bsod">
+        <h1 className="inline-block text-3xl font-bold bg-white text-blue-bsod">
+          Uncaught Exception!
+        </h1>
+        <p>
+          If you are not the developer, please click back in your browser and
+          try again.
+        </p>
+        <pre className="px-4 py-2 overflow-auto border-4 border-white">
+          {error.message}
+        </pre>
+        <p>
+          There was an uncaught exception in your application. Check the browser
+          console and/or the server console to inspect the error.
+        </p>
+        <Scripts />
+        <LiveReload />
+      </body>
+    </html>
+  );
+};
 
 export default App;
 export { ErrorBoundary, links, loader, meta };
