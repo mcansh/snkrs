@@ -12,6 +12,7 @@ FROM node:15-alpine AS builder
 WORKDIR /app
 COPY . .
 COPY --from=deps /app/node_modules ./node_modules
+RUN npm run db:migrate:production
 RUN npm run build
 
 # Production image, copy all the files and run next
