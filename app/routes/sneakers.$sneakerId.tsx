@@ -262,4 +262,4 @@ const SneakerPage: React.VFC = () => {
 };
 
 export default SneakerPage;
-export { headers, meta, loader };
+export { meta, loader };
