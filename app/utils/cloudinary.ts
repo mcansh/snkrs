@@ -12,6 +12,7 @@ function getCloudinaryURL(
     quality: 'auto',
     fetch_format: 'auto',
     secure: true,
+    background: 'auto',
     ...transformOptions,
   };
 
