@@ -141,9 +141,10 @@ const action: ActionFunction = ({ request, params }) =>
           retailPrice: Number(data.retailPrice),
           size: Number(data.size),
           sold: data.sold,
-          soldDate: data.sold && data.soldDate ? new Date(data.soldDate) : null,
+          soldDate:
+            data.sold && data.soldDate ? new Date(data.soldDate) : undefined,
           soldPrice:
-            data.sold && data.soldPrice ? Number(data.soldPrice) : null,
+            data.sold && data.soldPrice ? Number(data.soldPrice) : undefined,
         },
         { abortEarly: false }
       );
