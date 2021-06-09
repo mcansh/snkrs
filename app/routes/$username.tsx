@@ -98,14 +98,6 @@ const loader: LoaderFunction = async ({ params, request }) => {
     'name'
   ).sort((a, b) => a.name.localeCompare(b.name));
 
-  const headers = new Headers({
-    'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}`,
-  });
-
-  if (sessionUser) {
-    headers.append('Set-Cookie', await commitSession(session));
-  }
-
   return json<RouteData>(
     {
       user: { ...user, sneakers },
@@ -115,7 +107,10 @@ const loader: LoaderFunction = async ({ params, request }) => {
       sessionUser,
     },
     {
-      headers: Object.fromEntries(headers),
+      headers: {
+        'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}`,
+        'Set-Cookie': sessionUser ? await commitSession(session) : '',
+      },
     }
   );
 };
