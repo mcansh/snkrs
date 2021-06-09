@@ -50,7 +50,7 @@ type SneakerWithBrandAndUser = Except<
 > & {
   createdAt: string;
   purchaseDate: string;
-  soldDate?: string;
+  soldDate: string | undefined;
 };
 
 type RouteData =
@@ -124,6 +124,7 @@ const action: ActionFunction = ({ request, params }) =>
 
     try {
       const formData = await parseBody(request);
+      const data = Object.fromEntries(formData);
 
       if (!userId) {
         throw new AuthorizationError();
@@ -131,20 +132,18 @@ const action: ActionFunction = ({ request, params }) =>
 
       const valid = await sneakerSchema.validate(
         {
-          brand: formData.get('brand'),
-          colorway: formData.get('colorway'),
-          imagePublicId: formData.get('image'),
-          model: formData.get('model'),
-          price: formData.get('price'),
-          purchaseDate: formData.get('purchaseDate'),
-          retailPrice: formData.get('retailPrice'),
-          size: formData.get('size'),
-          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-          sold: formData.get('sold') || false,
-          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-          soldDate: formData.get('soldDate') || undefined,
-          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-          soldPrice: formData.get('soldPrice') || undefined,
+          brand: data.brand,
+          colorway: data.colorway,
+          imagePublicId: data.image,
+          model: data.model,
+          price: Number(data.price),
+          purchaseDate: data.purchaseDate,
+          retailPrice: Number(data.retailPrice),
+          size: Number(data.size),
+          sold: data.sold,
+          soldDate: data.sold && data.soldDate ? new Date(data.soldDate) : null,
+          soldPrice:
+            data.sold && data.soldPrice ? Number(data.soldPrice) : null,
         },
         { abortEarly: false }
       );
@@ -168,11 +167,11 @@ const action: ActionFunction = ({ request, params }) =>
           model: valid.model,
           price: valid.price,
           purchaseDate: valid.purchaseDate,
-          retailPrice: valid.retail,
+          retailPrice: valid.retailPrice,
           size: valid.size,
           sold: valid.sold,
-          soldDate: valid.soldDate,
-          soldPrice: valid.soldPrice,
+          soldDate: valid.soldDate ? valid.soldDate : null,
+          soldPrice: valid.soldPrice ? valid.soldPrice : null,
         },
         select: {
           user: { select: { username: true } },
@@ -340,7 +339,7 @@ const EditSneakerPage: React.VFC = () => {
               className="grid items-center w-full gap-2 sm:grid-cols-2 grid-col"
               style={{
                 gridColumn: '1/3',
-                paddingTop: sold ? undefined : 6,
+                paddingTop: sold ? '' : 6,
               }}
             >
               <label className="flex items-center justify-between">
@@ -359,8 +358,9 @@ const EditSneakerPage: React.VFC = () => {
                 )}
                 type="datetime-local"
                 defaultValue={
-                  sneaker.soldDate &&
-                  format(parseISO(sneaker.soldDate), formatter)
+                  sneaker.soldDate
+                    ? format(parseISO(sneaker.soldDate), formatter)
+                    : ''
                 }
                 placeholder="Sold Date"
                 name="soldDate"
@@ -372,7 +372,7 @@ const EditSneakerPage: React.VFC = () => {
                   sold ? '' : 'hidden'
                 )}
                 type="number"
-                defaultValue={sneaker.soldPrice ?? undefined}
+                defaultValue={sneaker.soldPrice ?? ''}
                 placeholder="Sold Price"
                 name="soldPrice"
               />
