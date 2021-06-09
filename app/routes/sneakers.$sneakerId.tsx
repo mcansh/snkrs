@@ -9,10 +9,10 @@ import { formatMoney } from '../utils/format-money';
 import { copy } from '../utils/copy';
 import { sessionKey } from '../constants';
 import { prisma } from '../db';
-import { withSession } from '../lib/with-session';
+import { commitSession, getSession } from '../session';
 
 import type { Except } from 'type-fest';
-import type { HeadersFunction, LoaderFunction } from 'remix';
+import type { LoaderFunction } from 'remix';
 
 const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
@@ -31,7 +31,7 @@ type SneakerWithUser = Except<
   Prisma.SneakerGetPayload<typeof sneakerWithUser>,
   'createdAt' | 'purchaseDate' | 'soldDate' | 'updatedAt'
 > & {
-  soldDate?: string;
+  soldDate: string | undefined;
   purchaseDate: string;
   updatedAt: string;
   createdAt: string;
@@ -49,51 +49,53 @@ type RouteData =
       userCreatedSneaker: boolean;
     };
 
-const headers: HeadersFunction = ({ loaderHeaders }) => ({
-  'Cache-Control': loaderHeaders.get('Cache-Control') ?? 'no-cache',
-});
-
-const loader: LoaderFunction = ({ params, request }) =>
-  withSession(request, async session => {
-    const sneaker = await prisma.sneaker.findUnique({
-      where: { id: params.sneakerId },
-      include: {
-        brand: true,
-        user: {
-          select: {
-            id: true,
-            username: true,
-            fullName: true,
-          },
+const loader: LoaderFunction = async ({ params, request }) => {
+  const session = await getSession(request.headers.get('Cookie'));
+  const sneaker = await prisma.sneaker.findUnique({
+    where: { id: params.sneakerId },
+    include: {
+      brand: true,
+      user: {
+        select: {
+          id: true,
+          username: true,
+          fullName: true,
         },
       },
-    });
-
-    if (!sneaker) {
-      return json<RouteData>({ id: params.sneakerId }, { status: 404 });
-    }
-
-    const userCreatedSneaker = sneaker.user.id === session.get(sessionKey);
-
-    return json<RouteData>(
-      {
-        sneaker: {
-          ...sneaker,
-          createdAt: sneaker.createdAt.toISOString(),
-          soldDate: sneaker.soldDate?.toISOString(),
-          purchaseDate: sneaker.purchaseDate.toISOString(),
-          updatedAt: sneaker.updatedAt.toISOString(),
-        },
-        id: params.sneakerId,
-        userCreatedSneaker,
-      },
-      {
-        headers: {
-          'Cache-Control': `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
-        },
-      }
-    );
+    },
   });
+
+  if (!sneaker) {
+    return json<RouteData>({ id: params.sneakerId }, { status: 404 });
+  }
+
+  const userCreatedSneaker = sneaker.user.id === session.get(sessionKey);
+
+  const headers = new Headers({
+    'Cache-Control': `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
+  });
+
+  if (userCreatedSneaker) {
+    headers.append('Set-Cookie', await commitSession(session));
+  }
+
+  return json<RouteData>(
+    {
+      sneaker: {
+        ...sneaker,
+        createdAt: sneaker.createdAt.toISOString(),
+        soldDate: sneaker.soldDate?.toISOString(),
+        purchaseDate: sneaker.purchaseDate.toISOString(),
+        updatedAt: sneaker.updatedAt.toISOString(),
+      },
+      id: params.sneakerId,
+      userCreatedSneaker,
+    },
+    {
+      headers: Object.fromEntries(headers),
+    }
+  );
+};
 
 const meta = ({ data }: { data: RouteData }) => {
   if (!data.sneaker) {
@@ -264,4 +266,4 @@ const SneakerPage: React.VFC = () => {
 };
 
 export default SneakerPage;
-export { headers, meta, loader };
+export { meta, loader };

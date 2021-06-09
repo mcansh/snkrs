@@ -78,7 +78,7 @@ const loader: LoaderFunction = ({ request }) =>
       return json<RouteData>({ joinError: parsed });
     }
 
-    return json<RouteData>({ joinError: undefined });
+    return json<RouteData>({});
   });
 
 const action: ActionFunction = ({ request }) =>

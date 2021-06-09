@@ -10,6 +10,7 @@ import { NotFoundError } from '../errors';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
+import type { MetaFunction } from '@remix-run/react/routeModules';
 import type { LoaderFunction } from 'remix';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
@@ -71,14 +72,15 @@ const loader: LoaderFunction = async ({ params }) => {
   }
 };
 
-const meta = ({ data }: { data: RouteData }) => {
+const meta: MetaFunction = args => {
+  const data = args.data as RouteData;
   if (!data.user) {
-    return fourOhFourMeta();
+    return fourOhFourMeta(args);
   }
 
   const sneakers = data.user.sneakers.length === 1 ? 'sneaker' : 'sneakers';
   return {
-    title: data.year,
+    title: String(data.year),
     description: `${data.user.username} bought ${data.user.sneakers.length} ${sneakers} in ${data.year}`,
   };
 };
