@@ -237,6 +237,7 @@ const NewSneakerPage: React.VFC = () => {
               type="number"
               placeholder="10"
               name="size"
+              step={0.5}
             />
           </label>
           <label>

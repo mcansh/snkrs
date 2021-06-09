@@ -306,6 +306,7 @@ const EditSneakerPage: React.VFC = () => {
               defaultValue={sneaker.size}
               placeholder="Size"
               name="size"
+              step={0.5}
             />
             <input
               className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
