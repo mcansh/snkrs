@@ -34,9 +34,11 @@ import type { LoadingButtonProps } from '../components/loading-button';
 import type { ActionFunction, LinksFunction, LoaderFunction } from 'remix';
 
 interface RouteData {
-  loginError?: Partial<LoginSchema> & {
-    generic?: string;
-  };
+  loginError:
+    | (Partial<LoginSchema> & {
+        generic?: string;
+      })
+    | undefined;
 }
 
 const links: LinksFunction = () => [
@@ -201,7 +203,7 @@ const LoginPage: React.VFC = () => {
       <h1 className="pb-2 text-2xl font-medium">Log in</h1>
 
       <Form
-        action={`/login?${location.search}`}
+        action={`/login${location.search}`}
         method="post"
         className="space-y-4"
       >
