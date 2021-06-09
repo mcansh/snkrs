@@ -41,7 +41,7 @@ const meta: MetaFunction = () => ({
   'apple-mobile-web-app-title': 'Sneakers',
   'application-name': 'Sneakers',
   'msapplication-TileColor': '#000000',
-  'theme-color': '#f7f7f7',
+  'theme-color': '#fff',
   'apple-mobile-web-app-capable': 'yes',
   'apple-mobile-web-app-status-bar-style': 'black-translucent',
   viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
