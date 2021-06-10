@@ -265,7 +265,7 @@ const UserSneakersPage: RouteComponent = () => {
         )}
       </Disclosure>
 
-      <aside className="md:sticky md:top-0 md:h-full md:w-[275px] md:px-4 md:py-6 hidden md:block">
+      <aside className="md:sticky md:top-0 md:h-screen md:w-[275px] md:px-4 md:py-6 hidden md:block overflow-y-auto">
         <h1 className="mb-4 text-xl font-medium">{data.user.fullName}</h1>
 
         <form method="get">
@@ -322,7 +322,7 @@ const UserSneakersPage: RouteComponent = () => {
         </form>
       </aside>
 
-      <main className="w-full h-full">
+      <main className="w-full min-h-screen">
         <ul className="grid grid-cols-2 px-4 py-6 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8">
           {data.user.sneakers.map(sneaker => (
             <SneakerCard key={sneaker.id} {...sneaker} />

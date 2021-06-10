@@ -136,7 +136,7 @@ const App: React.VFC = () => {
   });
 
   return (
-    <html lang="en" className="h-full">
+    <html lang="en">
       <head>
         <meta charSet="utf-8" />
         <meta property="og:type" content="website" />
@@ -146,7 +146,7 @@ const App: React.VFC = () => {
       </head>
       <body
         className={clsx(
-          'h-full',
+          'min-h-screen',
           pendingLocation ? 'opacity-60 cursor-not-allowed' : ''
         )}
       >
@@ -172,7 +172,7 @@ const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
   console.error('Check your server terminal output');
 
   return (
-    <html lang="en" className="h-full">
+    <html lang="en">
       <head>
         <meta charSet="utf-8" />
         <meta property="og:type" content="website" />
@@ -181,7 +181,7 @@ const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
         <Meta />
         <Links />
       </head>
-      <body className="h-full w-[90%] max-w-5xl mx-auto pt-20 space-y-4 font-mono text-center text-white bg-blue-bsod">
+      <body className="min-h-screen w-[90%] max-w-5xl mx-auto pt-20 space-y-4 font-mono text-center text-white bg-blue-bsod">
         <h1 className="inline-block text-3xl font-bold bg-white text-blue-bsod">
           Uncaught Exception!
         </h1>
