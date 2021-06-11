@@ -20,13 +20,14 @@ import {
   redirectAfterAuthKey,
   sessionKey,
 } from '../constants';
-import { AuthorizationError } from '../errors';
+import { AuthorizationError, NotFoundError } from '../errors';
 import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
 import { flashMessage } from '../flash-message';
 import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 import { sneakerSchema } from '../lib/schemas/sneaker';
 import { getCorrectUrl } from '../lib/get-correct-url';
+import { cloudinary } from '../lib/cloudinary.server';
 
 import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix';
 import type { Except } from 'type-fest';
@@ -123,6 +124,20 @@ const action: ActionFunction = ({ request, params }) =>
     const url = getCorrectUrl(request);
 
     try {
+      const originalSneaker = await prisma.sneaker.findUnique({
+        where: {
+          id: sneakerId,
+        },
+      });
+
+      if (!originalSneaker) {
+        throw new NotFoundError();
+      }
+
+      if (originalSneaker.userId !== userId) {
+        throw new AuthorizationError();
+      }
+
       const formData = await parseBody(request);
       const data = Object.fromEntries(formData);
 
@@ -149,6 +164,28 @@ const action: ActionFunction = ({ request, params }) =>
         { abortEarly: false }
       );
 
+      let imagePublicId = '';
+      if (originalSneaker.imagePublicId !== valid.imagePublicId) {
+        // image was already uploaded to our cloudinary bucket
+        if (valid.imagePublicId.startsWith('shoes/')) {
+          imagePublicId = valid.imagePublicId;
+        } else if (
+          /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi.test(
+            valid.imagePublicId
+          )
+        ) {
+          // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
+          const res = await cloudinary.v2.uploader.upload(valid.imagePublicId, {
+            resource_type: 'image',
+            folder: 'shoes',
+          });
+
+          imagePublicId = res.public_id;
+        } else {
+          // no image provided
+        }
+      }
+
       const updatedSneaker = await prisma.sneaker.update({
         where: { id: sneakerId },
         data: {
@@ -164,7 +201,7 @@ const action: ActionFunction = ({ request, params }) =>
             },
           },
           colorway: valid.colorway,
-          imagePublicId: valid.imagePublicId,
+          imagePublicId,
           model: valid.model,
           price: valid.price,
           purchaseDate: valid.purchaseDate,
