@@ -11,6 +11,8 @@ import { format, parseISO } from 'date-fns';
 import { json, parseBody } from 'remix-utils';
 import slugify from 'slugify';
 import clsx from 'clsx';
+import accounting from 'accounting';
+import NumberFormat from 'react-number-format';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
@@ -145,15 +147,22 @@ const action: ActionFunction = ({ request, params }) =>
         throw new AuthorizationError();
       }
 
+      const rawPrice = formData.get('price') as string;
+      const rawRetailPrice = formData.get('retailPrice') as string;
+
+      const price = Number(rawPrice) || accounting.unformat(rawPrice) * 100;
+      const retailPrice =
+        Number(rawRetailPrice) || accounting.unformat(rawRetailPrice) * 100;
+
       const valid = await sneakerSchema.validate(
         {
           brand: data.brand,
           colorway: data.colorway,
           imagePublicId: data.image,
           model: data.model,
-          price: Number(data.price),
+          price,
           purchaseDate: data.purchaseDate,
-          retailPrice: Number(data.retailPrice),
+          retailPrice,
           size: Number(data.size),
           sold: data.sold,
           soldDate:
@@ -355,19 +364,20 @@ const EditSneakerPage: React.VFC = () => {
               placeholder="shoes/..."
               name="image"
             />
-            <input
-              className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
-              type="number"
-              defaultValue={sneaker.price}
-              placeholder="Price"
+            <NumberFormat
               name="price"
-            />
-            <input
+              placeholder="Price (in cents)"
               className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
-              type="number"
-              defaultValue={sneaker.retailPrice}
-              placeholder="Retail Price"
+              prefix="$"
+              defaultValue={sneaker.price}
+            />
+            <input />
+            <NumberFormat
               name="retailPrice"
+              placeholder="Retail Price (in cents)"
+              className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
+              prefix="$"
+              defaultValue={sneaker.retailPrice}
             />
             <input
               className="w-full p-1 border-2 border-gray-200 rounded appearance-none"

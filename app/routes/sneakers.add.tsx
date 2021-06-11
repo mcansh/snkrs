@@ -3,6 +3,8 @@ import { Form, usePendingFormSubmit, json, redirect } from 'remix';
 import { ValidationError } from 'yup';
 import slugify from 'slugify';
 import { parseBody } from 'remix-utils';
+import NumberFormat from 'react-number-format';
+import accounting from 'accounting';
 
 import {
   flashMessageKey,
@@ -61,11 +63,15 @@ const action: ActionFunction = ({ request }) =>
       const brand = formData.get('brand') as string;
       const model = formData.get('model') as string;
       const colorway = formData.get('colorway') as string;
-      const price = parseInt(formData.get('price') as string, 10);
-      const retailPrice = parseInt(formData.get('retailPrice') as string, 10);
+      const rawPrice = formData.get('price') as string;
+      const rawRetailPrice = formData.get('retailPrice') as string;
       const purchaseDate = formData.get('purchaseDate');
       const size = parseInt(formData.get('size') as string, 10);
       const image = formData.get('image');
+
+      const price = Number(rawPrice) || accounting.unformat(rawPrice) * 100;
+      const retailPrice =
+        Number(rawRetailPrice) || accounting.unformat(rawRetailPrice) * 100;
 
       const valid = await sneakerSchema.validate({
         brand,
@@ -196,26 +202,28 @@ const NewSneakerPage: React.VFC = () => {
               name="colorway"
             />
           </label>
-          <label>
+          <label htmlFor="price">
             <span className="block text-sm font-medium text-gray-700">
-              Price
+              Price (in cents)
             </span>
-            <input
-              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              type="number"
-              placeholder="34000"
+            <NumberFormat
+              id="price"
               name="price"
+              placeholder="12000"
+              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              prefix="$"
             />
           </label>
-          <label>
+          <label htmlFor="retailPrice">
             <span className="block text-sm font-medium text-gray-700">
               Retail Price
             </span>
-            <input
-              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              type="number"
-              placeholder="12000"
+            <NumberFormat
+              id="retailPrice"
               name="retailPrice"
+              placeholder="12000"
+              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              prefix="$"
             />
           </label>
           <label>
