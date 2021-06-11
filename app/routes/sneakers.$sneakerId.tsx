@@ -12,7 +12,7 @@ import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
 
 import type { Except } from 'type-fest';
-import type { LoaderFunction } from 'remix';
+import type { LoaderFunction, HeadersFunction } from 'remix';
 
 const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
@@ -85,11 +85,18 @@ const loader: LoaderFunction = ({ params, request }) =>
       },
       {
         headers: {
-          'Cache-Control': `max-age=300, s-maxage=31536000, stale-while-revalidate=31536000`,
+          // Cache in browser for 5 minutes, at the CDN for a year, and allow a stale response if it's been longer than 1 day since the last
+          'Cache-Control': `public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400`,
+          Vary: 'Cookie',
         },
       }
     );
   });
+
+const headers: HeadersFunction = ({ loaderHeaders }) => ({
+  'Cache-Control': loaderHeaders.get('Cache-Control') ?? '',
+  Vary: loaderHeaders.get('Vary') ?? '',
+});
 
 const meta = ({ data }: { data: RouteData }) => {
   if (!data.sneaker) {
@@ -262,4 +269,4 @@ const SneakerPage: React.VFC = () => {
 };
 
 export default SneakerPage;
-export { meta, loader };
+export { headers, meta, loader };

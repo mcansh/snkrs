@@ -18,7 +18,12 @@ import FourOhFour, { meta as fourOhFourMeta } from './404';
 
 import type { Maybe } from '../@types/maybe';
 import type { Brand, User } from '@prisma/client';
-import type { RouteComponent, LoaderFunction, MetaFunction } from 'remix';
+import type {
+  RouteComponent,
+  LoaderFunction,
+  MetaFunction,
+  HeadersFunction,
+} from 'remix';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
   select: {
@@ -108,12 +113,21 @@ const loader: LoaderFunction = async ({ params, request }) => {
     },
     {
       headers: {
-        'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}`,
         'Set-Cookie': sessionUser ? await commitSession(session) : '',
+        'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}`,
+        // Cache in browser for 5 minutes, at the CDN for a year, and allow a stale response if it's been longer than 1 day since the last
+        'Cache-Control': `public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400`,
+        Vary: 'Cookie',
       },
     }
   );
 };
+
+const headers: HeadersFunction = ({ loaderHeaders }) => ({
+  'Server-Timing': loaderHeaders.get('Server-Timing') ?? '',
+  'Cache-Control': loaderHeaders.get('Cache-Control') ?? '',
+  Vary: loaderHeaders.get('Vary') ?? '',
+});
 
 const meta: MetaFunction = args => {
   const data = args.data as RouteData;
@@ -334,4 +348,4 @@ const UserSneakersPage: RouteComponent = () => {
 };
 
 export default UserSneakersPage;
-export { loader, meta };
+export { headers, loader, meta };

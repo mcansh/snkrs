@@ -11,7 +11,7 @@ import { NotFoundError } from '../errors';
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
 import type { MetaFunction } from '@remix-run/react/routeModules';
-import type { LoaderFunction } from 'remix';
+import type { LoaderFunction, HeadersFunction } from 'remix';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
   select: { username: true, sneakers: { include: { brand: true } } },
@@ -72,6 +72,12 @@ const loader: LoaderFunction = async ({ params }) => {
   }
 };
 
+const headers: HeadersFunction = () => ({
+  // Cache in browser for 5 minutes, at the CDN for a year, and allow a stale response if it's been longer than 1 day since the last
+  'Cache-Control': `public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400`,
+  Vary: 'Cookie',
+});
+
 const meta: MetaFunction = args => {
   const data = args.data as RouteData;
   if (!data.user) {
@@ -119,4 +125,4 @@ const SneakersYearInReview: React.VFC = () => {
 };
 
 export default SneakersYearInReview;
-export { meta, loader };
+export { headers, meta, loader };
