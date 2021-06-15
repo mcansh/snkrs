@@ -8,7 +8,6 @@ import {
 } from 'remix';
 import { json } from 'remix-utils';
 import { ValidationError } from 'yup';
-import etag from 'etag';
 
 import { getSession, destroySession } from '../session';
 import { sessionKey } from '../constants';
@@ -20,6 +19,7 @@ import saveIcon from '../icons/outline/save.svg';
 import checkIcon from '../icons/outline/check.svg';
 import refreshIcon from '../icons/refresh-clockwise.svg';
 import exclamationCircleIcon from '../icons/outline/exclamation-circle.svg';
+import { etag } from '../lib/etag.server';
 
 import type { LoadingButtonProps } from '../components/loading-button';
 import type { EditProfileSchema } from '../lib/schemas/edit-profile';

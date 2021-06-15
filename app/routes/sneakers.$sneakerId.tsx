@@ -11,6 +11,7 @@ import { copy } from '../utils/copy';
 import { sessionKey } from '../constants';
 import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
+import { etag } from '../lib/etag.server';
 
 import type { Except } from 'type-fest';
 import type { LoaderFunction, HeadersFunction } from 'remix';

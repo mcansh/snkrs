@@ -3,11 +3,11 @@ import { Prisma } from '@prisma/client';
 import { useRouteData } from 'remix';
 import { endOfYear, startOfYear } from 'date-fns';
 import { json } from 'remix-utils';
-import etag from 'etag';
 
 import { SneakerCard } from '../components/sneaker';
 import { prisma } from '../db';
 import { NotFoundError } from '../errors';
+import { etag } from '../lib/etag.server';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 

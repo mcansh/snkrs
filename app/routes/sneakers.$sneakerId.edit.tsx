@@ -13,7 +13,6 @@ import slugify from 'slugify';
 import clsx from 'clsx';
 import accounting from 'accounting';
 import NumberFormat from 'react-number-format';
-import etag from 'etag';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
@@ -31,6 +30,7 @@ import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 import { sneakerSchema } from '../lib/schemas/sneaker';
 import { getCorrectUrl } from '../lib/get-correct-url';
 import { cloudinary } from '../lib/cloudinary.server';
+import { etag } from '../lib/etag.server';
 
 import type {
   MetaFunction,

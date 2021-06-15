@@ -4,7 +4,6 @@ import { Prisma } from '@prisma/client';
 import uniqBy from 'lodash.uniqby';
 import { Disclosure } from '@headlessui/react';
 import { json } from 'remix-utils';
-import etag from 'etag';
 
 import { prisma } from '../db';
 import { NotFoundError } from '../errors';
@@ -14,6 +13,7 @@ import { sessionKey } from '../constants';
 import { time } from '../lib/time';
 import { SneakerCard } from '../components/sneaker';
 import { commitSession, getSession } from '../session';
+import { etag } from '../lib/etag.server';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
