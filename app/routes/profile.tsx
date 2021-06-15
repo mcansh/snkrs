@@ -8,6 +8,7 @@ import {
 } from 'remix';
 import { json } from 'remix-utils';
 import { ValidationError } from 'yup';
+import etag from 'etag';
 
 import { getSession, destroySession } from '../session';
 import { sessionKey } from '../constants';
@@ -28,6 +29,7 @@ import type {
   LoaderFunction,
   MetaFunction,
   LinksFunction,
+  HeadersFunction,
 } from 'remix';
 
 interface RouteData {
@@ -67,7 +69,13 @@ const loader: LoaderFunction = async ({ request }) => {
     });
   }
 
-  return json<RouteData>({ user, profileError });
+  const data: RouteData = { user, profileError };
+
+  return json<RouteData>(data, {
+    headers: {
+      ETag: etag(JSON.stringify(data), { weak: true }),
+    },
+  });
 };
 
 const action: ActionFunction = async ({ request }) => {
@@ -110,6 +118,10 @@ const action: ActionFunction = async ({ request }) => {
   }
 };
 
+const headers: HeadersFunction = ({ loaderHeaders }) => ({
+  ETag: loaderHeaders.get('ETag') ?? '',
+});
+
 const meta: MetaFunction = () => ({
   title: 'Edit Profile',
 });
@@ -123,7 +135,7 @@ const links: LinksFunction = () => [
   }),
 ];
 
-const Page: RouteComponent = () => {
+const ProfilePage: RouteComponent = () => {
   const data = useRouteData<RouteData>();
   const pendingForm = usePendingFormSubmit();
 
@@ -248,5 +260,5 @@ const Page: RouteComponent = () => {
   );
 };
 
-export default Page;
-export { action, links, loader, meta };
+export default ProfilePage;
+export { action, headers, links, loader, meta };

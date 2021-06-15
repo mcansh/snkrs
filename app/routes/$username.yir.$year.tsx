@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { useRouteData } from 'remix';
 import { endOfYear, startOfYear } from 'date-fns';
 import { json } from 'remix-utils';
+import etag from 'etag';
 
 import { SneakerCard } from '../components/sneaker';
 import { prisma } from '../db';
@@ -62,7 +63,13 @@ const loader: LoaderFunction = async ({ params }) => {
       throw new NotFoundError();
     }
 
-    return json<RouteData>({ year, user }, {});
+    const data: RouteData = { year, user };
+
+    return json<RouteData>(data, {
+      headers: {
+        ETag: etag(JSON.stringify(data), { weak: true }),
+      },
+    });
   } catch (error: unknown) {
     if (error instanceof NotFoundError) {
       return json<RouteData>({ year }, { status: 404 });
@@ -72,10 +79,11 @@ const loader: LoaderFunction = async ({ params }) => {
   }
 };
 
-const headers: HeadersFunction = () => ({
+const headers: HeadersFunction = ({ loaderHeaders }) => ({
   // Cache in browser for 5 minutes, at the CDN for a year, and allow a stale response if it's been longer than 1 day since the last
   'Cache-Control': `public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400`,
   Vary: 'Cookie',
+  ETag: loaderHeaders.get('ETag') ?? '',
 });
 
 const meta: MetaFunction = args => {

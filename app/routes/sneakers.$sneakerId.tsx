@@ -2,6 +2,7 @@ import React from 'react';
 import { Prisma } from '@prisma/client';
 import { Link, useRouteData } from 'remix';
 import { json } from 'remix-utils';
+import etag from 'etag';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
@@ -71,31 +72,32 @@ const loader: LoaderFunction = ({ params, request }) =>
 
     const userCreatedSneaker = sneaker.user.id === session.get(sessionKey);
 
-    return json<RouteData>(
-      {
-        sneaker: {
-          ...sneaker,
-          createdAt: sneaker.createdAt.toISOString(),
-          soldDate: sneaker.soldDate?.toISOString(),
-          purchaseDate: sneaker.purchaseDate.toISOString(),
-          updatedAt: sneaker.updatedAt.toISOString(),
-        },
-        id: params.sneakerId,
-        userCreatedSneaker,
+    const data: RouteData = {
+      sneaker: {
+        ...sneaker,
+        createdAt: sneaker.createdAt.toISOString(),
+        soldDate: sneaker.soldDate?.toISOString(),
+        purchaseDate: sneaker.purchaseDate.toISOString(),
+        updatedAt: sneaker.updatedAt.toISOString(),
       },
-      {
-        headers: {
-          // Cache in browser for 5 minutes, at the CDN for a year, and allow a stale response if it's been longer than 1 day since the last
-          'Cache-Control': `public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400`,
-          Vary: 'Cookie',
-        },
-      }
-    );
+      id: params.sneakerId,
+      userCreatedSneaker,
+    };
+
+    return json<RouteData>(data, {
+      headers: {
+        // Cache in browser for 5 minutes, at the CDN for a year, and allow a stale response if it's been longer than 1 day since the last
+        'Cache-Control': `public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400`,
+        Vary: 'Cookie',
+        ETag: etag(JSON.stringify(data), { weak: true }),
+      },
+    });
   });
 
 const headers: HeadersFunction = ({ loaderHeaders }) => ({
   'Cache-Control': loaderHeaders.get('Cache-Control') ?? '',
   Vary: loaderHeaders.get('Vary') ?? '',
+  ETag: loaderHeaders.get('ETag') ?? '',
 });
 
 const meta = ({ data }: { data: RouteData }) => {

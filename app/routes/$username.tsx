@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import uniqBy from 'lodash.uniqby';
 import { Disclosure } from '@headlessui/react';
 import { json } from 'remix-utils';
+import etag from 'etag';
 
 import { prisma } from '../db';
 import { NotFoundError } from '../errors';
@@ -103,30 +104,31 @@ const loader: LoaderFunction = async ({ params, request }) => {
     'name'
   ).sort((a, b) => a.name.localeCompare(b.name));
 
-  return json<RouteData>(
-    {
-      user: { ...user, sneakers },
-      brands: uniqueBrands,
-      selectedBrands,
-      sort: sortQuery === 'asc' ? 'asc' : 'desc',
-      sessionUser,
+  const data: RouteData = {
+    user: { ...user, sneakers },
+    brands: uniqueBrands,
+    selectedBrands,
+    sort: sortQuery === 'asc' ? 'asc' : 'desc',
+    sessionUser,
+  };
+
+  return json<RouteData>(data, {
+    headers: {
+      'Set-Cookie': sessionUser ? await commitSession(session) : '',
+      'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}`,
+      // Cache in browser for 5 minutes, at the CDN for a year, and allow a stale response if it's been longer than 1 day since the last
+      'Cache-Control': `public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400`,
+      Vary: 'Cookie',
+      ETag: etag(JSON.stringify(data), { weak: true }),
     },
-    {
-      headers: {
-        'Set-Cookie': sessionUser ? await commitSession(session) : '',
-        'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}`,
-        // Cache in browser for 5 minutes, at the CDN for a year, and allow a stale response if it's been longer than 1 day since the last
-        'Cache-Control': `public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400`,
-        Vary: 'Cookie',
-      },
-    }
-  );
+  });
 };
 
 const headers: HeadersFunction = ({ loaderHeaders }) => ({
   'Server-Timing': loaderHeaders.get('Server-Timing') ?? '',
   'Cache-Control': loaderHeaders.get('Cache-Control') ?? '',
   Vary: loaderHeaders.get('Vary') ?? '',
+  ETag: loaderHeaders.get('ETag') ?? '',
 });
 
 const meta: MetaFunction = args => {
