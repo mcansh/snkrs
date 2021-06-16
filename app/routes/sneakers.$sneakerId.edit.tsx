@@ -116,7 +116,7 @@ const loader: LoaderFunction = ({ params, request }) =>
 
       return json<RouteData>(data, {
         headers: {
-          ETag: etag(JSON.stringify(data), { weak: true }),
+          ETag: etag(JSON.stringify(data)),
         },
       });
     } catch (error: unknown) {
@@ -273,7 +273,7 @@ const meta: MetaFunction = ({ data }: { data: RouteData }) => ({
 });
 
 const headers: HeadersFunction = ({ loaderHeaders }) => ({
-  ETag: loaderHeaders.get('ETag') ?? '',
+  ETag: `W\\${loaderHeaders.get('ETag')}`,
 });
 
 const formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";

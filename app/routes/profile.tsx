@@ -73,7 +73,7 @@ const loader: LoaderFunction = async ({ request }) => {
 
   return json<RouteData>(data, {
     headers: {
-      ETag: etag(JSON.stringify(data), { weak: true }),
+      ETag: etag(JSON.stringify(data)),
     },
   });
 };
@@ -119,7 +119,7 @@ const action: ActionFunction = async ({ request }) => {
 };
 
 const headers: HeadersFunction = ({ loaderHeaders }) => ({
-  ETag: loaderHeaders.get('ETag') ?? '',
+  ETag: `W\\${loaderHeaders.get('ETag')}`,
 });
 
 const meta: MetaFunction = () => ({

@@ -67,7 +67,7 @@ const loader: LoaderFunction = async ({ params }) => {
 
     return json<RouteData>(data, {
       headers: {
-        ETag: etag(JSON.stringify(data), { weak: true }),
+        ETag: etag(JSON.stringify(data)),
       },
     });
   } catch (error: unknown) {
@@ -83,7 +83,7 @@ const headers: HeadersFunction = ({ loaderHeaders }) => ({
   // Cache in browser for 5 minutes, at the CDN for a year, and allow a stale response if it's been longer than 1 day since the last
   'Cache-Control': `public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400`,
   Vary: 'Cookie',
-  ETag: loaderHeaders.get('ETag') ?? '',
+  ETag: `W\\${loaderHeaders.get('ETag')}`,
 });
 
 const meta: MetaFunction = args => {
