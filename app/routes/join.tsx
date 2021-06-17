@@ -44,6 +44,10 @@ const links: LinksFunction = () => [
     as: 'image',
     type: 'image/svg+xml',
   }),
+  {
+    href: LoadingButton.styles,
+    rel: 'stylesheet',
+  },
 ];
 
 interface RouteData {

@@ -1,5 +1,11 @@
 import * as React from 'react';
 
+import styles from '../styles/loading-button.css';
+
+interface VoidFunctionComponentStyles<P = any> extends React.VFC<P> {
+  styles: string;
+}
+
 export interface LoadingButtonProps {
   ariaErrorAlert: string;
   ariaLoadingAlert: string;
@@ -16,7 +22,9 @@ export interface LoadingButtonProps {
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
-const LoadingButton: React.VFC<ButtonProps & LoadingButtonProps> = ({
+const LoadingButton: VoidFunctionComponentStyles<
+  ButtonProps & LoadingButtonProps
+> = ({
   ariaErrorAlert,
   ariaLoadingAlert,
   ariaSuccessAlert,
@@ -110,5 +118,7 @@ const LoadingButton: React.VFC<ButtonProps & LoadingButtonProps> = ({
     </button>
   );
 };
+
+LoadingButton.styles = styles;
 
 export { LoadingButton };
