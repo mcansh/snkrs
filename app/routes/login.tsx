@@ -3,10 +3,9 @@ import {
   block,
   Form,
   usePendingFormSubmit,
-  useRouteData,
+  useActionData,
   redirect,
 } from 'remix';
-import { useLocation } from 'react-router-dom';
 import { json, parseBody } from 'remix-utils';
 import { ValidationError } from 'yup';
 
@@ -21,7 +20,6 @@ import { verify } from '../lib/auth';
 import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
 import { LoadingButton } from '../components/loading-button';
-import { safeParse } from '../utils/safe-parse';
 import checkIcon from '../icons/outline/check.svg';
 import refreshIcon from '../icons/refresh-clockwise.svg';
 import exclamationCircleIcon from '../icons/outline/exclamation-circle.svg';
@@ -33,13 +31,13 @@ import type { LoginSchema } from '../lib/schemas/login';
 import type { LoadingButtonProps } from '../components/loading-button';
 import type { ActionFunction, LinksFunction, LoaderFunction } from 'remix';
 
-interface RouteData {
-  loginError:
-    | (Partial<LoginSchema> & {
-        generic?: string;
-      })
-    | undefined;
-}
+// interface RouteData {
+//   loginError:
+//     | (Partial<LoginSchema> & {
+//         generic?: string;
+//       })
+//     | undefined;
+// }
 
 const links: LinksFunction = () => [
   block({
@@ -68,14 +66,7 @@ const loader: LoaderFunction = ({ request }) =>
       session.unset(sessionKey);
     }
 
-    const loginError = session.get('loginError') as string | undefined;
-
-    if (loginError) {
-      const parsed = safeParse(loginError);
-      return json<RouteData>({ loginError: parsed });
-    }
-
-    return json<RouteData>({ loginError: undefined });
+    return json({});
   });
 
 const action: ActionFunction = ({ request }) =>
@@ -118,20 +109,14 @@ const action: ActionFunction = ({ request }) =>
       if (error instanceof ValidationError) {
         const aggregateErrors = yupToObject<LoginSchema>(error);
 
-        session.flash('loginError', JSON.stringify(aggregateErrors));
-        return redirect(`/login`);
+        return json(aggregateErrors);
       }
 
       if (error instanceof InvalidLoginError) {
-        session.flash('loginError', JSON.stringify({ generic: error.message }));
+        return json({ generic: error.message });
       }
 
-      session.flash(
-        'loginError',
-        JSON.stringify({ generic: 'something went wrong' })
-      );
-
-      return redirect(`/login`);
+      return json({ generic: 'something went wrong' });
     }
   });
 
@@ -140,9 +125,8 @@ const meta = () => ({
 });
 
 const LoginPage: React.VFC = () => {
-  const data = useRouteData<RouteData>();
+  const errors = useActionData();
   const pendingForm = usePendingFormSubmit();
-  const location = useLocation();
   const [state, setState] = React.useState<LoadingButtonProps['state']>('idle');
   const timerRef = React.useRef<NodeJS.Timeout>();
 
@@ -176,7 +160,7 @@ const LoginPage: React.VFC = () => {
   React.useEffect(() => {
     if (pendingForm) {
       setState('loading');
-    } else if (data.loginError) {
+    } else if (errors) {
       setState('error');
       timerRef.current = setTimeout(() => {
         setState('idle');
@@ -190,23 +174,19 @@ const LoginPage: React.VFC = () => {
         clearTimeout(timerRef.current);
       }
     };
-  }, [data.loginError, pendingForm]);
+  }, [errors, pendingForm]);
 
   return (
     <div className="w-11/12 max-w-lg py-8 mx-auto">
-      {data.loginError?.generic && (
+      {errors?.generic && (
         <div className="px-4 py-2 mb-2 text-sm text-white bg-red-500 rounded">
-          {data.loginError.generic}
+          {errors.generic}
         </div>
       )}
 
       <h1 className="pb-2 text-2xl font-medium">Log in</h1>
 
-      <Form
-        action={`/login${location.search}`}
-        method="post"
-        className="space-y-4"
-      >
+      <Form method="post" className="space-y-4">
         <fieldset disabled={!!pendingForm} className="flex flex-col space-y-4">
           <label htmlFor="email">
             <span>Email:</span>
@@ -218,7 +198,9 @@ const LoginPage: React.VFC = () => {
               autoComplete="email"
             />
           </label>
-          {data.loginError?.email && <p>{data.loginError.email}</p>}
+          {errors?.email && (
+            <p className="text-sm text-red-500">{errors.email}</p>
+          )}
           <label htmlFor="password">
             <span>Password:</span>
             <input
@@ -228,7 +210,9 @@ const LoginPage: React.VFC = () => {
               id="password"
             />
           </label>
-          {data.loginError?.password && <p>{data.loginError.password}</p>}
+          {errors?.password && (
+            <p className="text-sm text-red-500">{errors.password}</p>
+          )}
 
           <LoadingButton
             type="submit"
