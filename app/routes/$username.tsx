@@ -13,7 +13,6 @@ import { sessionKey } from '../constants';
 import { time } from '../lib/time';
 import { SneakerCard } from '../components/sneaker';
 import { commitSession, getSession } from '../session';
-import { etag } from '../lib/etag.server';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
@@ -119,7 +118,6 @@ const loader: LoaderFunction = async ({ params, request }) => {
       // Cache in browser for 5 minutes, at the CDN for a year, and allow a stale response if it's been longer than 1 day since the last
       'Cache-Control': `public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400`,
       Vary: 'Cookie',
-      ETag: etag(JSON.stringify(data)),
     },
   });
 };
@@ -128,7 +126,6 @@ const headers: HeadersFunction = ({ loaderHeaders }) => ({
   'Server-Timing': loaderHeaders.get('Server-Timing') ?? '',
   'Cache-Control': loaderHeaders.get('Cache-Control') ?? '',
   Vary: loaderHeaders.get('Vary') ?? '',
-  ETag: `W\\${loaderHeaders.get('ETag')}`,
 });
 
 const meta: MetaFunction = args => {

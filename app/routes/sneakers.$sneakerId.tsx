@@ -2,7 +2,6 @@ import React from 'react';
 import { Prisma } from '@prisma/client';
 import { Link, useRouteData } from 'remix';
 import { json } from 'remix-utils';
-import etag from 'etag';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
@@ -11,7 +10,6 @@ import { copy } from '../utils/copy';
 import { sessionKey } from '../constants';
 import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
-import { etag } from '../lib/etag.server';
 
 import type { Except } from 'type-fest';
 import type { LoaderFunction, HeadersFunction } from 'remix';
@@ -73,32 +71,31 @@ const loader: LoaderFunction = ({ params, request }) =>
 
     const userCreatedSneaker = sneaker.user.id === session.get(sessionKey);
 
-    const data: RouteData = {
-      sneaker: {
-        ...sneaker,
-        createdAt: sneaker.createdAt.toISOString(),
-        soldDate: sneaker.soldDate?.toISOString(),
-        purchaseDate: sneaker.purchaseDate.toISOString(),
-        updatedAt: sneaker.updatedAt.toISOString(),
+    return json<RouteData>(
+      {
+        sneaker: {
+          ...sneaker,
+          createdAt: sneaker.createdAt.toISOString(),
+          soldDate: sneaker.soldDate?.toISOString(),
+          purchaseDate: sneaker.purchaseDate.toISOString(),
+          updatedAt: sneaker.updatedAt.toISOString(),
+        },
+        id: params.sneakerId,
+        userCreatedSneaker,
       },
-      id: params.sneakerId,
-      userCreatedSneaker,
-    };
-
-    return json<RouteData>(data, {
-      headers: {
-        // Cache in browser for 5 minutes, at the CDN for a year, and allow a stale response if it's been longer than 1 day since the last
-        'Cache-Control': `public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400`,
-        Vary: 'Cookie',
-        ETag: etag(JSON.stringify(data)),
-      },
-    });
+      {
+        headers: {
+          // Cache in browser for 5 minutes, at the CDN for a year, and allow a stale response if it's been longer than 1 day since the last
+          'Cache-Control': `public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400`,
+          Vary: 'Cookie',
+        },
+      }
+    );
   });
 
 const headers: HeadersFunction = ({ loaderHeaders }) => ({
   'Cache-Control': loaderHeaders.get('Cache-Control') ?? '',
   Vary: loaderHeaders.get('Vary') ?? '',
-  ETag: `W\\${loaderHeaders.get('ETag')}`,
 });
 
 const meta = ({ data }: { data: RouteData }) => {

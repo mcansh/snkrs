@@ -30,14 +30,8 @@ import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 import { sneakerSchema } from '../lib/schemas/sneaker';
 import { getCorrectUrl } from '../lib/get-correct-url';
 import { cloudinary } from '../lib/cloudinary.server';
-import { etag } from '../lib/etag.server';
 
-import type {
-  MetaFunction,
-  LoaderFunction,
-  ActionFunction,
-  HeadersFunction,
-} from 'remix';
+import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix';
 import type { Except } from 'type-fest';
 
 const sneakerWithBrandAndUser = Prisma.validator<Prisma.SneakerArgs>()({
@@ -103,7 +97,7 @@ const loader: LoaderFunction = ({ params, request }) =>
         throw new AuthorizationError();
       }
 
-      const data: RouteData = {
+      return json<RouteData>({
         sneaker: {
           ...sneaker,
           createdAt: sneaker.createdAt.toISOString(),
@@ -112,12 +106,6 @@ const loader: LoaderFunction = ({ params, request }) =>
         },
         id: params.sneakerId,
         userCreatedSneaker,
-      };
-
-      return json<RouteData>(data, {
-        headers: {
-          ETag: etag(JSON.stringify(data)),
-        },
       });
     } catch (error: unknown) {
       if (error instanceof AuthorizationError) {
@@ -270,10 +258,6 @@ const meta: MetaFunction = ({ data }: { data: RouteData }) => ({
   title: data.sneaker
     ? `Editing ${data.sneaker.brand.name} ${data.sneaker.model} – ${data.sneaker.colorway}`
     : 'Not Found',
-});
-
-const headers: HeadersFunction = ({ loaderHeaders }) => ({
-  ETag: `W\\${loaderHeaders.get('ETag')}`,
 });
 
 const formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";
@@ -458,4 +442,4 @@ const EditSneakerPage: React.VFC = () => {
 };
 
 export default EditSneakerPage;
-export { action, headers, loader, meta };
+export { action, loader, meta };

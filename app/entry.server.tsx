@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { renderToString } from 'react-dom/server';
 import { RemixServer } from 'remix';
+import etag from 'etag';
 
 import type { EntryContext } from 'remix';
 
@@ -41,11 +42,20 @@ export default function handleRequest(
     <RemixServer url={request.url} context={remixContext} />
   );
 
+  const markupETag = etag(markup);
+
+  if (markupETag === request.headers.get('If-None-Match')) {
+    return new Response(null, {
+      status: 304,
+    });
+  }
+
   return new Response(`<!DOCTYPE html>${markup}`, {
     status: responseStatusCode,
     headers: {
       ...Object.fromEntries(responseHeaders),
       'Content-Type': 'text/html',
+      ETag: markupETag,
       // https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
       'Content-Security-Policy': contentSecurityPolicy,
       // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy

@@ -19,7 +19,6 @@ import saveIcon from '../icons/outline/save.svg';
 import checkIcon from '../icons/outline/check.svg';
 import refreshIcon from '../icons/refresh-clockwise.svg';
 import exclamationCircleIcon from '../icons/outline/exclamation-circle.svg';
-import { etag } from '../lib/etag.server';
 
 import type { LoadingButtonProps } from '../components/loading-button';
 import type { EditProfileSchema } from '../lib/schemas/edit-profile';
@@ -29,7 +28,6 @@ import type {
   LoaderFunction,
   MetaFunction,
   LinksFunction,
-  HeadersFunction,
 } from 'remix';
 
 interface RouteData {
@@ -69,13 +67,7 @@ const loader: LoaderFunction = async ({ request }) => {
     });
   }
 
-  const data: RouteData = { user, profileError };
-
-  return json<RouteData>(data, {
-    headers: {
-      ETag: etag(JSON.stringify(data)),
-    },
-  });
+  return json<RouteData>({ user, profileError });
 };
 
 const action: ActionFunction = async ({ request }) => {
@@ -117,10 +109,6 @@ const action: ActionFunction = async ({ request }) => {
     return redirect(`/profile`);
   }
 };
-
-const headers: HeadersFunction = ({ loaderHeaders }) => ({
-  ETag: `W\\${loaderHeaders.get('ETag')}`,
-});
 
 const meta: MetaFunction = () => ({
   title: 'Edit Profile',
@@ -261,4 +249,4 @@ const ProfilePage: RouteComponent = () => {
 };
 
 export default ProfilePage;
-export { action, headers, links, loader, meta };
+export { action, links, loader, meta };
