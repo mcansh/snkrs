@@ -86,7 +86,7 @@ const meta: MetaFunction = args => {
 
   const sneakers = data.user.sneakers.length === 1 ? 'sneaker' : 'sneakers';
   return {
-    title: String(data.year),
+    title: `${data.year} • ${data.user.username}`,
     description: `${data.user.username} bought ${data.user.sneakers.length} ${sneakers} in ${data.year}`,
   };
 };
