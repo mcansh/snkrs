@@ -27,17 +27,16 @@ import loginIcon from '../icons/outline/login.svg';
 import { loginSchema } from '../lib/schemas/login';
 import { yupToObject } from '../lib/yup-to-object';
 
+import type { MetaFunction } from '@remix-run/react/routeModules';
 import type { LoginSchema } from '../lib/schemas/login';
 import type { LoadingButtonProps } from '../components/loading-button';
 import type { ActionFunction, LinksFunction, LoaderFunction } from 'remix';
 
-// interface RouteData {
-//   loginError:
-//     | (Partial<LoginSchema> & {
-//         generic?: string;
-//       })
-//     | undefined;
-// }
+type RouteData =
+  | (Partial<LoginSchema> & {
+      generic?: string;
+    })
+  | undefined;
 
 const links: LinksFunction = () => [
   block({
@@ -124,12 +123,12 @@ const action: ActionFunction = ({ request }) =>
     }
   });
 
-const meta = () => ({
+const meta: MetaFunction = () => ({
   title: 'Log in',
 });
 
 const LoginPage: React.VFC = () => {
-  const errors = useActionData();
+  const errors = useActionData() as RouteData;
   const pendingForm = usePendingFormSubmit();
   const [state, setState] = React.useState<LoadingButtonProps['state']>('idle');
   const timerRef = React.useRef<NodeJS.Timeout>();
