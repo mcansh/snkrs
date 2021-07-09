@@ -67,10 +67,15 @@ export default function handleRequest(
       // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-DNS-Prefetch-Control
       'X-DNS-Prefetch-Control': 'on',
       // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
-      'Strict-Transport-Security':
-        'max-age=31536000; includeSubDomains; preload',
+      'Strict-Transport-Security': `max-age=31536000; includeSubDomains; preload`,
       // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy
       'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Cross-Origin_Resource_Policy_(CORP)
+      'Cross-Origin-Resource-Policy': 'same-origin',
+      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy
+      'Cross-Origin-Embedder-Policy': 'require-corp',
     },
   });
 }
