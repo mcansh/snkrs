@@ -59,7 +59,7 @@ export default function handleRequest(
       // https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
       'Content-Security-Policy': contentSecurityPolicy,
       // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
-      'Referrer-Policy': 'origin-when-cross-origin',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
       // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
       'X-Frame-Options': 'DENY',
       // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
