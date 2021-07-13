@@ -24,14 +24,16 @@ const SneakerCard: React.VFC<SneakerWithBrand> = ({
 }) => {
   const sizes = [200, 400, 600];
 
-  const srcSet = sizes.map(
-    size =>
-      `${getCloudinaryURL(imagePublicId, {
-        crop: 'pad',
-        width: size,
-        height: size,
-      })} ${size}w`
-  );
+  const srcSet = sizes
+    .map(
+      size =>
+        `${getCloudinaryURL(imagePublicId, {
+          crop: 'pad',
+          width: size,
+          height: size,
+        })} ${size}w`
+    )
+    .join(', ');
 
   return (
     <li>
@@ -43,7 +45,7 @@ const SneakerCard: React.VFC<SneakerWithBrand> = ({
             height: 200,
           })}
           sizes="(min-width: 1024px) 25vw, 50vw"
-          srcSet={srcSet.join()}
+          srcSet={srcSet}
           alt=""
           className="object-contain pointer-events-none group-hover:opacity-75"
         />

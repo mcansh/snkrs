@@ -16,7 +16,14 @@ function getCloudinaryURL(
     ...transformOptions,
   };
 
-  return cloudinary.url(publicId, transforms);
+  const sortedTransforms = Object.keys(transforms)
+    .sort()
+    .reduce<Transformation.Options>((accumulator, currentValue) => {
+      accumulator[currentValue] = transforms[currentValue];
+      return accumulator;
+    }, {});
+
+  return cloudinary.url(publicId, sortedTransforms);
 }
 
 export { getCloudinaryURL };
