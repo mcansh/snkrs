@@ -10,7 +10,7 @@ function getCloudinaryURL(
 ) {
   const transforms: Transformation.Options = {
     quality: 'auto',
-    fetch_format: 'auto',
+    fetchFormat: 'auto',
     secure: true,
     background: 'auto',
     ...transformOptions,
