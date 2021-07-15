@@ -26,7 +26,6 @@ import { AuthorizationError, NotFoundError } from '../errors';
 import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
 import { flashMessage } from '../flash-message';
-import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 import { sneakerSchema } from '../lib/schemas/sneaker';
 import { getCorrectUrl } from '../lib/get-correct-url';
 import { cloudinary } from '../lib/cloudinary.server';
@@ -195,7 +194,7 @@ const action: ActionFunction = ({ request, params }) =>
         }
       }
 
-      const updatedSneaker = await prisma.sneaker.update({
+      await prisma.sneaker.update({
         where: { id: sneakerId },
         data: {
           brand: {
@@ -226,14 +225,6 @@ const action: ActionFunction = ({ request, params }) =>
           purchaseDate: true,
         },
       });
-
-      const prefix = `https://snkrs.mcan.sh/${updatedSneaker.user.username}`;
-      await purgeCloudflareCache([
-        `https://snkrs.mcan.sh/sneakers/${sneakerId}`,
-        `${prefix}`,
-        `${prefix}/${updatedSneaker.brand.name}`,
-        `${prefix}/yir/${updatedSneaker.purchaseDate.getFullYear()}`,
-      ]);
 
       session.flash(
         flashMessageKey,

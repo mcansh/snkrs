@@ -14,7 +14,6 @@ import {
 import { prisma } from '../db';
 import { AuthorizationError } from '../errors';
 import { flashMessage } from '../flash-message';
-import { purgeCloudflareCache } from '../lib/cloudflare-cache-purge';
 import { cloudinary } from '../lib/cloudinary.server';
 import { withSession } from '../lib/with-session';
 import { sneakerSchema } from '../lib/schemas/sneaker';
@@ -130,14 +129,6 @@ const action: ActionFunction = ({ request }) =>
         },
         include: { user: { select: { username: true } }, brand: true },
       });
-
-      const prefix = `https://snkrs.mcan.sh/${sneaker.user.username}`;
-
-      await purgeCloudflareCache([
-        `${prefix}`,
-        `${prefix}/${sneaker.brand.name}`,
-        `${prefix}/yir/${sneaker.purchaseDate.getFullYear()}`,
-      ]);
 
       return redirect(`/sneakers/${sneaker.id}`);
     } catch (error: unknown) {
