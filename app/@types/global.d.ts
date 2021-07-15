@@ -1,8 +1,5 @@
 declare namespace NodeJS {
   interface ProcessEnv {
-    CLOUDFLARE_PURGE_KEY: string;
-    CLOUDFLARE_ZONE_ID: string;
-    CLOUDFLARE_EMAIL: string;
     CLOUDINARY_UPLOAD_PRESET: string;
     CLOUDINARY_UPLOAD_URL: string;
     CLOUDINARY_URL: string;
