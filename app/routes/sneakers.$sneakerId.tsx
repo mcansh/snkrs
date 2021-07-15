@@ -10,9 +10,10 @@ import { copy } from '../utils/copy';
 import { sessionKey } from '../constants';
 import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
+import { redis, saveByPage } from '../lib/redis.server';
 
 import type { Except } from 'type-fest';
-import type { LoaderFunction, HeadersFunction } from 'remix';
+import type { LoaderFunction } from 'remix';
 
 const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
@@ -51,6 +52,20 @@ type RouteData =
 
 const loader: LoaderFunction = ({ params, request }) =>
   withSession(request, async session => {
+    const cacheKey = params.sneakerId;
+    const cachedSneaker = await redis.get(cacheKey);
+
+    if (cachedSneaker) {
+      const sneaker = JSON.parse(cachedSneaker) as SneakerWithUser;
+      const userCreatedSneaker = sneaker.user.id === session.get(sessionKey);
+
+      return json<RouteData>({
+        id: cacheKey,
+        sneaker,
+        userCreatedSneaker,
+      });
+    }
+
     const sneaker = await prisma.sneaker.findUnique({
       where: { id: params.sneakerId },
       include: {
@@ -69,34 +84,22 @@ const loader: LoaderFunction = ({ params, request }) =>
       return json<RouteData>({ id: params.sneakerId }, { status: 404 });
     }
 
+    await saveByPage(cacheKey, sneaker, 60 * 5 * 1000);
+
     const userCreatedSneaker = sneaker.user.id === session.get(sessionKey);
 
-    return json<RouteData>(
-      {
-        sneaker: {
-          ...sneaker,
-          createdAt: sneaker.createdAt.toISOString(),
-          soldDate: sneaker.soldDate?.toISOString(),
-          purchaseDate: sneaker.purchaseDate.toISOString(),
-          updatedAt: sneaker.updatedAt.toISOString(),
-        },
-        id: params.sneakerId,
-        userCreatedSneaker,
+    return json<RouteData>({
+      sneaker: {
+        ...sneaker,
+        createdAt: sneaker.createdAt.toISOString(),
+        soldDate: sneaker.soldDate?.toISOString(),
+        purchaseDate: sneaker.purchaseDate.toISOString(),
+        updatedAt: sneaker.updatedAt.toISOString(),
       },
-      {
-        headers: {
-          // Cache in browser for 5 minutes, at the CDN for a year, and allow a stale response if it's been longer than 1 day since the last
-          'Cache-Control': `public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400`,
-          Vary: 'Cookie',
-        },
-      }
-    );
+      id: params.sneakerId,
+      userCreatedSneaker,
+    });
   });
-
-const headers: HeadersFunction = ({ loaderHeaders }) => ({
-  'Cache-Control': loaderHeaders.get('Cache-Control') ?? '',
-  Vary: loaderHeaders.get('Vary') ?? '',
-});
 
 const meta = ({ data }: { data: RouteData }) => {
   if (!data.sneaker) {

@@ -13,6 +13,7 @@ import { sessionKey } from '../constants';
 import { time } from '../lib/time';
 import { SneakerCard } from '../components/sneaker';
 import { commitSession, getSession } from '../session';
+import { redis, saveByPage } from '../lib/redis.server';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
@@ -54,6 +55,55 @@ const loader: LoaderFunction = async ({ params, request }) => {
 
   const selectedBrands = searchParams.getAll('brand');
   const sortQuery = searchParams.get('sort');
+  const sort = sortQuery === 'asc' ? 'asc' : 'desc';
+
+  const cacheKey = `${params.username}.${sort}`;
+
+  const [cachedDataMS, cachedData] = await time(() => redis.get(cacheKey));
+
+  if (cachedData) {
+    const user = JSON.parse(cachedData) as UserWithSneakers;
+
+    const [sessionUserTime, sessionUser] = userId
+      ? await time(() =>
+          prisma.user.findUnique({
+            where: {
+              id: userId,
+            },
+            select: {
+              givenName: true,
+              id: true,
+            },
+          })
+        )
+      : [0, undefined];
+
+    const sneakers = selectedBrands.length
+      ? user.sneakers.filter(sneaker =>
+          selectedBrands.includes(sneaker.brand.slug)
+        )
+      : user.sneakers;
+
+    const uniqueBrands = uniqBy(
+      user.sneakers.map(sneaker => sneaker.brand),
+      'name'
+    ).sort((a, b) => a.name.localeCompare(b.name));
+
+    const data: RouteData = {
+      user: { ...user, sneakers },
+      brands: uniqueBrands,
+      selectedBrands,
+      sort: sortQuery === 'asc' ? 'asc' : 'desc',
+      sessionUser,
+    };
+
+    return json<RouteData>(data, {
+      headers: {
+        'Set-Cookie': sessionUser ? await commitSession(session) : '',
+        'Server-Timing': `user;dur=${cachedDataMS}, sessionUser;dur=${sessionUserTime}`,
+      },
+    });
+  }
 
   const [userTime, user] = await time(() =>
     prisma.user.findUnique({
@@ -67,7 +117,7 @@ const loader: LoaderFunction = async ({ params, request }) => {
         sneakers: {
           include: { brand: true },
           orderBy: {
-            purchaseDate: sortQuery === 'asc' ? 'asc' : 'desc',
+            purchaseDate: sort,
           },
         },
       },
@@ -103,6 +153,8 @@ const loader: LoaderFunction = async ({ params, request }) => {
     'name'
   ).sort((a, b) => a.name.localeCompare(b.name));
 
+  const [cacheMS] = await time(() => saveByPage(cacheKey, user, 60 * 5 * 1000));
+
   const data: RouteData = {
     user: { ...user, sneakers },
     brands: uniqueBrands,
@@ -114,18 +166,13 @@ const loader: LoaderFunction = async ({ params, request }) => {
   return json<RouteData>(data, {
     headers: {
       'Set-Cookie': sessionUser ? await commitSession(session) : '',
-      'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}`,
-      // Cache in browser for 5 minutes, at the CDN for a year, and allow a stale response if it's been longer than 1 day since the last
-      'Cache-Control': `public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400`,
-      Vary: 'Cookie',
+      'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}; cache;dur=${cacheMS}`,
     },
   });
 };
 
 const headers: HeadersFunction = ({ loaderHeaders }) => ({
   'Server-Timing': loaderHeaders.get('Server-Timing') ?? '',
-  'Cache-Control': loaderHeaders.get('Cache-Control') ?? '',
-  Vary: loaderHeaders.get('Vary') ?? '',
 });
 
 const meta: MetaFunction = args => {

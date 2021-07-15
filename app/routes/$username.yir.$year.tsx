@@ -7,11 +7,12 @@ import { json } from 'remix-utils';
 import { SneakerCard } from '../components/sneaker';
 import { prisma } from '../db';
 import { NotFoundError } from '../errors';
+import { redis, saveByPage } from '../lib/redis.server';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
 
 import type { MetaFunction } from '@remix-run/react/routeModules';
-import type { LoaderFunction, HeadersFunction } from 'remix';
+import type { LoaderFunction } from 'remix';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
   select: { username: true, sneakers: { include: { brand: true } } },
@@ -33,12 +34,22 @@ const loader: LoaderFunction = async ({ params }) => {
   const { username } = params;
   const year = parseInt(params.year, 10);
 
+  const cacheKey = `${username}.yir.${params.year}`;
+
   const now = new Date();
   const date = new Date(year, now.getMonth(), now.getDate());
 
   try {
     if (year > now.getFullYear()) {
       throw new NotFoundError();
+    }
+
+    const cache = await redis.get(cacheKey);
+
+    if (cache) {
+      const user = JSON.parse(cache) as UserWithSneakers;
+
+      return json<RouteData>({ year, user });
     }
 
     const user = await prisma.user.findUnique({
@@ -62,6 +73,8 @@ const loader: LoaderFunction = async ({ params }) => {
       throw new NotFoundError();
     }
 
+    await saveByPage(cacheKey, user, 60 * 5 * 1000);
+
     return json<RouteData>({ year, user });
   } catch (error: unknown) {
     if (error instanceof NotFoundError) {
@@ -71,12 +84,6 @@ const loader: LoaderFunction = async ({ params }) => {
     return json<RouteData>({ year }, { status: 500 });
   }
 };
-
-const headers: HeadersFunction = () => ({
-  // Cache in browser for 5 minutes, at the CDN for a year, and allow a stale response if it's been longer than 1 day since the last
-  'Cache-Control': `public, max-age=300, s-maxage=31536000, stale-while-revalidate=86400`,
-  Vary: 'Cookie',
-});
 
 const meta: MetaFunction = args => {
   const data = args.data as RouteData;
