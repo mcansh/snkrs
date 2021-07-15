@@ -2,7 +2,7 @@
 node_modules
 .ds_store
 *.log
-.env*
+.env
 .eslintcache
 
 .cache

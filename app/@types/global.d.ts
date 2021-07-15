@@ -1,12 +1,14 @@
-/// <reference types="node" />
-
 declare namespace NodeJS {
   interface ProcessEnv {
-    readonly SESSION_PASSWORD: string;
-    readonly CLOUDFLARE_PURGE_KEY: string;
-    readonly CLOUDFLARE_ZONE_ID: string;
-    readonly CLOUDFLARE_EMAIL: string;
-    readonly FATHOM_SITE_ID: string;
-    readonly FATHOM_SCRIPT_URL: string;
+    CLOUDFLARE_PURGE_KEY: string;
+    CLOUDFLARE_ZONE_ID: string;
+    CLOUDFLARE_EMAIL: string;
+    CLOUDINARY_UPLOAD_PRESET: string;
+    CLOUDINARY_UPLOAD_URL: string;
+    CLOUDINARY_URL: string;
+    DATABASE_URL: string;
+    SESSION_PASSWORD: string;
+    FATHOM_SITE_ID: string;
+    FATHOM_SCRIPT_URL: string;
   }
 }
