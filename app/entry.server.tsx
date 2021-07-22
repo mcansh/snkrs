@@ -37,10 +37,6 @@ export default function handleRequest(
     responseHeaders.set('Cache-Control', 'no-cache');
   }
 
-  if (process.env.NODE_ENV !== 'development') {
-    responseHeaders.delete('Server-Timing');
-  }
-
   // eslint-disable-next-line testing-library/render-result-naming-convention
   const markup = renderToString(
     <RemixServer url={request.url} context={remixContext} />
