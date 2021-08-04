@@ -72,10 +72,6 @@ export default function handleRequest(
       'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
       // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy
       'Cross-Origin-Opener-Policy': 'same-origin',
-      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Cross-Origin_Resource_Policy_(CORP)
-      'Cross-Origin-Resource-Policy': 'cross-origin',
-      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy
-      'Cross-Origin-Embedder-Policy': 'require-corp',
     },
   });
 }
