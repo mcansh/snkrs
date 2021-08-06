@@ -122,7 +122,7 @@ const action: ActionFunction = ({ request }) =>
           colorway: valid.colorway,
           model: valid.model,
           price: valid.price,
-          purchaseDate: valid.purchaseDate,
+          purchaseDate: valid.purchaseDate.toISOString(),
           retailPrice: valid.retailPrice,
           size: valid.size,
           imagePublicId,

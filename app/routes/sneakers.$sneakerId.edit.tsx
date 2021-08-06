@@ -160,12 +160,14 @@ const action: ActionFunction = ({ request, params }) =>
           imagePublicId: data.image,
           model: data.model,
           price,
-          purchaseDate: data.purchaseDate,
+          purchaseDate: new Date(data.purchaseDate).toISOString(),
           retailPrice,
           size: Number(data.size),
           sold: data.sold,
           soldDate:
-            data.sold && data.soldDate ? new Date(data.soldDate) : undefined,
+            data.sold && data.soldDate
+              ? new Date(data.soldDate).toISOString()
+              : undefined,
           soldPrice:
             data.sold && data.soldPrice ? Number(data.soldPrice) : undefined,
         },
