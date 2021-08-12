@@ -1,7 +1,6 @@
 {
   "typescript.tsdk": "node_modules/typescript/lib",
   "search.exclude": {
-    "**/.next": true,
     "**/prisma/migrations": true
   }
 }
