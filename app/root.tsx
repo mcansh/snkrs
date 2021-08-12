@@ -16,7 +16,6 @@ import { json } from 'remix-utils';
 import globalCSS from './styles/global.css';
 import interCSS from './styles/inter.css';
 import { flashMessageKey } from './constants';
-import { safeParse } from './utils/safe-parse';
 import { Notifications } from './notifications';
 import refreshClockwise from './icons/refresh-clockwise.svg';
 import { getSession, commitSession } from './session';
@@ -81,12 +80,10 @@ const loader: LoaderFunction = async ({ request }) => {
   const session = await getSession(request.headers.get('Cookie'));
   const flash = session.get(flashMessageKey) as string | undefined;
 
-  const parsed = flash ? safeParse(flash) : flash;
-
-  if (parsed) {
+  if (flash) {
     return json<RouteData>(
       {
-        flash: parsed,
+        flash,
         ENV: {
           FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
           FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
@@ -101,7 +98,7 @@ const loader: LoaderFunction = async ({ request }) => {
   }
 
   return json<RouteData>({
-    flash: parsed,
+    flash: undefined,
     ENV: {
       FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
       FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
