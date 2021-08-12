@@ -17,6 +17,11 @@ module.exports = {
       },
     },
     {
+      name: 'Redis',
+      script: 'redis-server /usr/local/etc/redis.conf',
+      ignore_watch: ['.'],
+    },
+    {
       name: 'Remix',
       script: 'remix run',
       ignore_watch: ['.'],
