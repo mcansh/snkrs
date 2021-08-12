@@ -1,11 +1,5 @@
 import * as React from 'react';
-import {
-  useRouteData,
-  block,
-  redirect,
-  Form,
-  usePendingFormSubmit,
-} from 'remix';
+import { block, Form, redirect, useActionData, useTransition } from 'remix';
 import { ValidationError } from 'yup';
 import { json, parseBody } from 'remix-utils';
 
@@ -25,7 +19,6 @@ import refreshIcon from '../icons/refresh-clockwise.svg';
 import exclamationCircleIcon from '../icons/outline/exclamation-circle.svg';
 import loginIcon from '../icons/outline/login.svg';
 import { LoadingButton } from '../components/loading-button';
-import { safeParse } from '../utils/safe-parse';
 import { yupToObject } from '../lib/yup-to-object';
 
 import type { LoadingButtonProps } from '../components/loading-button';
@@ -50,10 +43,8 @@ const links: LinksFunction = () => [
   },
 ];
 
-interface RouteData {
-  joinError?: Partial<RegisterSchema> & {
-    generic?: string;
-  };
+interface ActionData {
+  joinError?: Partial<RegisterSchema> | { generic: string };
 }
 
 const loader: LoaderFunction = ({ request }) =>
@@ -74,15 +65,7 @@ const loader: LoaderFunction = ({ request }) =>
       session.unset(sessionKey);
     }
 
-    const joinError = session.get('joinError') as string | undefined;
-
-    if (joinError) {
-      const parsed = safeParse(joinError);
-
-      return json<RouteData>({ joinError: parsed });
-    }
-
-    return json<RouteData>({});
+    return json({});
   });
 
 const action: ActionFunction = ({ request }) =>
@@ -143,19 +126,14 @@ const action: ActionFunction = ({ request }) =>
       console.error(error);
       if (error instanceof ValidationError) {
         const aggregateErrors = yupToObject<RegisterSchema>(error);
-
-        session.flash('joinError', JSON.stringify(aggregateErrors));
-        return redirect(`/join`);
+        return json<ActionData>({ joinError: aggregateErrors });
       }
 
-      if (error instanceof UsernameTakenJoinError) {
-        session.flash('joinError', JSON.stringify({ generic: error.message }));
-        return redirect(`/join`);
-      }
-
-      if (error instanceof EmailTakenJoinError) {
-        session.flash('joinError', JSON.stringify({ generic: error.message }));
-        return redirect(`/join`);
+      if (
+        error instanceof UsernameTakenJoinError ||
+        error instanceof EmailTakenJoinError
+      ) {
+        return json<ActionData>({ joinError: { generic: error.message } });
       }
 
       session.flash(
@@ -172,8 +150,10 @@ const meta: MetaFunction = () => ({
 });
 
 const JoinPage: React.VFC = () => {
-  const pendingForm = usePendingFormSubmit();
-  const data = useRouteData<RouteData>();
+  const transition = useTransition();
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  const actionData = useActionData() as ActionData | undefined;
+
   const [state, setState] = React.useState<LoadingButtonProps['state']>('idle');
   const timerRef = React.useRef<NodeJS.Timeout>();
 
@@ -205,9 +185,9 @@ const JoinPage: React.VFC = () => {
   };
 
   React.useEffect(() => {
-    if (pendingForm) {
+    if (transition.type === 'submission') {
       setState('loading');
-    } else if (data.joinError) {
+    } else if (actionData?.joinError) {
       setState('error');
       timerRef.current = setTimeout(() => {
         setState('idle');
@@ -221,19 +201,22 @@ const JoinPage: React.VFC = () => {
         clearTimeout(timerRef.current);
       }
     };
-  }, [data.joinError, pendingForm]);
+  }, [actionData?.joinError, transition.state, transition.type]);
 
   return (
     <div className="w-11/12 max-w-lg py-8 mx-auto">
-      {data.joinError?.generic && (
+      {actionData?.joinError?.generic && (
         <div className="px-4 py-2 mb-2 text-sm text-white bg-red-500 rounded">
-          {data.joinError.generic}
+          {actionData.joinError.generic}
         </div>
       )}
 
       <h1 className="pb-2 text-2xl font-medium">Join Snkrs</h1>
       <Form method="post" className="space-y-4">
-        <fieldset disabled={!!pendingForm} className="flex flex-col space-y-4">
+        <fieldset
+          disabled={transition.type === 'submission'}
+          className="flex flex-col space-y-4"
+        >
           <label htmlFor="givenName">
             <span>First Name:</span>
             <input
@@ -244,7 +227,9 @@ const JoinPage: React.VFC = () => {
               autoComplete="given-name"
             />
           </label>
-          {data.joinError?.givenName && <p>{data.joinError.givenName}</p>}
+          {actionData?.joinError?.givenName && (
+            <p>{actionData.joinError.givenName}</p>
+          )}
           <label htmlFor="familyName">
             <span>Last Name:</span>
             <input
@@ -255,7 +240,9 @@ const JoinPage: React.VFC = () => {
               autoComplete="family-name"
             />
           </label>
-          {data.joinError?.familyName && <p>{data.joinError.familyName}</p>}
+          {actionData?.joinError?.familyName && (
+            <p>{actionData.joinError.familyName}</p>
+          )}
           <label htmlFor="username">
             <span>Username:</span>
             <input
@@ -266,7 +253,9 @@ const JoinPage: React.VFC = () => {
               autoComplete="username"
             />
           </label>
-          {data.joinError?.username && <p>{data.joinError.username}</p>}
+          {actionData?.joinError?.username && (
+            <p>{actionData.joinError.username}</p>
+          )}
           <label htmlFor="email">
             <span>Email:</span>
             <input
@@ -277,7 +266,7 @@ const JoinPage: React.VFC = () => {
               autoComplete="email"
             />
           </label>
-          {data.joinError?.email && <p>{data.joinError.email}</p>}
+          {actionData?.joinError?.email && <p>{actionData.joinError.email}</p>}
           <label htmlFor="password">
             <span>Password:</span>
             <input
@@ -287,7 +276,9 @@ const JoinPage: React.VFC = () => {
               id="password"
             />
           </label>
-          {data.joinError?.password && <p>{data.joinError.password}</p>}
+          {actionData?.joinError?.password && (
+            <p>{actionData.joinError.password}</p>
+          )}
           <LoadingButton
             type="submit"
             state={state}
