@@ -1,11 +1,5 @@
 import * as React from 'react';
-import {
-  block,
-  Form,
-  usePendingFormSubmit,
-  useActionData,
-  redirect,
-} from 'remix';
+import { block, Form, useActionData, redirect, useTransition } from 'remix';
 import { json, parseBody } from 'remix-utils';
 import { ValidationError } from 'yup';
 
@@ -125,11 +119,13 @@ const action: ActionFunction = ({ request }) =>
 
 const meta: MetaFunction = () => ({
   title: 'Log in',
+  description: 'show off your sneaker collection',
 });
 
 const LoginPage: React.VFC = () => {
   const errors = useActionData() as RouteData;
-  const pendingForm = usePendingFormSubmit();
+  const transition = useTransition();
+  const pendingForm = transition.formData;
   const [state, setState] = React.useState<LoadingButtonProps['state']>('idle');
   const timerRef = React.useRef<NodeJS.Timeout>();
 

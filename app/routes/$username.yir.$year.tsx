@@ -1,6 +1,6 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
-import { useRouteData } from 'remix';
+import { useLoaderData } from 'remix';
 import { endOfYear, startOfYear } from 'date-fns';
 import { json } from 'remix-utils';
 
@@ -99,7 +99,7 @@ const meta: MetaFunction = args => {
 };
 
 const SneakersYearInReview: React.VFC = () => {
-  const { user, year } = useRouteData<RouteData>();
+  const { user, year } = useLoaderData<RouteData>();
 
   if (!user || year > new Date().getFullYear()) {
     return <FourOhFour />;

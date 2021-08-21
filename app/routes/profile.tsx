@@ -1,11 +1,5 @@
 import * as React from 'react';
-import {
-  useRouteData,
-  redirect,
-  Form,
-  usePendingFormSubmit,
-  block,
-} from 'remix';
+import { useLoaderData, redirect, Form, block, useTransition } from 'remix';
 import { json } from 'remix-utils';
 import { ValidationError } from 'yup';
 
@@ -128,8 +122,9 @@ const links: LinksFunction = () => [
 ];
 
 const ProfilePage: RouteComponent = () => {
-  const data = useRouteData<RouteData>();
-  const pendingForm = usePendingFormSubmit();
+  const data = useLoaderData<RouteData>();
+  const transition = useTransition();
+  const pendingForm = transition.formData;
 
   const [state, setState] = React.useState<LoadingButtonProps['state']>('idle');
   const timerRef = React.useRef<NodeJS.Timeout>();

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Link, useRouteData } from 'remix';
+import { Link, useLoaderData } from 'remix';
 import { Prisma } from '@prisma/client';
 import uniqBy from 'lodash.uniqby';
 import { Disclosure } from '@headlessui/react';
@@ -204,7 +204,7 @@ const sortOptions = [
 ];
 
 const UserSneakersPage: RouteComponent = () => {
-  const data = useRouteData<RouteData>();
+  const data = useLoaderData<RouteData>();
 
   if (data.user == null) {
     return <FourOhFour />;

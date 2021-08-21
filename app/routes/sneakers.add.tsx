@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, usePendingFormSubmit, json, redirect } from 'remix';
+import { Form, json, redirect, useTransition } from 'remix';
 import { ValidationError } from 'yup';
 import slugify from 'slugify';
 import { parseBody } from 'remix-utils';
@@ -150,7 +150,8 @@ const action: ActionFunction = ({ request }) =>
   });
 
 const NewSneakerPage: React.VFC = () => {
-  const pendingForm = usePendingFormSubmit();
+  const transition = useTransition();
+  const pendingForm = transition.formData;
 
   return (
     <main className="container h-full p-4 pb-6 mx-auto">

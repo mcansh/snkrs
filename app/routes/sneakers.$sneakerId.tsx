@@ -1,6 +1,6 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
-import { Link, useRouteData } from 'remix';
+import { Link, useLoaderData } from 'remix';
 import { json } from 'remix-utils';
 
 import { formatDate } from '../utils/format-date';
@@ -137,7 +137,7 @@ function getEmoji(purchase: number, retail: number) {
 }
 
 const SneakerPage: React.VFC = () => {
-  const { sneaker, id, userCreatedSneaker } = useRouteData<RouteData>();
+  const { sneaker, id, userCreatedSneaker } = useLoaderData<RouteData>();
 
   if (!sneaker) {
     return (
