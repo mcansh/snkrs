@@ -2,6 +2,8 @@ import * as Yup from 'yup';
 import reservedEmailAddressesList from 'reserved-email-addresses-list/index.json';
 import reservedAdminList from 'reserved-email-addresses-list/admin-list.json';
 
+import type { RemoveIndex } from '../../@types/types';
+
 const registerSchema = Yup.object().shape({
   email: Yup.string().email().required(),
   givenName: Yup.string().required(),
@@ -15,6 +17,6 @@ const registerSchema = Yup.object().shape({
     ),
 });
 
-export type RegisterSchema = Yup.InferType<typeof registerSchema>;
+export type RegisterSchema = RemoveIndex<Yup.InferType<typeof registerSchema>>;
 
 export { registerSchema };

@@ -1,10 +1,11 @@
 import React from 'react';
-import { Form, json, redirect, useTransition } from 'remix';
+import { Form, json, redirect, usePendingFormSubmit } from 'remix';
 import { ValidationError } from 'yup';
 import slugify from 'slugify';
 import { parseBody } from 'remix-utils';
 import NumberFormat from 'react-number-format';
 import accounting from 'accounting';
+import type { ActionFunction, LoaderFunction } from 'remix';
 
 import {
   flashMessageKey,
@@ -17,9 +18,6 @@ import { flashMessage } from '../flash-message';
 import { cloudinary } from '../lib/cloudinary.server';
 import { withSession } from '../lib/with-session';
 import { sneakerSchema } from '../lib/schemas/sneaker';
-import { getCorrectUrl } from '../lib/get-correct-url';
-
-import type { ActionFunction, LoaderFunction } from 'remix';
 
 const meta = () => ({
   title: 'Add a sneaker to your collection',
@@ -28,7 +26,6 @@ const meta = () => ({
 const loader: LoaderFunction = ({ request }) =>
   withSession(request, session => {
     const userId = session.get(sessionKey) as string | undefined;
-    const url = getCorrectUrl(request);
 
     try {
       if (!userId) {
@@ -39,7 +36,7 @@ const loader: LoaderFunction = ({ request }) =>
     } catch (error: unknown) {
       if (error instanceof AuthorizationError) {
         session.flash(flashMessageKey, flashMessage(error.message, 'error'));
-        return redirect(`/login?${redirectAfterAuthKey}=${url.toString()}`);
+        return redirect(`/login?${redirectAfterAuthKey}=${request.url}`);
       } else {
         console.error(error);
       }
@@ -49,7 +46,6 @@ const loader: LoaderFunction = ({ request }) =>
 
 const action: ActionFunction = ({ request }) =>
   withSession(request, async session => {
-    const url = getCorrectUrl(request);
     try {
       const formData = await parseBody(request);
 
@@ -137,7 +133,7 @@ const action: ActionFunction = ({ request }) =>
       if (error instanceof AuthorizationError) {
         session.flash(flashMessageKey, flashMessage(error.message, 'error'));
 
-        return redirect(`/login?${redirectAfterAuthKey}=${url.toString()}`);
+        return redirect(`/login?${redirectAfterAuthKey}=${request.url}`);
       }
 
       if (error instanceof ValidationError) {
@@ -150,8 +146,7 @@ const action: ActionFunction = ({ request }) =>
   });
 
 const NewSneakerPage: React.VFC = () => {
-  const transition = useTransition();
-  const pendingForm = transition.formData;
+  const pendingForm = usePendingFormSubmit();
 
   return (
     <main className="container h-full p-4 pb-6 mx-auto">

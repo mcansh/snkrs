@@ -3,15 +3,21 @@ import {
   Links,
   Meta,
   Scripts,
-  useLoaderData,
   LiveReload,
-  useTransition,
+  useRouteData,
+  usePendingLocation,
 } from 'remix';
 import * as Fathom from 'fathom-client';
 import { Outlet } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import { json } from 'remix-utils';
+import type {
+  ErrorBoundaryComponent,
+  LinksFunction,
+  LoaderFunction,
+  MetaFunction,
+} from 'remix';
 
 import globalCSS from './styles/global.css';
 import interCSS from './styles/inter.css';
@@ -19,14 +25,7 @@ import { flashMessageKey } from './constants';
 import { Notifications } from './notifications';
 import refreshClockwise from './icons/refresh-clockwise.svg';
 import { getSession, commitSession } from './session';
-
-import type { Flash } from './@types/flash';
-import type {
-  ErrorBoundaryComponent,
-  LinksFunction,
-  LoaderFunction,
-  MetaFunction,
-} from 'remix';
+import type { Flash } from './@types/types';
 
 interface RouteData {
   flash?: Flash;
@@ -107,9 +106,9 @@ const loader: LoaderFunction = async ({ request }) => {
 };
 
 const App: React.VFC = () => {
-  const { flash, ENV } = useLoaderData<RouteData>();
-  const transition = useTransition();
-  const pendingLocation = transition.type === 'load';
+  const { flash, ENV } = useRouteData<RouteData>();
+
+  const pendingLocation = usePendingLocation();
 
   React.useEffect(() => {
     Fathom.load(ENV.FATHOM_SITE_ID, {

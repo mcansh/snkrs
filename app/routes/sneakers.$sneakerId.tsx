@@ -1,7 +1,9 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
-import { Link, useLoaderData } from 'remix';
+import { Link, useRouteData } from 'remix';
 import { json } from 'remix-utils';
+import type { Except } from 'type-fest';
+import type { LoaderFunction } from 'remix';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
@@ -11,9 +13,6 @@ import { sessionKey } from '../constants';
 import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
 import { redis, saveByPage } from '../lib/redis.server';
-
-import type { Except } from 'type-fest';
-import type { LoaderFunction } from 'remix';
 
 const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
@@ -137,7 +136,7 @@ function getEmoji(purchase: number, retail: number) {
 }
 
 const SneakerPage: React.VFC = () => {
-  const { sneaker, id, userCreatedSneaker } = useLoaderData<RouteData>();
+  const { sneaker, id, userCreatedSneaker } = useRouteData<RouteData>();
 
   if (!sneaker) {
     return (

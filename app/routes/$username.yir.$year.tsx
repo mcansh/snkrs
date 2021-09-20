@@ -1,8 +1,9 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
-import { useLoaderData } from 'remix';
+import { useRouteData } from 'remix';
 import { endOfYear, startOfYear } from 'date-fns';
 import { json } from 'remix-utils';
+import type { MetaFunction, LoaderFunction } from 'remix';
 
 import { SneakerCard } from '../components/sneaker';
 import { prisma } from '../db';
@@ -10,9 +11,6 @@ import { NotFoundError } from '../errors';
 import { redis, saveByPage } from '../lib/redis.server';
 
 import FourOhFour, { meta as fourOhFourMeta } from './404';
-
-import type { MetaFunction } from '@remix-run/react/routeModules';
-import type { LoaderFunction } from 'remix';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
   select: { username: true, sneakers: { include: { brand: true } } },
@@ -99,7 +97,7 @@ const meta: MetaFunction = args => {
 };
 
 const SneakersYearInReview: React.VFC = () => {
-  const { user, year } = useLoaderData<RouteData>();
+  const { user, year } = useRouteData<RouteData>();
 
   if (!user || year > new Date().getFullYear()) {
     return <FourOhFour />;
@@ -132,4 +130,4 @@ const SneakersYearInReview: React.VFC = () => {
 };
 
 export default SneakersYearInReview;
-export { headers, meta, loader };
+export { meta, loader };

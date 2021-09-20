@@ -2,7 +2,6 @@ import * as React from 'react';
 import { renderToString } from 'react-dom/server';
 import { RemixServer } from 'remix';
 import etag from 'etag';
-
 import type { EntryContext } from 'remix';
 
 // https://securityheaders.com
@@ -45,33 +44,36 @@ export default function handleRequest(
   const markupETag = etag(markup);
 
   if (markupETag === request.headers.get('If-None-Match')) {
-    return new Response(null, {
-      status: 304,
-    });
+    return new Response('', { status: 304 });
   }
+
+  responseHeaders.set('Content-Type', 'text/html');
+  responseHeaders.set('ETag', markupETag);
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+  responseHeaders.set('Content-Security-Policy', contentSecurityPolicy);
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
+  responseHeaders.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+  responseHeaders.set('X-Frame-Options', 'DENY');
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+  responseHeaders.set('X-Content-Type-Options', 'nosniff');
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-DNS-Prefetch-Control
+  responseHeaders.set('X-DNS-Prefetch-Control', 'on');
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+  responseHeaders.set(
+    'Strict-Transport-Security',
+    'max-age=31536000; includeSubDomains; preload'
+  );
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy
+  responseHeaders.set(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=()'
+  );
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy
+  responseHeaders.set('Cross-Origin-Opener-Policy', 'same-origin');
 
   return new Response(`<!DOCTYPE html>${markup}`, {
     status: responseStatusCode,
-    headers: {
-      ...Object.fromEntries(responseHeaders),
-      'Content-Type': 'text/html',
-      ETag: markupETag,
-      // https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
-      'Content-Security-Policy': contentSecurityPolicy,
-      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
-      'Referrer-Policy': 'strict-origin-when-cross-origin',
-      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
-      'X-Frame-Options': 'DENY',
-      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
-      'X-Content-Type-Options': 'nosniff',
-      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-DNS-Prefetch-Control
-      'X-DNS-Prefetch-Control': 'on',
-      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
-      'Strict-Transport-Security': `max-age=31536000; includeSubDomains; preload`,
-      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Feature-Policy
-      'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy
-      'Cross-Origin-Opener-Policy': 'same-origin',
-    },
+    headers: responseHeaders,
   });
 }

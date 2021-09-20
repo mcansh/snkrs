@@ -1,5 +1,7 @@
 import * as Yup from 'yup';
 
+import type { RemoveIndex } from '../../@types/types';
+
 const sneakerSchema = Yup.object().shape({
   model: Yup.string().required(),
   colorway: Yup.string().required(),
@@ -14,6 +16,6 @@ const sneakerSchema = Yup.object().shape({
   soldPrice: Yup.number().notRequired().positive(),
 });
 
-type SneakerSchema = Yup.InferType<typeof sneakerSchema>;
+type SneakerSchema = RemoveIndex<Yup.InferType<typeof sneakerSchema>>;
 
 export { sneakerSchema, SneakerSchema };

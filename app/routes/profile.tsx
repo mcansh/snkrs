@@ -1,7 +1,20 @@
 import * as React from 'react';
-import { useLoaderData, redirect, Form, block, useTransition } from 'remix';
+import {
+  block,
+  Form,
+  redirect,
+  usePendingFormSubmit,
+  useRouteData,
+} from 'remix';
 import { json } from 'remix-utils';
 import { ValidationError } from 'yup';
+import type {
+  RouteComponent,
+  ActionFunction,
+  LoaderFunction,
+  MetaFunction,
+  LinksFunction,
+} from 'remix';
 
 import { getSession, destroySession } from '../session';
 import { sessionKey } from '../constants';
@@ -13,16 +26,8 @@ import saveIcon from '../icons/outline/save.svg';
 import checkIcon from '../icons/outline/check.svg';
 import refreshIcon from '../icons/refresh-clockwise.svg';
 import exclamationCircleIcon from '../icons/outline/exclamation-circle.svg';
-
 import type { LoadingButtonProps } from '../components/loading-button';
 import type { EditProfileSchema } from '../lib/schemas/edit-profile';
-import type {
-  RouteComponent,
-  ActionFunction,
-  LoaderFunction,
-  MetaFunction,
-  LinksFunction,
-} from 'remix';
 
 interface RouteData {
   user: {
@@ -122,9 +127,8 @@ const links: LinksFunction = () => [
 ];
 
 const ProfilePage: RouteComponent = () => {
-  const data = useLoaderData<RouteData>();
-  const transition = useTransition();
-  const pendingForm = transition.formData;
+  const data = useRouteData<RouteData>();
+  const pendingForm = usePendingFormSubmit();
 
   const [state, setState] = React.useState<LoadingButtonProps['state']>('idle');
   const timerRef = React.useRef<NodeJS.Timeout>();
@@ -212,6 +216,7 @@ const ProfilePage: RouteComponent = () => {
           </label>
           <LoadingButton
             type="submit"
+            disabled={!!pendingForm}
             state={state}
             text={<span>Save changes</span>}
             textLoading={<span>Saving...</span>}

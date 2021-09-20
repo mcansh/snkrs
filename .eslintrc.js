@@ -1,10 +1,5 @@
-const path = require('path');
-
 module.exports = {
   extends: ['@mcansh/eslint-config/typescript'],
-  parserOptions: {
-    project: [path.join(process.cwd(), 'app/tsconfig.json')],
-  },
   rules: {
     '@typescript-eslint/no-unsafe-assignment': 'off',
     'import/no-extraneous-dependencies': [

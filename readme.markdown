@@ -5,6 +5,7 @@ My Sneaker Collection
 ![](public/screenshot.jpg)
 
 ## Getting Started
+
 1. clone the repo
 2. install deps `npm ci`
 3. copy env.example to .env

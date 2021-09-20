@@ -1,7 +1,15 @@
 import * as React from 'react';
-import { block, Form, useActionData, redirect, useTransition } from 'remix';
+import {
+  block,
+  Form,
+  redirect,
+  usePendingFormSubmit,
+  useRouteData,
+} from 'remix';
 import { json, parseBody } from 'remix-utils';
 import { ValidationError } from 'yup';
+import type { MetaFunction } from '@remix-run/react/routeModules';
+import type { ActionFunction, LinksFunction, LoaderFunction } from 'remix';
 
 import {
   flashMessageKey,
@@ -20,17 +28,12 @@ import exclamationCircleIcon from '../icons/outline/exclamation-circle.svg';
 import loginIcon from '../icons/outline/login.svg';
 import { loginSchema } from '../lib/schemas/login';
 import { yupToObject } from '../lib/yup-to-object';
-
-import type { MetaFunction } from '@remix-run/react/routeModules';
 import type { LoginSchema } from '../lib/schemas/login';
 import type { LoadingButtonProps } from '../components/loading-button';
-import type { ActionFunction, LinksFunction, LoaderFunction } from 'remix';
 
-type RouteData =
-  | (Partial<LoginSchema> & {
-      generic?: string;
-    })
-  | undefined;
+interface RouteData {
+  loginError: (Partial<LoginSchema> & { generic?: string }) | undefined;
+}
 
 const links: LinksFunction = () => [
   block({
@@ -63,7 +66,9 @@ const loader: LoaderFunction = ({ request }) =>
       session.unset(sessionKey);
     }
 
-    return json({});
+    const loginError = session.get('loginError') as RouteData['loginError'];
+
+    return json<RouteData>({ loginError });
   });
 
 const action: ActionFunction = ({ request }) =>
@@ -105,15 +110,17 @@ const action: ActionFunction = ({ request }) =>
       console.error(error);
       if (error instanceof ValidationError) {
         const aggregateErrors = yupToObject<LoginSchema>(error);
-
-        return json(aggregateErrors);
+        session.flash('loginError', aggregateErrors);
+        return redirect(request.url);
       }
 
       if (error instanceof InvalidLoginError) {
-        return json({ generic: error.message });
+        session.flash('loginError', { generic: error.message });
+        return redirect(request.url);
       }
 
-      return json({ generic: 'something went wrong' });
+      session.flash('loginError', { generic: 'something went wrong' });
+      return redirect(request.url);
     }
   });
 
@@ -123,9 +130,8 @@ const meta: MetaFunction = () => ({
 });
 
 const LoginPage: React.VFC = () => {
-  const errors = useActionData() as RouteData;
-  const transition = useTransition();
-  const pendingForm = transition.formData;
+  const data = useRouteData<RouteData>();
+  const pendingForm = usePendingFormSubmit();
   const [state, setState] = React.useState<LoadingButtonProps['state']>('idle');
   const timerRef = React.useRef<NodeJS.Timeout>();
 
@@ -159,7 +165,7 @@ const LoginPage: React.VFC = () => {
   React.useEffect(() => {
     if (pendingForm) {
       setState('loading');
-    } else if (errors) {
+    } else if (data.loginError) {
       setState('error');
       timerRef.current = setTimeout(() => {
         setState('idle');
@@ -173,13 +179,13 @@ const LoginPage: React.VFC = () => {
         clearTimeout(timerRef.current);
       }
     };
-  }, [errors, pendingForm]);
+  }, [data.loginError, pendingForm]);
 
   return (
     <div className="w-11/12 max-w-lg py-8 mx-auto">
-      {errors?.generic && (
+      {data.loginError?.generic && (
         <div className="px-4 py-2 mb-2 text-sm text-white bg-red-500 rounded">
-          {errors.generic}
+          {data.loginError.generic}
         </div>
       )}
 
@@ -195,10 +201,11 @@ const LoginPage: React.VFC = () => {
               name="email"
               id="email"
               autoComplete="email"
+              autoFocus
             />
           </label>
-          {errors?.email && (
-            <p className="text-sm text-red-500">{errors.email}</p>
+          {data.loginError?.email && (
+            <p className="text-sm text-red-500">{data.loginError.email}</p>
           )}
           <label htmlFor="password">
             <span>Password:</span>
@@ -209,11 +216,12 @@ const LoginPage: React.VFC = () => {
               id="password"
             />
           </label>
-          {errors?.password && (
-            <p className="text-sm text-red-500">{errors.password}</p>
+          {data.loginError?.password && (
+            <p className="text-sm text-red-500">{data.loginError.password}</p>
           )}
 
           <LoadingButton
+            disabled={!!pendingForm}
             type="submit"
             state={state}
             text={<span>Log in</span>}

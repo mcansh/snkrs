@@ -1,12 +1,20 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
-import { Form, Link, useTransition, useLoaderData, redirect } from 'remix';
+import {
+  Form,
+  Link,
+  useRouteData,
+  redirect,
+  usePendingFormSubmit,
+} from 'remix';
 import { format, parseISO } from 'date-fns';
 import { json, parseBody } from 'remix-utils';
 import slugify from 'slugify';
 import clsx from 'clsx';
 import accounting from 'accounting';
 import NumberFormat from 'react-number-format';
+import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix';
+import type { Except } from 'type-fest';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/cloudinary';
@@ -21,11 +29,7 @@ import { prisma } from '../db';
 import { withSession } from '../lib/with-session';
 import { flashMessage } from '../flash-message';
 import { sneakerSchema } from '../lib/schemas/sneaker';
-import { getCorrectUrl } from '../lib/get-correct-url';
 import { cloudinary } from '../lib/cloudinary.server';
-
-import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix';
-import type { Except } from 'type-fest';
 
 const sneakerWithBrandAndUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
@@ -63,13 +67,6 @@ type RouteData =
 
 const loader: LoaderFunction = ({ params, request }) =>
   withSession(request, async session => {
-    const url = new URL(request.url);
-
-    // in development, remix loses the port
-    if (process.env.NODE_ENV === 'development') {
-      url.port = process.env.PORT ?? '3000';
-    }
-
     try {
       const sneaker = await prisma.sneaker.findUnique({
         where: { id: params.sneakerId },
@@ -102,7 +99,7 @@ const loader: LoaderFunction = ({ params, request }) =>
       });
     } catch (error: unknown) {
       if (error instanceof AuthorizationError) {
-        return redirect(`/login?${redirectAfterAuthKey}=${url.toString()}`);
+        return redirect(`/login?${redirectAfterAuthKey}=${request.url}`);
       } else {
         console.error(error);
       }
@@ -115,8 +112,6 @@ const action: ActionFunction = ({ request, params }) =>
   withSession(request, async session => {
     const userId = session.get(sessionKey) as string | undefined;
     const { sneakerId } = params;
-
-    const url = getCorrectUrl(request);
 
     try {
       const originalSneaker = await prisma.sneaker.findUnique({
@@ -227,17 +222,17 @@ const action: ActionFunction = ({ request, params }) =>
         flashMessage(`Updated ${sneakerId}`, 'success')
       );
 
-      return redirect(url.pathname);
+      return redirect(request.url);
     } catch (error: unknown) {
       if (error instanceof Error) {
         session.flash(flashMessageKey, flashMessage(error.message, 'error'));
       }
       if (error instanceof AuthorizationError) {
-        return redirect(`/login?${redirectAfterAuthKey}=${url.toString()}`);
+        return redirect(`/login?${redirectAfterAuthKey}=${request.url}`);
       }
 
       console.error(error);
-      return redirect(url.pathname);
+      return redirect(request.url);
     }
   });
 
@@ -250,9 +245,8 @@ const meta: MetaFunction = ({ data }: { data: RouteData }) => ({
 const formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
 const EditSneakerPage: React.VFC = () => {
-  const { sneaker, id } = useLoaderData<RouteData>();
-  const transition = useTransition();
-  const pendingForm = transition.formData;
+  const { sneaker, id } = useRouteData<RouteData>();
+  const pendingForm = usePendingFormSubmit();
   const [sold, setSold] = React.useState(sneaker?.sold ?? false);
 
   if (!sneaker) {
