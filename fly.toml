@@ -4,12 +4,18 @@ app = "snkrs"
 
 kill_signal = "SIGINT"
 kill_timeout = 5
+processes = []
 
 [env]
 
+[experimental]
+  allowed_public_ports = []
+  auto_rollback = true
+
 [[services]]
-  http_checks = []
+http_checks = []
   internal_port = 3000
+  processes = ["app"]
   protocol = "tcp"
   script_checks = []
 
@@ -31,3 +37,7 @@ kill_timeout = 5
     interval = "15s"
     restart_limit = 6
     timeout = "2s"
+
+[[statics]]
+  guest_path = "/app/public"
+  url_prefix = "/"
