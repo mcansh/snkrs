@@ -22,12 +22,14 @@
     "type-check": "tsc",
     "validate": "npm-run-all --parallel lint type-check test",
     "db:migrate": "prisma migrate dev --preview-feature",
-    "prepare": "husky install && remix setup && npm run generate",
+    "prepare": "husky install && remix setup && metronome setup && npm run generate",
     "clean": "del .cache build public/build app/styles app/icons/{solid,outline}",
     "start": "remix-serve ./build"
   },
   "dependencies": {
     "@headlessui/react": "1.4.1",
+    "@metronome-sh/node": "1.0.5",
+    "@metronome-sh/react": "1.0.5",
     "@prisma/client": "3.0.2",
     "@remix-run/node": "0.18.2",
     "@remix-run/react": "0.18.2",
