@@ -1,5 +1,4 @@
 import * as React from 'react';
-
 import type { MetaFunction, RouteComponent } from 'remix';
 
 const meta: MetaFunction = () => ({

@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { useToaster } from 'react-hot-toast';
 import { Portal, Transition } from '@headlessui/react';
+import type { Toast } from 'react-hot-toast/dist/core/types';
 
 import x from './icons/solid/x.svg';
-
-import type { Toast } from 'react-hot-toast/dist/core/types';
 
 const Notification: React.VFC<
   Toast & { startPause: VoidFunction; endPause: VoidFunction }

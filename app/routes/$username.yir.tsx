@@ -1,5 +1,4 @@
 import { redirect } from 'remix';
-
 import type { LoaderFunction } from 'remix';
 
 const loader: LoaderFunction = ({ params: { username } }) => {

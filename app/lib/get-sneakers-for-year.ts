@@ -1,6 +1,6 @@
-import { prisma } from '../db';
-
 import type { Prisma } from '@prisma/client';
+
+import { prisma } from '../db';
 
 function getYearInSneakers(year: number, order: Prisma.SortOrder = 'asc') {
   return prisma.sneaker.findMany({

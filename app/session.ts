@@ -1,10 +1,9 @@
 import { createSessionStorage } from 'remix';
 import cuid from 'cuid';
 import { addWeeks, differenceInMilliseconds } from 'date-fns';
+import type { SessionStorage } from 'remix';
 
 import { redis } from './lib/redis.server';
-
-import type { SessionStorage } from 'remix';
 
 function createRedisSessionStorage({
   cookie,
