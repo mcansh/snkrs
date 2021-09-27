@@ -17,7 +17,7 @@ import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix';
 import type { Except } from 'type-fest';
 
 import { formatDate } from '../utils/format-date';
-import { getCloudinaryURL } from '../utils/cloudinary';
+import { getCloudinaryURL } from '../utils/get-cloudinary-url';
 import { formatMoney } from '../utils/format-money';
 import {
   flashMessageKey,
@@ -25,7 +25,7 @@ import {
   sessionKey,
 } from '../constants';
 import { AuthorizationError, NotFoundError } from '../errors';
-import { prisma } from '../db';
+import { prisma } from '../db.server';
 import { withSession } from '../lib/with-session';
 import { flashMessage } from '../flash-message';
 import { sneakerSchema } from '../lib/schemas/sneaker';

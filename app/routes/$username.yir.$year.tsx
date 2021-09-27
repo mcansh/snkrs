@@ -6,7 +6,7 @@ import { json } from 'remix-utils';
 import type { MetaFunction, LoaderFunction } from 'remix';
 
 import { SneakerCard } from '../components/sneaker';
-import { prisma } from '../db';
+import { prisma } from '../db.server';
 import { NotFoundError } from '../errors';
 import { redis, saveByPage } from '../lib/redis.server';
 

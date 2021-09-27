@@ -2,7 +2,7 @@ import { redirect } from 'remix';
 import type { LoaderFunction } from 'remix';
 
 import { flashMessageKey, sessionKey } from '../constants';
-import { prisma } from '../db';
+import { prisma } from '../db.server';
 import { flashMessage } from '../flash-message';
 import { commitSession, getSession } from '../session';
 

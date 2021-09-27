@@ -12,7 +12,7 @@ import {
   redirectAfterAuthKey,
   sessionKey,
 } from '../constants';
-import { prisma } from '../db';
+import { prisma } from '../db.server';
 import { AuthorizationError } from '../errors';
 import { flashMessage } from '../flash-message';
 import { cloudinary } from '../lib/cloudinary.server';

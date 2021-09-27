@@ -6,4 +6,7 @@ module.exports = {
   collectCoverage: true,
   setupFilesAfterEnv: ['@testing-library/jest-dom/extend-expect'],
   moduleDirectories: ['node_modules', './'],
+  moduleNameMapper: {
+    '^~/(.*)$': '<rootDir>/app/$1',
+  },
 };

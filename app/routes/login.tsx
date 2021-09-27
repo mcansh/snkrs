@@ -19,7 +19,7 @@ import {
 import { InvalidLoginError } from '../errors';
 import { flashMessage } from '../flash-message';
 import { verify } from '../lib/auth';
-import { prisma } from '../db';
+import { prisma } from '../db.server';
 import { withSession } from '../lib/with-session';
 import { LoadingButton } from '../components/loading-button';
 import checkIcon from '../icons/outline/check.svg';

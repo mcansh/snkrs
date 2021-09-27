@@ -6,11 +6,11 @@ import type { Except } from 'type-fest';
 import type { LoaderFunction } from 'remix';
 
 import { formatDate } from '../utils/format-date';
-import { getCloudinaryURL } from '../utils/cloudinary';
+import { getCloudinaryURL } from '../utils/get-cloudinary-url';
 import { formatMoney } from '../utils/format-money';
 import { copy } from '../utils/copy';
 import { sessionKey } from '../constants';
-import { prisma } from '../db';
+import { prisma } from '../db.server';
 import { withSession } from '../lib/with-session';
 import { redis, saveByPage } from '../lib/redis.server';
 

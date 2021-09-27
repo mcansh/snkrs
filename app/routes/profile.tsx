@@ -18,7 +18,7 @@ import type {
 
 import { getSession, destroySession } from '../session';
 import { sessionKey } from '../constants';
-import { prisma } from '../db';
+import { prisma } from '../db.server';
 import { editProfile } from '../lib/schemas/edit-profile';
 import { yupToObject } from '../lib/yup-to-object';
 import { LoadingButton } from '../components/loading-button';

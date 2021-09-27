@@ -15,7 +15,7 @@ import {
   redirectAfterAuthKey,
   sessionKey,
 } from '../constants';
-import { prisma } from '../db';
+import { prisma } from '../db.server';
 import { flashMessage } from '../flash-message';
 import { EmailTakenJoinError, UsernameTakenJoinError } from '../errors';
 import { registerSchema } from '../lib/schemas/join';

@@ -1,4 +1,4 @@
-import { getCloudinaryURL } from '../../utils/cloudinary';
+import { getCloudinaryURL } from '../../utils/get-cloudinary-url';
 
 describe('generates a cloudinary url from publicId', () => {
   it('uses the base config', () => {

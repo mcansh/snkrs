@@ -12,7 +12,7 @@ import type {
   HeadersFunction,
 } from 'remix';
 
-import { prisma } from '../db';
+import { prisma } from '../db.server';
 import { NotFoundError } from '../errors';
 import x from '../icons/outline/x.svg';
 import menu from '../icons/outline/menu.svg';
