@@ -1,9 +1,7 @@
 const defaultTheme = require('tailwindcss/defaultTheme');
 
 module.exports = {
-  purge: {
-    content: ['./app/**/*.{js,ts,tsx,md,mdx}', './remix.config.js'],
-  },
+  content: ['./app/**/*.{js,ts,tsx,md,mdx}', './remix.config.js'],
   theme: {
     extend: {
       fontFamily: {
