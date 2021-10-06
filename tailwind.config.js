@@ -2,6 +2,7 @@ const defaultTheme = require('tailwindcss/defaultTheme');
 
 module.exports = {
   content: ['./app/**/*.{js,ts,tsx,md,mdx}', './remix.config.js'],
+  darkMode: 'media',
   theme: {
     extend: {
       fontFamily: {
