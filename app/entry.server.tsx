@@ -18,7 +18,7 @@ const cspSettings = {
   'connect-src': [
     ...(process.env.NODE_ENV === 'production'
       ? ['https://snkrs.mcan.sh']
-      : ['ws://localhost:8002', "'self'"]),
+      : ['ws://localhost:3001', "'self'"]),
   ],
 };
 
@@ -42,6 +42,10 @@ export default function handleRequest(
   );
 
   const markupETag = etag(markup);
+
+  if (markupETag === request.headers.get('If-None-Match')) {
+    return new Response('', { status: 304 });
+  }
 
   responseHeaders.set('Content-Type', 'text/html');
   responseHeaders.set('ETag', markupETag);
@@ -67,10 +71,6 @@ export default function handleRequest(
   );
   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy
   responseHeaders.set('Cross-Origin-Opener-Policy', 'same-origin');
-
-  if (markupETag === request.headers.get('If-None-Match')) {
-    return new Response('', { status: 304, headers: responseHeaders });
-  }
 
   return new Response(`<!DOCTYPE html>${markup}`, {
     status: responseStatusCode,
