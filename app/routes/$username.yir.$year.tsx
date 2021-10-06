@@ -120,7 +120,7 @@ const SneakersYearInReview: React.VFC = () => {
         {new Date().getFullYear() === year && ` and counting`}
       </h1>
 
-      <ul className="grid grid-cols-1 gap-2 sm:gap-3 md:gap-4 sm:grid-cols-2 md:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-2 sm:gap-x-6 gap-y-8 lg:grid-cols-4 xl:gap-x-8">
         {user.sneakers.map(sneaker => (
           <SneakerCard key={sneaker.id} {...sneaker} />
         ))}
