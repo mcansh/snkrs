@@ -15,3 +15,7 @@ app/icons/outline
 
 # fly vpn
 wireguard.conf
+
+# https://npm.im/yalc
+.yalc
+yalc.lock

@@ -1,11 +1,5 @@
 import * as React from 'react';
-import {
-  block,
-  Form,
-  redirect,
-  usePendingFormSubmit,
-  useRouteData,
-} from 'remix';
+import { Form, redirect, usePendingFormSubmit, useRouteData } from 'remix';
 import { json } from 'remix-utils';
 import { ValidationError } from 'yup';
 import type {
@@ -114,12 +108,6 @@ const meta: MetaFunction = () => ({
 });
 
 const links: LinksFunction = () => [
-  block({
-    rel: 'preload',
-    href: saveIcon,
-    as: 'image',
-    type: 'image/svg+xml',
-  }),
   {
     href: LoadingButton.styles,
     rel: 'stylesheet',

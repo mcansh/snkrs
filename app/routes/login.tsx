@@ -1,11 +1,5 @@
 import * as React from 'react';
-import {
-  block,
-  Form,
-  redirect,
-  usePendingFormSubmit,
-  useRouteData,
-} from 'remix';
+import { Form, redirect, usePendingFormSubmit, useRouteData } from 'remix';
 import { json, parseBody } from 'remix-utils';
 import { ValidationError } from 'yup';
 import type { MetaFunction } from '@remix-run/react/routeModules';
@@ -36,12 +30,6 @@ interface RouteData {
 }
 
 const links: LinksFunction = () => [
-  block({
-    rel: 'preload',
-    href: loginIcon,
-    as: 'image',
-    type: 'image/svg+xml',
-  }),
   {
     href: LoadingButton.styles,
     rel: 'stylesheet',

@@ -1,5 +1,4 @@
-import * as React from 'react';
-import { Link, useRouteData } from 'remix';
+import { Link, useLoaderData } from 'remix';
 import { Prisma } from '@prisma/client';
 import uniqBy from 'lodash.uniqby';
 import { Disclosure } from '@headlessui/react';
@@ -60,8 +59,69 @@ const loader: LoaderFunction = async ({ params, request }) => {
 
   const [cachedDataMS, cachedData] = await time(() => redis.get(cacheKey));
 
-  if (cachedData) {
-    const user = JSON.parse(cachedData) as UserWithSneakers;
+  try {
+    if (cachedData) {
+      const user = JSON.parse(cachedData) as UserWithSneakers;
+
+      const [sessionUserTime, sessionUser] = userId
+        ? await time(() =>
+            prisma.user.findUnique({
+              where: {
+                id: userId,
+              },
+              select: {
+                givenName: true,
+                id: true,
+              },
+            })
+          )
+        : [0, undefined];
+
+      const sneakers = selectedBrands.length
+        ? user.sneakers.filter(sneaker =>
+            selectedBrands.includes(sneaker.brand.slug)
+          )
+        : user.sneakers;
+
+      const uniqueBrands = uniqBy(
+        user.sneakers.map(sneaker => sneaker.brand),
+        'name'
+      ).sort((a, b) => a.name.localeCompare(b.name));
+
+      const data: RouteData = {
+        user: { ...user, sneakers },
+        brands: uniqueBrands,
+        selectedBrands,
+        sort: sortQuery === 'asc' ? 'asc' : 'desc',
+        sessionUser,
+      };
+
+      return json<RouteData>(data, {
+        headers: {
+          'Set-Cookie': sessionUser ? await commitSession(session) : '',
+          'Server-Timing': `user;dur=${cachedDataMS}, sessionUser;dur=${sessionUserTime}`,
+        },
+      });
+    }
+
+    const [userTime, user] = await time(() =>
+      prisma.user.findUnique({
+        where: {
+          username: params.username,
+        },
+        select: {
+          username: true,
+          id: true,
+          fullName: true,
+          sneakers: {
+            include: { brand: true },
+            orderBy: {
+              purchaseDate: sort,
+            },
+          },
+        },
+      })
+    );
 
     const [sessionUserTime, sessionUser] = userId
       ? await time(() =>
@@ -77,6 +137,10 @@ const loader: LoaderFunction = async ({ params, request }) => {
         )
       : [0, undefined];
 
+    if (!user) {
+      throw new NotFoundError();
+    }
+
     const sneakers = selectedBrands.length
       ? user.sneakers.filter(sneaker =>
           selectedBrands.includes(sneaker.brand.slug)
@@ -87,6 +151,10 @@ const loader: LoaderFunction = async ({ params, request }) => {
       user.sneakers.map(sneaker => sneaker.brand),
       'name'
     ).sort((a, b) => a.name.localeCompare(b.name));
+
+    const [cacheMS] = await time(() =>
+      saveByPage(cacheKey, user, 60 * 5 * 1000)
+    );
 
     const data: RouteData = {
       user: { ...user, sneakers },
@@ -99,75 +167,13 @@ const loader: LoaderFunction = async ({ params, request }) => {
     return json<RouteData>(data, {
       headers: {
         'Set-Cookie': sessionUser ? await commitSession(session) : '',
-        'Server-Timing': `user;dur=${cachedDataMS}, sessionUser;dur=${sessionUserTime}`,
+        'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}; cache;dur=${cacheMS}`,
       },
     });
+  } catch (error: unknown) {
+    console.error(error);
+    return json<RouteData>({ brands: [], selectedBrands: [] });
   }
-
-  const [userTime, user] = await time(() =>
-    prisma.user.findUnique({
-      where: {
-        username: params.username,
-      },
-      select: {
-        username: true,
-        id: true,
-        fullName: true,
-        sneakers: {
-          include: { brand: true },
-          orderBy: {
-            purchaseDate: sort,
-          },
-        },
-      },
-    })
-  );
-
-  const [sessionUserTime, sessionUser] = userId
-    ? await time(() =>
-        prisma.user.findUnique({
-          where: {
-            id: userId,
-          },
-          select: {
-            givenName: true,
-            id: true,
-          },
-        })
-      )
-    : [0, undefined];
-
-  if (!user) {
-    throw new NotFoundError();
-  }
-
-  const sneakers = selectedBrands.length
-    ? user.sneakers.filter(sneaker =>
-        selectedBrands.includes(sneaker.brand.slug)
-      )
-    : user.sneakers;
-
-  const uniqueBrands = uniqBy(
-    user.sneakers.map(sneaker => sneaker.brand),
-    'name'
-  ).sort((a, b) => a.name.localeCompare(b.name));
-
-  const [cacheMS] = await time(() => saveByPage(cacheKey, user, 60 * 5 * 1000));
-
-  const data: RouteData = {
-    user: { ...user, sneakers },
-    brands: uniqueBrands,
-    selectedBrands,
-    sort: sortQuery === 'asc' ? 'asc' : 'desc',
-    sessionUser,
-  };
-
-  return json<RouteData>(data, {
-    headers: {
-      'Set-Cookie': sessionUser ? await commitSession(session) : '',
-      'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}; cache;dur=${cacheMS}`,
-    },
-  });
 };
 
 const headers: HeadersFunction = ({ loaderHeaders }) => ({
@@ -203,7 +209,7 @@ const sortOptions = [
 ];
 
 const UserSneakersPage: RouteComponent = () => {
-  const data = useRouteData<RouteData>();
+  const data = useLoaderData<RouteData>();
 
   if (data.user == null) {
     return <FourOhFour />;

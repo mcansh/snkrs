@@ -1,11 +1,5 @@
 import * as React from 'react';
-import {
-  block,
-  Form,
-  redirect,
-  usePendingFormSubmit,
-  useRouteData,
-} from 'remix';
+import { Form, redirect, usePendingFormSubmit, useRouteData } from 'remix';
 import { ValidationError } from 'yup';
 import { json, parseBody } from 'remix-utils';
 
@@ -36,12 +30,6 @@ import type {
 } from '../@types';
 
 const links: TypedLinksFunction = () => [
-  block({
-    rel: 'preload',
-    href: loginIcon,
-    as: 'image',
-    type: 'image/svg+xml',
-  }),
   {
     href: LoadingButton.styles,
     rel: 'stylesheet',
