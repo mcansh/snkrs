@@ -9,6 +9,7 @@ module.exports = {
           '__tests__/**/*',
           'lint-staged.config.js',
           'postcss.config.js',
+          'scripts/heroicon-symbols.mjs',
           'tailwind.config.js',
           'pm2.config.js',
         ],
