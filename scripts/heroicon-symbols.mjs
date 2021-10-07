@@ -1,9 +1,8 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import path from 'path';
 import { promises as fs } from 'fs';
 
 import makeDir from 'make-dir';
-import { optimize, extendDefaultPlugins, createContentItem } from 'svgo';
+import { optimize, createContentItem } from 'svgo';
 
 const HEROCIONS_PATH = path.join(process.cwd(), 'node_modules/heroicons');
 const HEROCIONS_SOLID_PATH = path.join(HEROCIONS_PATH, 'solid');
@@ -21,14 +20,19 @@ async function wrapSymbol(inputPath, outputDir) {
 
   const result = optimize(content, {
     path: inputPath,
-    plugins: extendDefaultPlugins([
+    plugins: [
       {
-        name: 'removeViewBox',
-        active: false,
-      },
-      {
-        name: 'removeDimensions',
-        active: true,
+        name: 'preset-default',
+        params: {
+          overrides: {
+            removeViewBox: {
+              active: false,
+            },
+            removeDimensions: {
+              active: true,
+            },
+          },
+        },
       },
       {
         name: 'wrapInSymbol',
@@ -58,7 +62,7 @@ async function wrapSymbol(inputPath, outputDir) {
           }
         },
       },
-    ]),
+    ],
   });
 
   const optimizedSvgString = result.data;
