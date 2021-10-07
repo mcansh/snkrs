@@ -6,7 +6,7 @@ const cloudinary = new Cloudinary({ cloud_name: 'dof0zryca', secure: true });
 function getCloudinaryURL(
   publicId: string,
   transformOptions: Transformation.Options = {}
-) {
+): string {
   const transforms: Transformation.Options = {
     quality: 'auto',
     fetchFormat: 'auto',
@@ -15,14 +15,7 @@ function getCloudinaryURL(
     ...transformOptions,
   };
 
-  const sortedTransforms = Object.keys(transforms)
-    .sort((a, b) => a.localeCompare(b))
-    .reduce<Transformation.Options>((accumulator, currentValue) => {
-      accumulator[currentValue] = transforms[currentValue];
-      return accumulator;
-    }, {});
-
-  return cloudinary.url(publicId, sortedTransforms);
+  return cloudinary.url(publicId, transforms);
 }
 
 export { getCloudinaryURL };

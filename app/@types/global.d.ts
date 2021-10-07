@@ -3,6 +3,7 @@ declare namespace NodeJS {
     CLOUDINARY_UPLOAD_PRESET: string;
     CLOUDINARY_UPLOAD_URL: string;
     CLOUDINARY_URL: string;
+    CLOUDINARY_CLOUD_NAME: string;
     DATABASE_URL: string;
     SESSION_PASSWORD: string;
     FATHOM_SITE_ID: string;
