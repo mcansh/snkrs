@@ -47,6 +47,7 @@ export default function handleRequest(
   }
 
   responseHeaders.set('Content-Type', 'text/html');
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag
   responseHeaders.set('ETag', markupETag);
   // https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
   responseHeaders.set('Content-Security-Policy', contentSecurityPolicy);

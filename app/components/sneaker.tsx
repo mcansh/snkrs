@@ -50,7 +50,7 @@ const SneakerCard: React.VFC<SneakerWithBrand> = ({
           className="object-contain pointer-events-none group-hover:opacity-75"
         />
         {sold && (
-          <span className="absolute flex items-center justify-center text-lg text-white bg-black text-opacity-60 bg-opacity-40">
+          <span className="absolute flex items-center justify-center text-2xl text-white bg-black text-opacity-60 bg-opacity-40">
             Sold!
           </span>
         )}

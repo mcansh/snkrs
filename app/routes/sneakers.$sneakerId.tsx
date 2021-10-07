@@ -167,7 +167,7 @@ const SneakerPage: React.VFC = () => {
     <main className="container h-full p-4 pb-6 mx-auto">
       <Link to={`/${sneaker.user.username}`}>Back</Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
-        <div className="relative" style={{ paddingBottom: '100%' }}>
+        <div className="relative w-full overflow-hidden bg-gray-100 rounded-lg aspect-w-1 aspect-h-1">
           <img
             src={getCloudinaryURL(sneaker.imagePublicId, {
               crop: 'pad',
@@ -177,10 +177,7 @@ const SneakerPage: React.VFC = () => {
             sizes="(min-width: 640px) 50vw, 100vw"
             srcSet={srcSet.join()}
             alt={title}
-            height={1200}
-            width={1200}
-            className="absolute inset-0 overflow-hidden rounded-md"
-            loading="lazy"
+            className="object-contain"
           />
         </div>
         <div className="flex flex-col justify-between">
