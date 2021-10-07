@@ -7,11 +7,13 @@ module.exports = {
       {
         devDependencies: [
           '__tests__/**/*',
+          '.eslintrc.js',
           'lint-staged.config.js',
+          'pm2.config.js',
           'postcss.config.js',
+          'prettier.config.js',
           'scripts/heroicon-symbols.mjs',
           'tailwind.config.js',
-          'pm2.config.js',
         ],
       },
     ],

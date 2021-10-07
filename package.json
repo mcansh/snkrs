@@ -6,7 +6,6 @@
   "license": "MIT",
   "author": "Logan McAnsh <logan@mcan.sh> (https://mcan.sh)",
   "main": "remix.config.js",
-  "prettier": "@mcansh/eslint-config/prettier.config",
   "sideEffects": false,
   "scripts": {
     "dev": "pm2-dev pm2.config.js",
@@ -17,7 +16,7 @@
     "build:remix": "remix build",
     "generate": "prisma generate",
     "gen:types": "gen-env-types .env -o app/@types/global.d.ts -e .",
-    "lint": "eslint --cache --ext .js,.ts,.tsx .",
+    "lint": "eslint --cache --ext .js,.jsx,.ts,.tsx,.mjs,.cjs .",
     "test": "jest --passWithNoTests",
     "type-check": "tsc",
     "validate": "run-p lint type-check test",
