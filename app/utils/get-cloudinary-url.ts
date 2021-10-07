@@ -16,7 +16,7 @@ function getCloudinaryURL(
   };
 
   const sortedTransforms = Object.keys(transforms)
-    .sort()
+    .sort((a, b) => a.localeCompare(b))
     .reduce<Transformation.Options>((accumulator, currentValue) => {
       accumulator[currentValue] = transforms[currentValue];
       return accumulator;

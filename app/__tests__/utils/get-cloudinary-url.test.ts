@@ -24,4 +24,26 @@ describe('generates a cloudinary url from publicId', () => {
       `"https://res.cloudinary.com/dof0zryca/image/upload/b_black,f_avif,q_80/some-id"`
     );
   });
+
+  it('sorts query by key', () => {
+    expect(
+      getCloudinaryURL('some-id', {
+        background: 'black',
+        fetchFormat: 'avif',
+        quality: 80,
+      })
+    ).toMatchInlineSnapshot(
+      `"https://res.cloudinary.com/dof0zryca/image/upload/b_black,f_avif,q_80/some-id"`
+    );
+
+    expect(
+      getCloudinaryURL('some-id', {
+        quality: 80,
+        background: 'black',
+        fetchFormat: 'avif',
+      })
+    ).toMatchInlineSnapshot(
+      `"https://res.cloudinary.com/dof0zryca/image/upload/b_black,f_avif,q_80/some-id"`
+    );
+  });
 });
