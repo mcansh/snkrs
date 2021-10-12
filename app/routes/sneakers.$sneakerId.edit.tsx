@@ -77,7 +77,7 @@ const loader: LoaderFunction = ({ params, request }) =>
       });
 
       if (!sneaker)
-        return json<RouteData>({ id: params.sneakerId }, { status: 404 });
+        return json<RouteData>({ id: params.sneakerId! }, { status: 404 });
 
       const userId = session.get(sessionKey) as string | undefined;
 
@@ -94,7 +94,7 @@ const loader: LoaderFunction = ({ params, request }) =>
           purchaseDate: sneaker.purchaseDate.toISOString(),
           soldDate: sneaker.soldDate?.toISOString(),
         },
-        id: params.sneakerId,
+        id: params.sneakerId!,
         userCreatedSneaker,
       });
     } catch (error: unknown) {

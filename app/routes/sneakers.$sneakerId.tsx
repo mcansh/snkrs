@@ -51,7 +51,7 @@ type RouteData =
 
 const loader: LoaderFunction = ({ params, request }) =>
   withSession(request, async session => {
-    const cacheKey = params.sneakerId;
+    const cacheKey = params.sneakerId!;
     const cachedSneaker = await redis.get(cacheKey);
 
     if (cachedSneaker) {
@@ -80,7 +80,7 @@ const loader: LoaderFunction = ({ params, request }) =>
     });
 
     if (!sneaker) {
-      return json<RouteData>({ id: params.sneakerId }, { status: 404 });
+      return json<RouteData>({ id: params.sneakerId! }, { status: 404 });
     }
 
     await saveByPage(cacheKey, sneaker, 60 * 5 * 1000);
@@ -95,7 +95,7 @@ const loader: LoaderFunction = ({ params, request }) =>
         purchaseDate: sneaker.purchaseDate.toISOString(),
         updatedAt: sneaker.updatedAt.toISOString(),
       },
-      id: params.sneakerId,
+      id: params.sneakerId!,
       userCreatedSneaker,
     });
   });

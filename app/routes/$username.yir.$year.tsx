@@ -30,9 +30,9 @@ type RouteData =
 
 const loader: LoaderFunction = async ({ params }) => {
   const { username } = params;
-  const year = parseInt(params.year, 10);
+  const year = parseInt(params.year!, 10);
 
-  const cacheKey = `${username}.yir.${params.year}`;
+  const cacheKey = `${username}.yir.${params.year!}`;
 
   const now = new Date();
   const date = new Date(year, now.getMonth(), now.getDate());
