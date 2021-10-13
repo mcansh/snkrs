@@ -1,6 +1,8 @@
 module.exports = {
   extends: ['@mcansh/eslint-config/typescript'],
   rules: {
+    // in remix, we throw responses to end up at our catchboundary
+    '@typescript-eslint/no-throw-literal': 'off',
     '@typescript-eslint/no-unsafe-assignment': 'off',
     'import/no-extraneous-dependencies': [
       'error',

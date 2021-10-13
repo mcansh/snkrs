@@ -6,6 +6,7 @@ import {
   LiveReload,
   useLoaderData,
   useTransition,
+  useCatch,
 } from 'remix';
 import * as Fathom from 'fathom-client';
 import { Outlet } from 'react-router-dom';
@@ -165,6 +166,32 @@ const App: React.VFC = () => {
   );
 };
 
+const CatchBoundary: React.VFC = () => {
+  const caught = useCatch();
+
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta property="og:type" content="website" />
+        <meta property="og:locale" content="en_US" />
+        <title>
+          {caught.status} {caught.statusText}
+        </title>
+        <Meta />
+        <Links />
+      </head>
+      <body className="min-h-screen w-[90%] max-w-5xl mx-auto pt-20 space-y-4 font-mono text-center text-white bg-blue-bsod">
+        <h1 className="inline-block text-3xl font-bold bg-white text-blue-bsod">
+          {caught.status} {caught.statusText}
+        </h1>
+        <Scripts />
+        <LiveReload />
+      </body>
+    </html>
+  );
+};
+
 const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
   console.error('Check your server terminal output');
 
@@ -201,4 +228,4 @@ const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
 };
 
 export default App;
-export { ErrorBoundary, links, loader, meta };
+export { CatchBoundary, ErrorBoundary, links, loader, meta };

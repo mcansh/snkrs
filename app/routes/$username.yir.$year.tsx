@@ -9,8 +9,7 @@ import { SneakerCard } from '../components/sneaker';
 import { prisma } from '../db.server';
 import { NotFoundError } from '../errors';
 import { redis, saveByPage } from '../lib/redis.server';
-
-import FourOhFour, { meta as fourOhFourMeta } from './404';
+import FourOhFour, { meta as fourOhFourMeta } from '../components/not-found';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
   select: { username: true, sneakers: { include: { brand: true } } },

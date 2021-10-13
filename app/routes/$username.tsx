@@ -21,8 +21,7 @@ import { SneakerCard } from '../components/sneaker';
 import { commitSession, getSession } from '../session';
 import { redis, saveByPage } from '../lib/redis.server';
 import type { Maybe } from '../@types/types';
-
-import FourOhFour, { meta as fourOhFourMeta } from './404';
+import FourOhFour, { meta as fourOhFourMeta } from '../components/not-found';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
   select: {
