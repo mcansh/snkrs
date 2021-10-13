@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Form, redirect, usePendingFormSubmit, useRouteData } from 'remix';
+import { Form, redirect, useTransition, useLoaderData } from 'remix';
 import { json, parseBody } from 'remix-utils';
 import { ValidationError } from 'yup';
 import type { MetaFunction } from '@remix-run/react/routeModules';
@@ -26,7 +26,7 @@ import type { LoginSchema } from '../lib/schemas/login';
 import type { LoadingButtonProps } from '../components/loading-button';
 
 interface RouteData {
-  loginError: (Partial<LoginSchema> & { generic?: string }) | undefined;
+  loginError: undefined | (Partial<LoginSchema> & { generic?: string });
 }
 
 const links: LinksFunction = () => [
@@ -118,8 +118,9 @@ const meta: MetaFunction = () => ({
 });
 
 const LoginPage: React.VFC = () => {
-  const data = useRouteData<RouteData>();
-  const pendingForm = usePendingFormSubmit();
+  const data = useLoaderData<RouteData>();
+  const transition = useTransition();
+  const pendingForm = transition.submission;
   const [state, setState] = React.useState<LoadingButtonProps['state']>('idle');
   const timerRef = React.useRef<NodeJS.Timeout>();
 

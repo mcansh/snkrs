@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Form, redirect, usePendingFormSubmit, useRouteData } from 'remix';
+import { Form, redirect, useTransition, useLoaderData } from 'remix';
 import { ValidationError } from 'yup';
 import { json, parseBody } from 'remix-utils';
 
@@ -37,7 +37,7 @@ const links: TypedLinksFunction = () => [
 ];
 
 interface RouteData {
-  joinError?: (Partial<RegisterSchema> & { generic?: string }) | undefined;
+  joinError?: undefined | (Partial<RegisterSchema> & { generic?: string });
 }
 
 const loader: TypedLoaderFunction = ({ request }) =>
@@ -146,8 +146,9 @@ const meta: TypedMetaFunction = () => ({
 });
 
 const JoinPage: React.VFC = () => {
-  const pendingForm = usePendingFormSubmit();
-  const data = useRouteData<RouteData>();
+  const transition = useTransition();
+  const pendingForm = transition.submission;
+  const data = useLoaderData<RouteData>();
 
   const [state, setState] = React.useState<LoadingButtonProps['state']>('idle');
   const timerRef = React.useRef<NodeJS.Timeout>();

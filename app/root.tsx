@@ -4,8 +4,8 @@ import {
   Meta,
   Scripts,
   LiveReload,
-  useRouteData,
-  usePendingLocation,
+  useLoaderData,
+  useTransition,
 } from 'remix';
 import * as Fathom from 'fathom-client';
 import { Outlet } from 'react-router-dom';
@@ -106,9 +106,9 @@ const loader: LoaderFunction = async ({ request }) => {
 };
 
 const App: React.VFC = () => {
-  const { flash, ENV } = useRouteData<RouteData>();
-
-  const pendingLocation = usePendingLocation();
+  const { flash, ENV } = useLoaderData<RouteData>();
+  const transition = useTransition();
+  const pendingLocation = transition.location;
 
   React.useEffect(() => {
     Fathom.load(ENV.FATHOM_SITE_ID, {

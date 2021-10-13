@@ -1,12 +1,6 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
-import {
-  Form,
-  Link,
-  useRouteData,
-  redirect,
-  usePendingFormSubmit,
-} from 'remix';
+import { Form, Link, useLoaderData, redirect, useTransition } from 'remix';
 import { format, parseISO } from 'date-fns';
 import { json, parseBody } from 'remix-utils';
 import slugify from 'slugify';
@@ -245,8 +239,9 @@ const meta: MetaFunction = ({ data }: { data: RouteData }) => ({
 const formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
 const EditSneakerPage: React.VFC = () => {
-  const { sneaker, id } = useRouteData<RouteData>();
-  const pendingForm = usePendingFormSubmit();
+  const { sneaker, id } = useLoaderData<RouteData>();
+  const transition = useTransition();
+  const pendingForm = transition.submission;
   const [sold, setSold] = React.useState(sneaker?.sold ?? false);
 
   if (!sneaker) {
