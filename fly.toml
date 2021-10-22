@@ -1,4 +1,4 @@
-# fly.toml file generated for snkrs on 2021-04-21T13:08:36-04:00
+# fly.toml file generated for snkrs on 2021-10-22T10:30:04-04:00
 
 app = "snkrs"
 
@@ -13,8 +13,7 @@ processes = []
   auto_rollback = true
 
 [[services]]
-http_checks = []
-  internal_port = 3000
+  internal_port = 8080
   processes = ["app"]
   protocol = "tcp"
   script_checks = []
@@ -35,8 +34,17 @@ http_checks = []
   [[services.tcp_checks]]
     grace_period = "1s"
     interval = "15s"
-    restart_limit = 6
+    restart_limit = 0
     timeout = "2s"
+
+  [[services.http_checks]]
+    interval = 600000 # 10 minutes
+    grace_period = "5s"
+    methid = "get"
+    path = "/healthcheck"
+    protocol = "http"
+    timeout = 2000
+    tls_skip_verify = false
 
 [[statics]]
   guest_path = "/app/public"
