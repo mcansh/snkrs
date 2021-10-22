@@ -20,9 +20,9 @@ import checkIcon from '../icons/outline/check.svg';
 import refreshIcon from '../icons/refresh-clockwise.svg';
 import exclamationCircleIcon from '../icons/outline/exclamation-circle.svg';
 import loginIcon from '../icons/outline/login.svg';
-import { loginSchema } from '../lib/schemas/login';
+import { loginSchema } from '../lib/schemas/login.server';
 import { yupToObject } from '../lib/yup-to-object';
-import type { LoginSchema } from '../lib/schemas/login';
+import type { LoginSchema } from '../lib/schemas/login.server';
 import type { LoadingButtonProps } from '../components/loading-button';
 
 interface RouteData {

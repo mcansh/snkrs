@@ -17,7 +17,7 @@ import { AuthorizationError } from '../errors';
 import { flashMessage } from '../flash-message';
 import { cloudinary } from '../lib/cloudinary.server';
 import { withSession } from '../lib/with-session';
-import { sneakerSchema } from '../lib/schemas/sneaker';
+import { sneakerSchema } from '../lib/schemas/sneaker.server';
 
 const meta = () => ({
   title: 'Add a sneaker to your collection',

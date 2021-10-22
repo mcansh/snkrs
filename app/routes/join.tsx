@@ -12,7 +12,7 @@ import {
 import { prisma } from '../db.server';
 import { flashMessage } from '../flash-message';
 import { EmailTakenJoinError, UsernameTakenJoinError } from '../errors';
-import { registerSchema } from '../lib/schemas/join';
+import { registerSchema } from '../lib/schemas/join.server';
 import { hash } from '../lib/auth';
 import checkIcon from '../icons/outline/check.svg';
 import refreshIcon from '../icons/refresh-clockwise.svg';
@@ -21,7 +21,7 @@ import loginIcon from '../icons/outline/login.svg';
 import { LoadingButton } from '../components/loading-button';
 import { yupToObject } from '../lib/yup-to-object';
 import type { LoadingButtonProps } from '../components/loading-button';
-import type { RegisterSchema } from '../lib/schemas/join';
+import type { RegisterSchema } from '../lib/schemas/join.server';
 import type {
   TypedActionFunction,
   TypedLinksFunction,

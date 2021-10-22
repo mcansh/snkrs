@@ -22,7 +22,7 @@ import { AuthorizationError, NotFoundError } from '../errors';
 import { prisma } from '../db.server';
 import { withSession } from '../lib/with-session';
 import { flashMessage } from '../flash-message';
-import { sneakerSchema } from '../lib/schemas/sneaker';
+import { sneakerSchema } from '../lib/schemas/sneaker.server';
 import { cloudinary } from '../lib/cloudinary.server';
 
 const sneakerWithBrandAndUser = Prisma.validator<Prisma.SneakerArgs>()({
