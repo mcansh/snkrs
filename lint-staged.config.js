@@ -3,7 +3,7 @@ const { quote: escape } = require('shell-quote');
 const isWin = process.platform === 'win32';
 
 module.exports = {
-  '**/*.{js,jsx,ts,tsx,mjs,cjs}': filenames => {
+  '**/*.{js,jsx,ts,tsx,mjs,cjs,mts,cts}': filenames => {
     const escapedFileNames = filenames
       .map(filename => `"${isWin ? filename : escape([filename])}"`)
       .join(' ');
