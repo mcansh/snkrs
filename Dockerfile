@@ -1,31 +1,60 @@
-# Install dependencies only when needed
-FROM node:16-alpine AS deps
-ARG REMIX_TOKEN
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-COPY .npmrc package.json package-lock.json prisma/ ./
-RUN npm ci
+# base node image
+FROM node:16-bullseye-slim as base
 
-# Rebuild the source code only when needed
-FROM node:16-alpine AS builder
-WORKDIR /app
-COPY . .
-COPY --from=deps /app/node_modules ./node_modules
-RUN npm run build
+
+# install open ssl for prisma
+RUN apt-get update && apt-get install -y openssl
+
+# install all node_modules, including dev
+FROM base as deps
+
+WORKDIR /remixapp/
+
+ADD package.json package-lock.json .npmrc ./
+RUN npm install --production=false
+RUN npx metronome setup
+
+# setup production node_modules
+FROM base as production-deps
+
+ARG REMIX_TOKEN
+ENV REMIX_TOKEN=$REMIX_TOKEN
+
+WORKDIR /remixapp/
+
+COPY --from=deps /remixapp/node_modules /remixapp/node_modules
+ADD package.json package-lock.json .npmrc /remixapp/
 RUN npm prune --production
 
-# Production image, copy all the files and run next
-FROM node:16-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV production
+# build app
+FROM base as build
 
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/build ./build
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+ARG COMMIT_SHA
+ENV COMMIT_SHA=$COMMIT_SHA
 
-# the 'node' user is a non-root user and is built into node images
-USER node
+WORKDIR /remixapp/
 
-CMD ["node", "node_modules/.bin/remix-serve", "./build"]
+COPY --from=deps /remixapp/node_modules /remixapp/node_modules
+
+# schema doesn't change much so these will stay cached
+ADD prisma .
+RUN npx prisma generate
+
+# app code changes all the time
+ADD . .
+RUN npm run build
+
+# build smaller image for running
+FROM base
+
+ENV NODE_ENV=production
+
+WORKDIR /remixapp/
+
+COPY --from=production-deps /remixapp/node_modules /remixapp/node_modules
+COPY --from=build /remixapp/node_modules/.prisma /remixapp/node_modules/.prisma
+COPY --from=build /remixapp/build /remixapp/build
+COPY --from=build /remixapp/public /remixapp/public
+ADD . .
+
+CMD ["npm", "run", "start"]

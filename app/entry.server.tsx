@@ -15,9 +15,8 @@ const cspSettings = {
   'style-src': ["'self'", "'unsafe-inline'"],
   'script-src': ["'self'", "'unsafe-inline'", 'https://kiwi.mcan.sh/script.js'],
   'connect-src': [
-    ...(process.env.NODE_ENV === 'production'
-      ? ['https://snkrs.mcan.sh']
-      : ['ws://localhost:3001', "'self'"]),
+    "'self'",
+    ...(process.env.NODE_ENV === 'production' ? [] : ['ws://localhost:3001']),
   ],
 };
 

@@ -21,7 +21,7 @@
     "type-check": "tsc",
     "validate": "run-p lint type-check test",
     "db:migrate": "prisma migrate dev --preview-feature",
-    "prepare": "husky install && remix setup && metronome setup && npm run generate",
+    "prepare": "husky install && remix setup && metronome setup",
     "clean": "del .cache build public/build app/styles app/icons/{solid,outline}",
     "start": "remix-serve ./build",
     "deploy": "flyctl deploy --build-arg REMIX_TOKEN=$REMIX_TOKEN --strategy bluegreen"

@@ -1,21 +1,13 @@
 /coverage
-node_modules
+/node_modules
 .ds_store
 *.log
 .env
 .eslintcache
 
-.cache
+/.cache
 /build
 /public/build
-app/styles
-
-app/icons/solid
-app/icons/outline
-
-# fly vpn
-wireguard.conf
-
-# https://npm.im/yalc
-.yalc
-yalc.lock
+/app/styles
+/app/icons/solid
+/app/icons/outline
