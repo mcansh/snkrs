@@ -27,7 +27,7 @@ module.exports = {
     },
     {
       name: 'Redis',
-      script: 'redis-server /usr/local/etc/redis.conf',
+      script: './start-redis.sh',
       ignore_watch: ['.'],
     },
   ],
