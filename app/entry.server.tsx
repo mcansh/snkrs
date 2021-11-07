@@ -1,5 +1,5 @@
 import { renderToString } from 'react-dom/server';
-import { RemixServer } from 'remix';
+import { RemixServer, redirect } from 'remix';
 import etag from 'etag';
 import type { EntryContext } from 'remix';
 
@@ -30,6 +30,11 @@ export default function handleRequest(
   responseHeaders: Headers,
   remixContext: EntryContext
 ) {
+  const url = new URL(request.url);
+  if (url.hostname === "sneakers.mcan.sh") {
+    return redirect("https://snkrs.mcan.sh" + url.pathname)
+  }
+
   if (process.env.NODE_ENV === 'development') {
     responseHeaders.set('Cache-Control', 'no-cache');
   }
