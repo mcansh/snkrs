@@ -1,8 +1,7 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
-import { useLoaderData } from 'remix';
+import { json, useLoaderData } from 'remix';
 import { endOfYear, startOfYear } from 'date-fns';
-import { json } from 'remix-utils';
 import type { MetaFunction, LoaderFunction } from 'remix';
 
 import { SneakerCard } from '../components/sneaker';
@@ -45,8 +44,8 @@ const loader: LoaderFunction = async ({ params }) => {
 
     if (cache) {
       const user = JSON.parse(cache) as UserWithSneakers;
-
-      return json<RouteData>({ year, user });
+      const data: RouteData = { year, user };
+      return json(data);
     }
 
     const user = await prisma.user.findUnique({
@@ -72,13 +71,18 @@ const loader: LoaderFunction = async ({ params }) => {
 
     await saveByPage(cacheKey, user, 60 * 5 * 1000);
 
-    return json<RouteData>({ year, user });
+    const data: RouteData = { year, user };
+
+    return json(data);
   } catch (error: unknown) {
+    const data: RouteData = { year };
+
     if (error instanceof NotFoundError) {
-      return json<RouteData>({ year }, { status: 404 });
+      return json(data, { status: 404 });
     }
+
     console.error(error);
-    return json<RouteData>({ year }, { status: 500 });
+    return json(data, { status: 500 });
   }
 };
 

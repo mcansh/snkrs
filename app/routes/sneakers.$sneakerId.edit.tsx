@@ -1,8 +1,14 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
-import { Form, Link, useLoaderData, redirect, useTransition } from 'remix';
+import {
+  Form,
+  Link,
+  useLoaderData,
+  redirect,
+  useTransition,
+  json,
+} from 'remix';
 import { format, parseISO } from 'date-fns';
-import { json, parseBody } from 'remix-utils';
 import slugify from 'slugify';
 import clsx from 'clsx';
 import accounting from 'accounting';
@@ -70,8 +76,10 @@ const loader: LoaderFunction = ({ params, request }) =>
         },
       });
 
-      if (!sneaker)
-        return json<RouteData>({ id: params.sneakerId! }, { status: 404 });
+      if (!sneaker) {
+        const data: RouteData = { id: params.sneakerId! };
+        return json(data, { status: 404 });
+      }
 
       const userId = session.get(sessionKey) as string | undefined;
 
@@ -81,16 +89,18 @@ const loader: LoaderFunction = ({ params, request }) =>
         throw new AuthorizationError();
       }
 
-      return json<RouteData>({
+      const data: RouteData = {
+        id: params.sneakerId!,
+        userCreatedSneaker,
         sneaker: {
           ...sneaker,
           createdAt: sneaker.createdAt.toISOString(),
           purchaseDate: sneaker.purchaseDate.toISOString(),
           soldDate: sneaker.soldDate?.toISOString(),
         },
-        id: params.sneakerId!,
-        userCreatedSneaker,
-      });
+      };
+
+      return json(data);
     } catch (error: unknown) {
       if (error instanceof AuthorizationError) {
         return redirect(`/login?${redirectAfterAuthKey}=${request.url}`);
@@ -122,7 +132,8 @@ const action: ActionFunction = ({ request, params }) =>
         throw new AuthorizationError();
       }
 
-      const formData = await parseBody(request);
+      const requestBody = await request.text();
+      const formData = new URLSearchParams(requestBody);
       const data = Object.fromEntries(formData);
 
       if (!userId) {

@@ -1,7 +1,12 @@
 import * as React from 'react';
+import type {
+  ActionFunction,
+  LinksFunction,
+  LoaderFunction,
+  MetaFunction,
+} from 'remix';
 import { Form, redirect, useTransition, useLoaderData } from 'remix';
 import { ValidationError } from 'yup';
-import { json, parseBody } from 'remix-utils';
 
 import { withSession } from '../lib/with-session';
 import {
@@ -22,14 +27,8 @@ import { LoadingButton } from '../components/loading-button';
 import { yupToObject } from '../lib/yup-to-object';
 import type { LoadingButtonProps } from '../components/loading-button';
 import type { RegisterSchema } from '../lib/schemas/join.server';
-import type {
-  TypedActionFunction,
-  TypedLinksFunction,
-  TypedLoaderFunction,
-  TypedMetaFunction,
-} from '../@types';
 
-const links: TypedLinksFunction = () => [
+const links: LinksFunction = () => [
   {
     href: LoadingButton.styles,
     rel: 'stylesheet',
@@ -40,7 +39,7 @@ interface RouteData {
   joinError?: undefined | (Partial<RegisterSchema> & { generic?: string });
 }
 
-const loader: TypedLoaderFunction = ({ request }) =>
+const loader: LoaderFunction = ({ request }) =>
   withSession(request, async session => {
     const userId = session.get(sessionKey);
 
@@ -61,9 +60,9 @@ const loader: TypedLoaderFunction = ({ request }) =>
     return json({});
   });
 
-const action: TypedActionFunction = ({ request }) =>
+const action: ActionFunction = ({ request }) =>
   withSession(request, async session => {
-    const body = await parseBody(request);
+    const body = await bodyParser.toSearchParams(request);
     const email = body.get('email');
     const givenName = body.get('givenName');
     const familyName = body.get('familyName');
@@ -140,8 +139,8 @@ const action: TypedActionFunction = ({ request }) =>
     }
   });
 
-const meta: TypedMetaFunction = () => ({
-  title: 'Join Snkrs',
+const meta: MetaFunction = () => ({
+  title: 'Join',
   description: 'show off your sneaker collection',
 });
 

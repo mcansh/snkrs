@@ -1,8 +1,7 @@
-import { Link, useLoaderData } from 'remix';
+import { json, Link, useLoaderData } from 'remix';
 import { Prisma } from '@prisma/client';
 import uniqBy from 'lodash.uniqby';
 import { Disclosure } from '@headlessui/react';
-import { json } from 'remix-utils';
 import type { Brand, User } from '@prisma/client';
 import type {
   RouteComponent,
@@ -95,7 +94,7 @@ const loader: LoaderFunction = async ({ params, request }) => {
         sessionUser,
       };
 
-      return json<RouteData>(data, {
+      return json(data, {
         headers: {
           'Set-Cookie': sessionUser ? await commitSession(session) : '',
           'Server-Timing': `user;dur=${cachedDataMS}, sessionUser;dur=${sessionUserTime}`,
@@ -163,7 +162,7 @@ const loader: LoaderFunction = async ({ params, request }) => {
       sessionUser,
     };
 
-    return json<RouteData>(data, {
+    return json(data, {
       headers: {
         'Set-Cookie': sessionUser ? await commitSession(session) : '',
         'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}; cache;dur=${cacheMS}`,
@@ -171,7 +170,8 @@ const loader: LoaderFunction = async ({ params, request }) => {
     });
   } catch (error: unknown) {
     console.error(error);
-    return json<RouteData>({ brands: [], selectedBrands: [] });
+    const data: RouteData = { brands: [], selectedBrands: [] };
+    return json(data, { status: 500 });
   }
 };
 

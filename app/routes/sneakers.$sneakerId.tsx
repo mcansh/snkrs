@@ -1,7 +1,6 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
-import { Link, useLoaderData } from 'remix';
-import { json } from 'remix-utils';
+import { json, Link, useLoaderData } from 'remix';
 import type { Except } from 'type-fest';
 import type { LoaderFunction } from 'remix';
 
@@ -58,11 +57,13 @@ const loader: LoaderFunction = ({ params, request }) =>
       const sneaker = JSON.parse(cachedSneaker) as SneakerWithUser;
       const userCreatedSneaker = sneaker.user.id === session.get(sessionKey);
 
-      return json<RouteData>({
+      const data: RouteData = {
         id: cacheKey,
         sneaker,
         userCreatedSneaker,
-      });
+      };
+
+      return json(data);
     }
 
     const sneaker = await prisma.sneaker.findUnique({
@@ -80,14 +81,17 @@ const loader: LoaderFunction = ({ params, request }) =>
     });
 
     if (!sneaker) {
-      return json<RouteData>({ id: params.sneakerId! }, { status: 404 });
+      const data: RouteData = { id: params.sneakerId! };
+      return json(data, { status: 404 });
     }
 
     await saveByPage(cacheKey, sneaker, 60 * 5 * 1000);
 
     const userCreatedSneaker = sneaker.user.id === session.get(sessionKey);
 
-    return json<RouteData>({
+    const data: RouteData = {
+      id: params.sneakerId!,
+      userCreatedSneaker,
       sneaker: {
         ...sneaker,
         createdAt: sneaker.createdAt.toISOString(),
@@ -95,9 +99,9 @@ const loader: LoaderFunction = ({ params, request }) =>
         purchaseDate: sneaker.purchaseDate.toISOString(),
         updatedAt: sneaker.updatedAt.toISOString(),
       },
-      id: params.sneakerId!,
-      userCreatedSneaker,
-    });
+    };
+
+    return json(data);
   });
 
 const meta = ({ data }: { data: RouteData }) => {

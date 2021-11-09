@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { Form, redirect, useTransition, useLoaderData } from 'remix';
-import { json } from 'remix-utils';
+import { Form, redirect, useTransition, useLoaderData, json } from 'remix';
 import { ValidationError } from 'yup';
 import type {
   RouteComponent,
@@ -60,7 +59,9 @@ const loader: LoaderFunction = async ({ request }) => {
     });
   }
 
-  return json<RouteData>({ user, profileError });
+  const data: RouteData = { user, profileError };
+
+  return json(data);
 };
 
 const action: ActionFunction = async ({ request }) => {

@@ -7,12 +7,12 @@ import {
   useLoaderData,
   useTransition,
   useCatch,
+  json,
 } from 'remix';
 import * as Fathom from 'fathom-client';
 import { Outlet } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
-import { json } from 'remix-utils';
 import type {
   ErrorBoundaryComponent,
   LinksFunction,
@@ -27,6 +27,7 @@ import { Notifications } from './notifications';
 import refreshClockwise from './icons/refresh-clockwise.svg';
 import { getSession, commitSession } from './session';
 import type { Flash } from './@types/types';
+import { seo } from './seo.server';
 
 interface RouteData {
   flash?: Flash;
@@ -36,7 +37,10 @@ interface RouteData {
   };
 }
 
+const [seoMeta, seoLinks] = seo();
+
 const meta: MetaFunction = () => ({
+  ...seoMeta,
   'apple-mobile-web-app-title': 'Sneakers',
   'application-name': 'Sneakers',
   'msapplication-TileColor': '#000000',
@@ -49,6 +53,7 @@ const meta: MetaFunction = () => ({
 });
 
 const links: LinksFunction = () => [
+  ...seoLinks,
   { rel: 'stylesheet', href: globalCSS },
   { rel: 'stylesheet', href: interCSS },
   {
@@ -81,29 +86,29 @@ const loader: LoaderFunction = async ({ request }) => {
   const flash = session.get(flashMessageKey) as string | undefined;
 
   if (flash) {
-    return json<RouteData>(
-      {
-        flash,
-        ENV: {
-          FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
-          FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
-        },
+    const data: RouteData = {
+      flash,
+      ENV: {
+        FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
+        FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
       },
-      {
-        headers: {
-          'Set-Cookie': await commitSession(session),
-        },
-      }
-    );
+    };
+    return json(data, {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    });
   }
 
-  return json<RouteData>({
+  const data: RouteData = {
     flash: undefined,
     ENV: {
       FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
       FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
     },
-  });
+  };
+
+  return json(data);
 };
 
 const App: React.VFC = () => {
@@ -137,8 +142,6 @@ const App: React.VFC = () => {
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <meta property="og:type" content="website" />
-        <meta property="og:locale" content="en_US" />
         <Meta />
         <Links />
       </head>

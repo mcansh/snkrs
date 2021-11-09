@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { Form, redirect, useTransition, useLoaderData } from 'remix';
-import { json, parseBody } from 'remix-utils';
+import { Form, redirect, useTransition, useLoaderData, json } from 'remix';
 import { ValidationError } from 'yup';
 import type { MetaFunction } from '@remix-run/react/routeModules';
 import type { ActionFunction, LinksFunction, LoaderFunction } from 'remix';
@@ -24,6 +23,8 @@ import { loginSchema } from '../lib/schemas/login.server';
 import { yupToObject } from '../lib/yup-to-object';
 import type { LoginSchema } from '../lib/schemas/login.server';
 import type { LoadingButtonProps } from '../components/loading-button';
+
+import { commitSession, getSession } from '~/session';
 
 interface RouteData {
   loginError: undefined | (Partial<LoginSchema> & { generic?: string });
@@ -56,61 +57,80 @@ const loader: LoaderFunction = ({ request }) =>
 
     const loginError = session.get('loginError') as RouteData['loginError'];
 
-    return json<RouteData>({ loginError });
+    const data: RouteData = { loginError };
+
+    return json(data);
   });
 
-const action: ActionFunction = ({ request }) =>
-  withSession(request, async session => {
-    const body = await parseBody(request);
-    const email = body.get('email');
-    const password = body.get('password');
+const action: ActionFunction = async ({ request }) => {
+  const session = await getSession(request.headers.get('Cookie'));
+  const requestBody = await request.text();
+  const body = new URLSearchParams(requestBody);
+  const email = body.get('email');
+  const password = body.get('password');
 
-    const url = new URL(request.url);
-    const redirectTo = url.searchParams.get(redirectAfterAuthKey);
+  const url = new URL(request.url);
+  const redirectTo = url.searchParams.get(redirectAfterAuthKey);
 
-    try {
-      const valid = await loginSchema.validate(
-        { email, password },
-        { abortEarly: false }
-      );
+  try {
+    const valid = await loginSchema.validate(
+      { email, password },
+      { abortEarly: false }
+    );
 
-      const foundUser = await prisma.user.findUnique({
-        where: { email: valid.email },
-      });
+    const foundUser = await prisma.user.findUnique({
+      where: { email: valid.email },
+    });
 
-      if (!foundUser) {
-        throw new InvalidLoginError();
-      }
-
-      const validCredentials = await verify(valid.password, foundUser.password);
-
-      if (!validCredentials) {
-        throw new InvalidLoginError();
-      }
-
-      session.set(sessionKey, foundUser.id);
-      session.flash(
-        flashMessageKey,
-        flashMessage(`Welcome back ${foundUser.username}!`, 'success')
-      );
-      return redirect(redirectTo ? redirectTo : '/');
-    } catch (error: unknown) {
-      console.error(error);
-      if (error instanceof ValidationError) {
-        const aggregateErrors = yupToObject<LoginSchema>(error);
-        session.flash('loginError', aggregateErrors);
-        return redirect(request.url);
-      }
-
-      if (error instanceof InvalidLoginError) {
-        session.flash('loginError', { generic: error.message });
-        return redirect(request.url);
-      }
-
-      session.flash('loginError', { generic: 'something went wrong' });
-      return redirect(request.url);
+    if (!foundUser) {
+      throw new InvalidLoginError();
     }
-  });
+
+    const validCredentials = await verify(valid.password, foundUser.password);
+
+    if (!validCredentials) {
+      throw new InvalidLoginError();
+    }
+
+    session.set(sessionKey, foundUser.id);
+    session.flash(
+      flashMessageKey,
+      flashMessage(`Welcome back ${foundUser.username}!`, 'success')
+    );
+    return redirect(redirectTo ?? '/', {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    });
+  } catch (error: unknown) {
+    console.error(error);
+    if (error instanceof ValidationError) {
+      const aggregateErrors = yupToObject<LoginSchema>(error);
+      session.flash('loginError', aggregateErrors);
+      return redirect(request.url, {
+        headers: {
+          'Set-Cookie': await commitSession(session),
+        },
+      });
+    }
+
+    if (error instanceof InvalidLoginError) {
+      session.flash('loginError', { generic: error.message });
+      return redirect(request.url, {
+        headers: {
+          'Set-Cookie': await commitSession(session),
+        },
+      });
+    }
+
+    session.flash('loginError', { generic: 'something went wrong' });
+    return redirect(request.url, {
+      headers: {
+        'Set-Cookie': await commitSession(session),
+      },
+    });
+  }
+};
 
 const meta: MetaFunction = () => ({
   title: 'Log in',

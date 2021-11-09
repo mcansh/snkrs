@@ -2,7 +2,6 @@ import React from 'react';
 import { Form, json, redirect, useTransition } from 'remix';
 import { ValidationError } from 'yup';
 import slugify from 'slugify';
-import { parseBody } from 'remix-utils';
 import NumberFormat from 'react-number-format';
 import accounting from 'accounting';
 import type { ActionFunction, LoaderFunction } from 'remix';
@@ -47,7 +46,7 @@ const loader: LoaderFunction = ({ request }) =>
 const action: ActionFunction = ({ request }) =>
   withSession(request, async session => {
     try {
-      const formData = await parseBody(request);
+      const formData = await bodyParser.toSearchParams(request);
 
       const userId = session.get(sessionKey) as string | undefined;
 
