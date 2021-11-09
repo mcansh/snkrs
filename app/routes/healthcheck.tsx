@@ -18,7 +18,7 @@ const loader: LoaderFunction = async () => {
 };
 
 const meta: MetaFunction = () => ({
-  title: 'Health Check – snkrs',
+  title: 'Health Check',
 });
 
 const Page: RouteComponent = () => {
