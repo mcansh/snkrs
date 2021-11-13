@@ -27,7 +27,7 @@ import { Notifications } from './notifications';
 import refreshClockwise from './icons/refresh-clockwise.svg';
 import { getSession, commitSession } from './session';
 import type { Flash } from './@types/types';
-import { seo } from './seo.server';
+import { getSeoLinks, getSeoMeta } from './seo.server';
 
 interface RouteData {
   flash?: Flash;
@@ -37,10 +37,8 @@ interface RouteData {
   };
 }
 
-const [seoMeta, seoLinks] = seo();
-
 const meta: MetaFunction = () => ({
-  ...seoMeta,
+  ...getSeoMeta(),
   'apple-mobile-web-app-title': 'Sneakers',
   'application-name': 'Sneakers',
   'msapplication-TileColor': '#000000',
@@ -53,7 +51,7 @@ const meta: MetaFunction = () => ({
 });
 
 const links: LinksFunction = () => [
-  ...seoLinks,
+  ...getSeoLinks(),
   { rel: 'stylesheet', href: globalCSS },
   { rel: 'stylesheet', href: interCSS },
   {
