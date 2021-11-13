@@ -27,7 +27,7 @@ import { Notifications } from './notifications';
 import refreshClockwise from './icons/refresh-clockwise.svg';
 import { getSession, commitSession } from './session';
 import type { Flash } from './@types/types';
-import { getSeoLinks, getSeoMeta } from './seo.server';
+import { getSeoLinks, getSeoMeta } from './seo';
 
 interface RouteData {
   flash?: Flash;
