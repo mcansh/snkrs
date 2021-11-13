@@ -23,8 +23,7 @@ import { loginSchema } from '../lib/schemas/login.server';
 import { yupToObject } from '../lib/yup-to-object';
 import type { LoginSchema } from '../lib/schemas/login.server';
 import type { LoadingButtonProps } from '../components/loading-button';
-
-import { commitSession, getSession } from '~/session';
+import { commitSession, getSession } from '../session';
 
 interface RouteData {
   loginError: undefined | (Partial<LoginSchema> & { generic?: string });

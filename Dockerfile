@@ -1,9 +1,10 @@
 # base node image
 FROM node:16-bullseye-slim as base
 
-
 # install open ssl for prisma
 RUN apt-get update && apt-get install -y openssl
+
+###############################################################################
 
 # install all node_modules, including dev
 FROM base as deps
@@ -13,6 +14,8 @@ WORKDIR /remixapp/
 ADD package.json package-lock.json .npmrc ./
 RUN npm install --production=false
 RUN npx metronome setup
+
+###############################################################################
 
 # setup production node_modules
 FROM base as production-deps
@@ -25,6 +28,8 @@ WORKDIR /remixapp/
 COPY --from=deps /remixapp/node_modules /remixapp/node_modules
 ADD package.json package-lock.json .npmrc /remixapp/
 RUN npm prune --production
+
+###############################################################################
 
 # build app
 FROM base as build
@@ -43,6 +48,8 @@ RUN npx prisma generate
 # app code changes all the time
 ADD . .
 RUN npm run build
+
+###############################################################################
 
 # build smaller image for running
 FROM base
