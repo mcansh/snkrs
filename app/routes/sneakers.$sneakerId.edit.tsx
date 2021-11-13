@@ -270,9 +270,11 @@ const EditSneakerPage: React.VFC = () => {
   const srcSet = sizes.map(
     size =>
       `${getCloudinaryURL(sneaker.imagePublicId, {
-        crop: 'pad',
-        width: size,
-        height: size,
+        resize: {
+          type: 'pad',
+          width: size,
+          height: size,
+        },
       })} ${size}w`
   );
 
@@ -283,9 +285,11 @@ const EditSneakerPage: React.VFC = () => {
         <div className="relative" style={{ paddingBottom: '100%' }}>
           <img
             src={getCloudinaryURL(sneaker.imagePublicId, {
-              crop: 'pad',
-              width: 200,
-              height: 200,
+              resize: {
+                type: 'pad',
+                width: 200,
+                height: 200,
+              },
             })}
             sizes="(min-width: 640px) 50vw, 100vw"
             srcSet={srcSet.join()}
@@ -359,7 +363,6 @@ const EditSneakerPage: React.VFC = () => {
               prefix="$"
               defaultValue={sneaker.price}
             />
-            <input />
             <NumberFormat
               name="retailPrice"
               placeholder="Retail Price (in cents)"

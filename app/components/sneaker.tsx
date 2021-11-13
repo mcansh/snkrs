@@ -28,9 +28,11 @@ const SneakerCard: React.VFC<SneakerWithBrand> = ({
     .map(
       size =>
         `${getCloudinaryURL(imagePublicId, {
-          crop: 'pad',
-          width: size,
-          height: size,
+          resize: {
+            type: 'pad',
+            width: size,
+            height: size,
+          },
         })} ${size}w`
     )
     .join(', ');
@@ -40,9 +42,11 @@ const SneakerCard: React.VFC<SneakerWithBrand> = ({
       <div className="relative block w-full overflow-hidden bg-gray-100 rounded-lg group aspect-w-1 aspect-h-1 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-blue-500">
         <img
           src={getCloudinaryURL(imagePublicId, {
-            crop: 'pad',
-            width: 200,
-            height: 200,
+            resize: {
+              width: 200,
+              height: 200,
+              type: 'crop',
+            },
           })}
           sizes="(min-width: 1024px) 25vw, 50vw"
           srcSet={srcSet}

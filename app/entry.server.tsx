@@ -9,14 +9,14 @@ const cspSettings = {
   'img-src': [
     "'self'",
     'data:',
-    'https://res.cloudinary.com',
+    'https://images.mcan.sh',
     'https://kiwi.mcan.sh',
   ],
   'style-src': ["'self'", "'unsafe-inline'"],
   'script-src': ["'self'", "'unsafe-inline'", 'https://kiwi.mcan.sh/script.js'],
   'connect-src': [
     "'self'",
-    ...(process.env.NODE_ENV === 'production' ? [] : ['ws://localhost:3001']),
+    ...(process.env.NODE_ENV === 'production' ? [] : [`ws://localhost:8002`]),
   ],
 };
 
@@ -31,8 +31,8 @@ export default function handleRequest(
   remixContext: EntryContext
 ) {
   const url = new URL(request.url);
-  if (url.hostname === "sneakers.mcan.sh") {
-    return redirect("https://snkrs.mcan.sh" + url.pathname)
+  if (url.hostname === 'sneakers.mcan.sh') {
+    return redirect(`https://snkrs.mcan.sh${url.pathname}`);
   }
 
   if (process.env.NODE_ENV === 'development') {

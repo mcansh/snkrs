@@ -1,21 +1,26 @@
-import { Cloudinary } from 'cloudinary-core';
-import type { Transformation } from 'cloudinary-core';
-
-const cloudinary = new Cloudinary({ cloud_name: 'dof0zryca', secure: true });
+import { buildUrl } from 'cloudinary-build-url';
+import type { TransformerOption } from '@cld-apis/types';
 
 function getCloudinaryURL(
   publicId: string,
-  transformOptions: Transformation.Options = {}
-): string {
-  const transforms: Transformation.Options = {
-    quality: 'auto',
-    fetchFormat: 'auto',
-    secure: true,
-    background: 'auto',
-    ...transformOptions,
-  };
-
-  return cloudinary.url(publicId, transforms);
+  transformations: TransformerOption
+) {
+  const url = buildUrl(publicId, {
+    cloud: {
+      secure: true,
+      cloudName: 'dof0zryca',
+      secureDistribution: 'images.mcan.sh',
+      useRootPath: true,
+      privateCdn: true,
+    },
+    transformations: {
+      quality: 'auto',
+      fetchFormat: 'auto',
+      background: 'auto',
+      ...transformations,
+    },
+  });
+  return url;
 }
 
 export { getCloudinaryURL };

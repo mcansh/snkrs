@@ -161,9 +161,11 @@ const SneakerPage: React.VFC = () => {
   const srcSet = sizes.map(
     size =>
       `${getCloudinaryURL(sneaker.imagePublicId, {
-        crop: 'pad',
-        width: size,
-        height: size,
+        resize: {
+          width: size,
+          height: size,
+          type: 'pad',
+        },
       })} ${size}w`
   );
 
@@ -174,9 +176,11 @@ const SneakerPage: React.VFC = () => {
         <div className="relative w-full overflow-hidden bg-gray-100 rounded-lg aspect-w-1 aspect-h-1">
           <img
             src={getCloudinaryURL(sneaker.imagePublicId, {
-              crop: 'pad',
-              width: 200,
-              height: 200,
+              resize: {
+                type: 'pad',
+                width: 200,
+                height: 200,
+              },
             })}
             sizes="(min-width: 640px) 50vw, 100vw"
             srcSet={srcSet.join()}
