@@ -49,7 +49,7 @@ function createRedisSessionStorage({
   });
 }
 
-// eslint-disable-next-line jest/unbound-method
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const { getSession, commitSession, destroySession }: SessionStorage =
   createRedisSessionStorage({
     cookie: {

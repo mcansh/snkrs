@@ -8,9 +8,10 @@ import {
   useTransition,
   useCatch,
   json,
+  Outlet,
+  ScrollRestoration,
 } from 'remix';
 import * as Fathom from 'fathom-client';
-import { Outlet } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 import type {
@@ -160,6 +161,7 @@ const App: React.VFC = () => {
         )}
 
         <Outlet />
+        <ScrollRestoration />
         <Scripts />
         <LiveReload />
       </body>

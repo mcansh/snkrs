@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'remix';
 
 interface DataOutletContext<T = any> {
   data: T | undefined;
