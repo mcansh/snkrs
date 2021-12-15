@@ -1,10 +1,17 @@
 import React from 'react';
-import { Form, json, redirect, useTransition } from 'remix';
+import {
+  Form,
+  json,
+  parseMultipartFormData,
+  redirect,
+  useTransition,
+} from 'remix';
 import { ValidationError } from 'yup';
 import slugify from 'slugify';
 import NumberFormat from 'react-number-format';
 import accounting from 'accounting';
 import type { ActionFunction, LoaderFunction } from 'remix';
+import type { UploadHandler } from '@remix-run/node/formData';
 
 import {
   flashMessageKey,
@@ -14,9 +21,10 @@ import {
 import { prisma } from '../db.server';
 import { AuthorizationError } from '../errors';
 import { flashMessage } from '../flash-message';
-import { cloudinary } from '../lib/cloudinary.server';
 import { withSession } from '../lib/with-session';
 import { sneakerSchema } from '../lib/schemas/sneaker.server';
+
+import { uploadFromStream } from '~/lib/upload-stream-to-cloudinary';
 
 const meta = () => ({
   title: 'Add a sneaker to your collection',
@@ -46,7 +54,22 @@ const loader: LoaderFunction = ({ request }) =>
 const action: ActionFunction = ({ request }) =>
   withSession(request, async session => {
     try {
-      const formData = await bodyParser.toSearchParams(request);
+      const uploadHandler: UploadHandler = async ({ name, stream }) => {
+        // we only care about the file form field called "image"
+        // so we'll ignore anything else
+        // NOTE: the way our form is set up, we shouldn't get any other fields,
+        // but this is good defensive programming in case someone tries to hit our
+        // action directly via curl or something weird like that.
+        if (name !== 'image') {
+          stream.resume();
+          return;
+        }
+
+        const uploadedImage = await uploadFromStream(stream);
+        return uploadedImage.public_id;
+      };
+
+      const formData = await parseMultipartFormData(request, uploadHandler);
 
       const userId = session.get(sessionKey) as string | undefined;
 
@@ -61,11 +84,17 @@ const action: ActionFunction = ({ request }) =>
       const rawRetailPrice = formData.get('retailPrice') as string;
       const purchaseDate = formData.get('purchaseDate');
       const size = parseInt(formData.get('size') as string, 10);
-      const image = formData.get('image');
+      const imagePublicId = formData.get('image');
 
-      const price = Number(rawPrice) || accounting.unformat(rawPrice) * 100;
+      const parsedPrice = Number(rawPrice);
+      const price =
+        (parsedPrice ? parsedPrice : accounting.unformat(rawPrice)) * 100;
+
+      const parsedRetailPrice = Number(rawRetailPrice);
       const retailPrice =
-        Number(rawRetailPrice) || accounting.unformat(rawRetailPrice) * 100;
+        (parsedRetailPrice
+          ? parsedRetailPrice
+          : accounting.unformat(rawRetailPrice)) * 100;
 
       const valid = await sneakerSchema.validate({
         brand,
@@ -75,30 +104,8 @@ const action: ActionFunction = ({ request }) =>
         retailPrice,
         purchaseDate,
         size,
-        imagePublicId: image,
+        imagePublicId,
       });
-
-      let imagePublicId = '';
-      if (valid.imagePublicId) {
-        // image was already uploaded to our cloudinary bucket
-        if (valid.imagePublicId.startsWith('shoes/')) {
-          imagePublicId = valid.imagePublicId;
-        } else if (
-          /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi.test(
-            valid.imagePublicId
-          )
-        ) {
-          // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
-          const res = await cloudinary.v2.uploader.upload(valid.imagePublicId, {
-            resource_type: 'image',
-            folder: 'shoes',
-          });
-
-          imagePublicId = res.public_id;
-        } else {
-          // no image provided
-        }
-      }
 
       const sneaker = await prisma.sneaker.create({
         data: {
@@ -120,7 +127,7 @@ const action: ActionFunction = ({ request }) =>
           purchaseDate: valid.purchaseDate.toISOString(),
           retailPrice: valid.retailPrice,
           size: valid.size,
-          imagePublicId,
+          imagePublicId: valid.imagePublicId,
         },
         include: { user: { select: { username: true } }, brand: true },
       });
@@ -151,7 +158,7 @@ const NewSneakerPage: React.VFC = () => {
   return (
     <main className="container h-full p-4 pb-6 mx-auto">
       <h2 className="py-4 text-lg">Add a sneaker to your collection</h2>
-      <Form method="post">
+      <Form method="post" encType="multipart/form-data">
         <fieldset
           disabled={!!pendingForm}
           className="w-full space-y-2 sm:grid sm:items-center sm:gap-x-4 sm:gap-y-6 sm:grid-cols-2 sm:space-y-0"
@@ -240,10 +247,9 @@ const NewSneakerPage: React.VFC = () => {
               Image
             </span>
             <input
-              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              type="text"
+              className="block w-full text-sm file:font-medium file:cursor-pointer file:px-4 file:py-2 file:text-white file:bg-indigo-600 file:border file:border-transparent file:rounded-md file:shadow-sm file:disabled:bg-blue-200 file:disabled:cursor-not-allowed file:hover:bg-indigo-700 file:focus:outline-none file:focus:ring-2 file:focus:ring-offset-2 file:focus:ring-indigo-500"
+              type="file"
               name="image"
-              placeholder="1200x1200 photo or cloudinary publicId"
             />
           </label>
           <button
