@@ -2,7 +2,7 @@ import React from 'react';
 import {
   Form,
   json,
-  parseMultipartFormData,
+  unstable_parseMultipartFormData as parseMultipartFormData,
   redirect,
   useTransition,
 } from 'remix';
