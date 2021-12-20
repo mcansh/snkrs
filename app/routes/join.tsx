@@ -5,7 +5,7 @@ import type {
   LoaderFunction,
   MetaFunction,
 } from 'remix';
-import { Form, redirect, useTransition, useLoaderData } from 'remix';
+import { Form, json, redirect, useLoaderData, useTransition } from 'remix';
 import { ValidationError } from 'yup';
 
 import { withSession } from '../lib/with-session';
@@ -62,7 +62,7 @@ const loader: LoaderFunction = ({ request }) =>
 
 const action: ActionFunction = ({ request }) =>
   withSession(request, async session => {
-    const body = await bodyParser.toSearchParams(request);
+    const body = await request.formData();
     const email = body.get('email');
     const givenName = body.get('givenName');
     const familyName = body.get('familyName');

@@ -1,4 +1,4 @@
-import { json, Link, useLoaderData } from 'remix';
+import { Form, json, Link, useLoaderData, useSubmit } from 'remix';
 import { Prisma } from '@prisma/client';
 import uniqBy from 'lodash.uniqby';
 import { Disclosure } from '@headlessui/react';
@@ -9,18 +9,18 @@ import type {
   MetaFunction,
   HeadersFunction,
 } from 'remix';
+import clsx from 'clsx';
 
 import { prisma } from '../db.server';
-import { NotFoundError } from '../errors';
 import x from '../icons/outline/x.svg';
 import menu from '../icons/outline/menu.svg';
 import { sessionKey } from '../constants';
 import { time } from '../lib/time';
 import { SneakerCard } from '../components/sneaker';
 import { commitSession, getSession } from '../session';
-import { redis, saveByPage } from '../lib/redis.server';
 import type { Maybe } from '../@types/types';
-import FourOhFour, { meta as fourOhFourMeta } from '../components/not-found';
+
+import { getSeoMeta } from '~/seo';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
   select: {
@@ -37,9 +37,9 @@ type UserWithSneakers = Prisma.UserGetPayload<typeof userWithSneakers>;
 
 export interface RouteData {
   brands: Array<Brand>;
-  user?: UserWithSneakers;
+  user: UserWithSneakers;
   selectedBrands: Array<string>;
-  sort?: 'asc' | 'desc';
+  sort: 'asc' | 'desc';
   sessionUser?: Maybe<Pick<User, 'givenName' | 'id'>>;
 }
 
@@ -53,153 +53,97 @@ const loader: LoaderFunction = async ({ params, request }) => {
   const sortQuery = searchParams.get('sort');
   const sort = sortQuery === 'asc' ? 'asc' : 'desc';
 
-  const cacheKey = `${params.username}.${sort}`;
-
-  const [cachedDataMS, cachedData] = await time(() => redis.get(cacheKey));
-
-  try {
-    if (cachedData) {
-      const user = JSON.parse(cachedData) as UserWithSneakers;
-
-      const [sessionUserTime, sessionUser] = userId
-        ? await time(() =>
-            prisma.user.findUnique({
-              where: {
-                id: userId,
-              },
-              select: {
-                givenName: true,
-                id: true,
-              },
-            })
-          )
-        : [0, undefined];
-
-      const sneakers = selectedBrands.length
-        ? user.sneakers.filter(sneaker =>
-            selectedBrands.includes(sneaker.brand.slug)
-          )
-        : user.sneakers;
-
-      const uniqueBrands = uniqBy(
-        user.sneakers.map(sneaker => sneaker.brand),
-        'name'
-      ).sort((a, b) => a.name.localeCompare(b.name));
-
-      const data: RouteData = {
-        user: { ...user, sneakers },
-        brands: uniqueBrands,
-        selectedBrands,
-        sort: sortQuery === 'asc' ? 'asc' : 'desc',
-        sessionUser,
-      };
-
-      return json(data, {
-        headers: {
-          'Set-Cookie': sessionUser ? await commitSession(session) : '',
-          'Server-Timing': `user;dur=${cachedDataMS}, sessionUser;dur=${sessionUserTime}`,
-        },
-      });
-    }
-
-    const [userTime, user] = await time(() =>
-      prisma.user.findUnique({
-        where: {
-          username: params.username,
-        },
-        select: {
-          username: true,
-          id: true,
-          fullName: true,
-          sneakers: {
-            include: { brand: true },
-            orderBy: {
-              purchaseDate: sort,
-            },
+  const [userTime, user] = await time(() =>
+    prisma.user.findUnique({
+      where: {
+        username: params.username,
+      },
+      select: {
+        username: true,
+        id: true,
+        fullName: true,
+        sneakers: {
+          include: { brand: true },
+          orderBy: {
+            purchaseDate: sort,
           },
         },
-      })
-    );
-
-    const [sessionUserTime, sessionUser] = userId
-      ? await time(() =>
-          prisma.user.findUnique({
-            where: {
-              id: userId,
-            },
-            select: {
-              givenName: true,
-              id: true,
-            },
-          })
-        )
-      : [0, undefined];
-
-    if (!user) {
-      throw new NotFoundError();
-    }
-
-    const sneakers = selectedBrands.length
-      ? user.sneakers.filter(sneaker =>
-          selectedBrands.includes(sneaker.brand.slug)
-        )
-      : user.sneakers;
-
-    const uniqueBrands = uniqBy(
-      user.sneakers.map(sneaker => sneaker.brand),
-      'name'
-    ).sort((a, b) => a.name.localeCompare(b.name));
-
-    const [cacheMS] = await time(() =>
-      saveByPage(cacheKey, user, 60 * 5 * 1000)
-    );
-
-    const data: RouteData = {
-      user: { ...user, sneakers },
-      brands: uniqueBrands,
-      selectedBrands,
-      sort: sortQuery === 'asc' ? 'asc' : 'desc',
-      sessionUser,
-    };
-
-    return json(data, {
-      headers: {
-        'Set-Cookie': sessionUser ? await commitSession(session) : '',
-        'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}; cache;dur=${cacheMS}`,
       },
-    });
-  } catch (error: unknown) {
-    console.error(error);
-    const data: RouteData = { brands: [], selectedBrands: [] };
-    return json(data, { status: 500 });
+    })
+  );
+
+  if (!user) {
+    throw new Response("This user doesn't exist", { status: 404 });
   }
+
+  const [sessionUserTime, sessionUser] = userId
+    ? await time(() =>
+        prisma.user.findUnique({
+          where: {
+            id: userId,
+          },
+          select: {
+            givenName: true,
+            id: true,
+          },
+        })
+      )
+    : [0, undefined];
+
+  const sneakers = selectedBrands.length
+    ? user.sneakers.filter(sneaker =>
+        selectedBrands.includes(sneaker.brand.slug)
+      )
+    : user.sneakers;
+
+  const uniqueBrands = uniqBy(
+    user.sneakers.map(sneaker => sneaker.brand),
+    'name'
+  ).sort((a, b) => a.name.localeCompare(b.name));
+
+  const data: RouteData = {
+    user: { ...user, sneakers },
+    brands: uniqueBrands,
+    selectedBrands,
+    sort: sortQuery === 'asc' ? 'asc' : 'desc',
+    sessionUser,
+  };
+
+  return json(data, {
+    headers: {
+      'Set-Cookie': sessionUser ? await commitSession(session) : '',
+      'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}`,
+    },
+  });
 };
 
 const headers: HeadersFunction = ({ loaderHeaders }) => ({
   'Server-Timing': loaderHeaders.get('Server-Timing') ?? '',
 });
 
-const meta: MetaFunction = args => {
-  const data = args.data as RouteData;
-
-  if (!data.user) {
-    return fourOhFourMeta(args);
+const meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
+  if (!data?.user) {
+    return getSeoMeta({
+      title: "Ain't nothing here",
+    });
   }
 
   const name = `${data.user.fullName}${
     data.user.fullName.endsWith('s') ? "'" : "'s"
   }`;
 
-  return {
+  return getSeoMeta({
     title: `${name} Sneaker Collection`,
     description: `${name} sneaker collection`,
-    'twitter:card': 'summary_large_image',
-    'twitter:site': '@loganmcansh',
-    // TODO: add support for linking your twitter account
-    'twitter:creator': '@loganmcansh',
-    'twitter:description': `${name} sneaker collection`,
-    // TODO: add support for user avatar
-  };
+    twitter: {
+      card: 'summary_large_image',
+      site: '@loganmcansh',
+      // TODO: add support for linking your twitter account
+      creator: '@loganmcansh',
+      description: `${name} sneaker collection`,
+      // TODO: add support for user avatar
+    },
+  });
 };
 
 const sortOptions = [
@@ -209,10 +153,7 @@ const sortOptions = [
 
 const UserSneakersPage: RouteComponent = () => {
   const data = useLoaderData<RouteData>();
-
-  if (data.user == null) {
-    return <FourOhFour />;
-  }
+  const submit = useSubmit();
 
   if (
     data.sessionUser &&
@@ -237,7 +178,7 @@ const UserSneakersPage: RouteComponent = () => {
 
   return (
     <div className="md:flex">
-      <Disclosure as="nav" className="bg-white shadow md:hidden">
+      <Disclosure as="nav" className="sticky top-0 bg-white shadow md:hidden">
         {({ open }) => (
           <>
             <div className="px-2 mx-auto max-w-7xl md:px-6 lg:px-8">
@@ -264,11 +205,13 @@ const UserSneakersPage: RouteComponent = () => {
               <div>
                 <div className="px-4 pb-6">
                   <h1 className="mb-4 text-lg font-medium">
-                    {/* @ts-expect-error this check happens above so im not sure why it's complaining here... */}
                     {data.user.fullName}
                   </h1>
 
-                  <form method="get">
+                  <Form
+                    method="get"
+                    onChange={event => submit(event.currentTarget)}
+                  >
                     <fieldset>
                       <div>
                         <div>Filter by brand:</div>
@@ -300,11 +243,9 @@ const UserSneakersPage: RouteComponent = () => {
                                 <input
                                   type="radio"
                                   name="sort"
-                                  defaultChecked={
-                                    data.sort
-                                      ? data.sort.includes(sort.value)
-                                      : false
-                                  }
+                                  defaultChecked={data.sort.includes(
+                                    sort.value
+                                  )}
                                   value={sort.value}
                                   className="rounded-full"
                                 />
@@ -315,13 +256,15 @@ const UserSneakersPage: RouteComponent = () => {
                         </ul>
                       </div>
                     </fieldset>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 text-sm text-white bg-purple-600 rounded"
-                    >
-                      Apply
-                    </button>
-                  </form>
+                    <noscript>
+                      <button
+                        type="submit"
+                        className="px-4 py-2 text-sm text-white bg-purple-600 rounded"
+                      >
+                        Apply
+                      </button>
+                    </noscript>
+                  </Form>
                 </div>
               </div>
             </Disclosure.Panel>
@@ -332,7 +275,7 @@ const UserSneakersPage: RouteComponent = () => {
       <aside className="md:sticky md:top-0 md:h-screen md:w-[275px] md:px-4 md:py-6 hidden md:block overflow-y-auto">
         <h1 className="mb-4 text-xl font-medium">{data.user.fullName}</h1>
 
-        <form method="get">
+        <Form method="get" onChange={event => submit(event.currentTarget)}>
           <fieldset className="space-y-2">
             <div>
               <div>Filter by brand:</div>
@@ -364,9 +307,7 @@ const UserSneakersPage: RouteComponent = () => {
                       <input
                         type="radio"
                         name="sort"
-                        defaultChecked={
-                          data.sort ? data.sort.includes(sort.value) : false
-                        }
+                        defaultChecked={data.sort.includes(sort.value)}
                         value={sort.value}
                         className="rounded-full"
                       />
@@ -377,21 +318,36 @@ const UserSneakersPage: RouteComponent = () => {
               </ul>
             </div>
           </fieldset>
-          <button
-            type="submit"
-            className="px-4 py-2 text-sm text-white bg-purple-600 rounded"
-          >
-            Apply
-          </button>
-        </form>
+          <noscript>
+            <button
+              type="submit"
+              className="px-4 py-2 text-sm text-white bg-purple-600 rounded"
+            >
+              Apply
+            </button>
+          </noscript>
+        </Form>
       </aside>
 
-      <main className="w-full min-h-screen">
-        <ul className="grid grid-cols-2 px-4 py-6 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8">
-          {data.user.sneakers.map(sneaker => (
-            <SneakerCard key={sneaker.id} {...sneaker} />
-          ))}
-        </ul>
+      <main
+        className={clsx('w-full min-h-screen', {
+          'grid place-items-center text-center':
+            data.user.sneakers.length === 0,
+        })}
+      >
+        {data.user.sneakers.length === 0 ? (
+          <div className="px-6">
+            <h1 className="text-2xl font-medium">
+              {data.user.fullName} has no sneakers in their collection
+            </h1>
+          </div>
+        ) : (
+          <ul className="grid grid-cols-2 px-4 py-6 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8">
+            {data.user.sneakers.map(sneaker => (
+              <SneakerCard key={sneaker.id} {...sneaker} />
+            ))}
+          </ul>
+        )}
       </main>
     </div>
   );

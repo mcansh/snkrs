@@ -11,7 +11,6 @@ import { copy } from '../utils/copy';
 import { sessionKey } from '../constants';
 import { prisma } from '../db.server';
 import { withSession } from '../lib/with-session';
-import { redis, saveByPage } from '../lib/redis.server';
 
 const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
@@ -50,22 +49,6 @@ type RouteData =
 
 const loader: LoaderFunction = ({ params, request }) =>
   withSession(request, async session => {
-    const cacheKey = params.sneakerId!;
-    const cachedSneaker = await redis.get(cacheKey);
-
-    if (cachedSneaker) {
-      const sneaker = JSON.parse(cachedSneaker) as SneakerWithUser;
-      const userCreatedSneaker = sneaker.user.id === session.get(sessionKey);
-
-      const data: RouteData = {
-        id: cacheKey,
-        sneaker,
-        userCreatedSneaker,
-      };
-
-      return json(data);
-    }
-
     const sneaker = await prisma.sneaker.findUnique({
       where: { id: params.sneakerId },
       include: {
@@ -84,8 +67,6 @@ const loader: LoaderFunction = ({ params, request }) =>
       const data: RouteData = { id: params.sneakerId! };
       return json(data, { status: 404 });
     }
-
-    await saveByPage(cacheKey, sneaker, 60 * 5 * 1000);
 
     const userCreatedSneaker = sneaker.user.id === session.get(sessionKey);
 
