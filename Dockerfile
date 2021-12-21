@@ -19,9 +19,6 @@ RUN npm install --production=false
 # setup production node_modules
 FROM base as production-deps
 
-ARG REMIX_TOKEN
-ENV REMIX_TOKEN=$REMIX_TOKEN
-
 WORKDIR /remixapp/
 
 COPY --from=deps /remixapp/node_modules /remixapp/node_modules

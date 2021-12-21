@@ -24,7 +24,7 @@
     "prepare": "husky install && remix setup node",
     "clean": "del .cache build public/build app/styles app/icons/{solid,outline}",
     "start": "remix-serve ./build",
-    "deploy": "flyctl deploy --build-arg REMIX_TOKEN=$REMIX_TOKEN --strategy bluegreen"
+    "deploy": "flyctl deploy"
   },
   "dependencies": {
     "@headlessui/react": "1.4.2",
