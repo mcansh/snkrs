@@ -6,8 +6,7 @@ import type { MetaFunction, LoaderFunction } from 'remix';
 
 import { SneakerCard } from '../components/sneaker';
 import { prisma } from '../db.server';
-
-import { getSeoMeta } from '~/seo';
+import { getSeoMeta } from '../seo';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
   select: { username: true, sneakers: { include: { brand: true } } },

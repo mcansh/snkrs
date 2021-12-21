@@ -19,8 +19,7 @@ import { time } from '../lib/time';
 import { SneakerCard } from '../components/sneaker';
 import { commitSession, getSession } from '../session';
 import type { Maybe } from '../@types/types';
-
-import { getSeoMeta } from '~/seo';
+import { getSeoMeta } from '../seo';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
   select: {
