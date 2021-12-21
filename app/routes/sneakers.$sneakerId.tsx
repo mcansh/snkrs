@@ -11,8 +11,7 @@ import { copy } from '../utils/copy';
 import { sessionKey } from '../constants';
 import { prisma } from '../db.server';
 import { withSession } from '../lib/with-session';
-
-import { getSeoMeta } from '~/seo';
+import { getSeoMeta } from '../seo';
 
 const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
