@@ -2,7 +2,7 @@ import React from 'react';
 import { Prisma } from '@prisma/client';
 import { json, Link, useLoaderData } from 'remix';
 import type { Except } from 'type-fest';
-import type { LoaderFunction } from 'remix';
+import type { LoaderFunction, MetaFunction } from 'remix';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/get-cloudinary-url';
@@ -11,6 +11,8 @@ import { copy } from '../utils/copy';
 import { sessionKey } from '../constants';
 import { prisma } from '../db.server';
 import { withSession } from '../lib/with-session';
+
+import { getSeoMeta } from '~/seo';
 
 const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
@@ -85,11 +87,11 @@ const loader: LoaderFunction = ({ params, request }) =>
     return json(data);
   });
 
-const meta = ({ data }: { data: RouteData }) => {
-  if (!data.sneaker) {
-    return {
+const meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
+  if (!data?.sneaker) {
+    return getSeoMeta({
       title: 'Sneaker Not Found',
-    };
+    });
   }
 
   const date = formatDate(data.sneaker.purchaseDate, {
@@ -98,12 +100,10 @@ const meta = ({ data }: { data: RouteData }) => {
     year: 'numeric',
   });
 
-  const description = `${data.sneaker.user.fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`;
-
-  return {
+  return getSeoMeta({
     title: `${data.sneaker.brand.name} ${data.sneaker.model} – ${data.sneaker.colorway}`,
-    description,
-  };
+    description: `${data.sneaker.user.fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`,
+  });
 };
 
 function getEmoji(purchase: number, retail: number) {

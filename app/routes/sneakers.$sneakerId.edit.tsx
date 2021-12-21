@@ -241,8 +241,8 @@ const action: ActionFunction = ({ request, params }) =>
     }
   });
 
-const meta: MetaFunction = ({ data }: { data: RouteData }) => ({
-  title: data.sneaker
+const meta: MetaFunction = ({ data }: { data: RouteData | null }) => ({
+  title: data?.sneaker
     ? `Editing ${data.sneaker.brand.name} ${data.sneaker.model} – ${data.sneaker.colorway}`
     : 'Not Found',
 });
