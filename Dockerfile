@@ -13,7 +13,6 @@ WORKDIR /remixapp/
 
 ADD package.json package-lock.json .npmrc ./
 RUN npm install --production=false
-RUN npx metronome setup
 
 ###############################################################################
 
