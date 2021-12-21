@@ -94,9 +94,18 @@ const loader: LoaderFunction = ({ params, request }) =>
         userCreatedSneaker,
         sneaker: {
           ...sneaker,
-          createdAt: sneaker.createdAt.toISOString(),
-          purchaseDate: sneaker.purchaseDate.toISOString(),
-          soldDate: sneaker.soldDate?.toISOString(),
+          createdAt:
+            typeof sneaker.createdAt === 'string'
+              ? sneaker.createdAt
+              : sneaker.createdAt.toISOString(),
+          purchaseDate:
+            typeof sneaker.purchaseDate === 'string'
+              ? sneaker.purchaseDate
+              : sneaker.purchaseDate.toISOString(),
+          soldDate:
+            typeof sneaker.soldDate === 'string'
+              ? sneaker.soldDate
+              : sneaker.soldDate?.toISOString(),
         },
       };
 

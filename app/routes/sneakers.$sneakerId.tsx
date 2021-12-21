@@ -65,8 +65,9 @@ const loader: LoaderFunction = ({ params, request }) =>
     });
 
     if (!sneaker) {
-      const data: RouteData = { id: params.sneakerId! };
-      return json(data, { status: 404 });
+      throw new Response(`Sneaker not found with id ${params.sneakerId}`, {
+        status: 404,
+      });
     }
 
     const userCreatedSneaker = sneaker.user.id === session.get(sessionKey);
@@ -76,10 +77,22 @@ const loader: LoaderFunction = ({ params, request }) =>
       userCreatedSneaker,
       sneaker: {
         ...sneaker,
-        createdAt: sneaker.createdAt.toISOString(),
-        soldDate: sneaker.soldDate?.toISOString(),
-        purchaseDate: sneaker.purchaseDate.toISOString(),
-        updatedAt: sneaker.updatedAt.toISOString(),
+        createdAt:
+          typeof sneaker.createdAt === 'string'
+            ? sneaker.createdAt
+            : sneaker.createdAt.toISOString(),
+        soldDate:
+          typeof sneaker.soldDate === 'string'
+            ? sneaker.soldDate
+            : sneaker.soldDate?.toISOString(),
+        purchaseDate:
+          typeof sneaker.purchaseDate === 'string'
+            ? sneaker.purchaseDate
+            : sneaker.purchaseDate.toISOString(),
+        updatedAt:
+          typeof sneaker.updatedAt === 'string'
+            ? sneaker.updatedAt
+            : sneaker.updatedAt.toISOString(),
       },
     };
 
@@ -87,7 +100,7 @@ const loader: LoaderFunction = ({ params, request }) =>
   });
 
 const meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
-  if (!data?.sneaker) {
+  if (!data || !data.sneaker) {
     return getSeoMeta({
       title: 'Sneaker Not Found',
     });
