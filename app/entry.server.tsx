@@ -9,7 +9,7 @@ const cspSettings = {
   'img-src': [
     "'self'",
     'data:',
-    'https://images.mcan.sh',
+    'https://dof0zryca-res.cloudinary.com',
     'https://kiwi.mcan.sh',
   ],
   'style-src': ["'self'", "'unsafe-inline'"],

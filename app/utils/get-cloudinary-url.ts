@@ -9,7 +9,6 @@ function getCloudinaryURL(
     cloud: {
       secure: true,
       cloudName: 'dof0zryca',
-      secureDistribution: 'images.mcan.sh',
       useRootPath: true,
       privateCdn: true,
     },
