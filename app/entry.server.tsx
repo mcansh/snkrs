@@ -1,7 +1,7 @@
 import { renderToString } from 'react-dom/server';
 import { RemixServer, redirect } from 'remix';
 import etag from 'etag';
-import type { EntryContext } from 'remix';
+import type { EntryContext, HandleDataRequestFunction } from 'remix';
 
 // https://securityheaders.com
 const cspSettings = {
@@ -24,7 +24,7 @@ const contentSecurityPolicy = `${Object.entries(cspSettings)
   .map(([key, val]) => `${key} ${val.filter(Boolean).join(' ')}`)
   .join(';')}`;
 
-export default function handleRequest(
+function handleDocumentRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
@@ -81,3 +81,21 @@ export default function handleRequest(
     headers: responseHeaders,
   });
 }
+
+const handleDataRequest: HandleDataRequestFunction = (
+  response,
+  { request }
+) => {
+  if (!response.headers.has('Cache-Control')) {
+    const purpose = request.headers.get('Purpose');
+    response.headers.set(
+      'Cache-Control',
+      purpose === 'prefetch' ? 'max-age=3' : 'no-cache'
+    );
+  }
+
+  return response;
+};
+
+export default handleDocumentRequest;
+export { handleDataRequest };
