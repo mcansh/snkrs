@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { json, useLoaderData } from 'remix';
 import { endOfYear, startOfYear } from 'date-fns';
 import type { MetaFunction, LoaderFunction } from 'remix';
+import invariant from 'tiny-invariant';
 
 import { SneakerCard } from '../components/sneaker';
 import { prisma } from '../db.server';
@@ -20,18 +21,20 @@ interface RouteData {
 }
 
 const loader: LoaderFunction = async ({ params }) => {
-  const { username } = params;
-  const year = parseInt(params.year!, 10);
+  invariant(params.year, 'year is required');
+  invariant(params.username, 'username is required');
+  const year = parseInt(params.year, 10);
 
-  const now = new Date();
-  const date = new Date(year, now.getMonth(), now.getDate());
+  const date = new Date(year, 0);
+  const start = startOfYear(date);
+  const end = endOfYear(date);
 
-  if (year > now.getFullYear()) {
-    throw new Response('', { status: 404 });
+  if (year > new Date().getFullYear()) {
+    throw new Response('Requested year is in the future', { status: 404 });
   }
 
   const user = await prisma.user.findUnique({
-    where: { username },
+    where: { username: params.username },
     select: {
       username: true,
       sneakers: {
@@ -39,8 +42,8 @@ const loader: LoaderFunction = async ({ params }) => {
         include: { brand: true },
         where: {
           purchaseDate: {
-            gte: startOfYear(date),
-            lte: endOfYear(date),
+            gte: start,
+            lte: end,
           },
         },
       },
@@ -51,9 +54,7 @@ const loader: LoaderFunction = async ({ params }) => {
     throw new Response('', { status: 404 });
   }
 
-  const data: RouteData = { year, user };
-
-  return json(data);
+  return json<RouteData>({ user, year });
 };
 
 const meta: MetaFunction = ({ data }: { data: RouteData | null }) => {

@@ -40,6 +40,9 @@ export interface RouteData {
   selectedBrands: Array<string>;
   sort: 'asc' | 'desc';
   sessionUser?: Maybe<Pick<User, 'givenName' | 'id'>>;
+  settings: {
+    showPurchasePrice: boolean;
+  };
 }
 
 const loader: LoaderFunction = async ({ params, request }) => {
@@ -75,6 +78,12 @@ const loader: LoaderFunction = async ({ params, request }) => {
     throw new Response("This user doesn't exist", { status: 404 });
   }
 
+  const [settingsTime, settings] = await time(() =>
+    prisma.settings.findUnique({
+      where: { userId: user.id },
+    })
+  );
+
   const [sessionUserTime, sessionUser] = userId
     ? await time(() =>
         prisma.user.findUnique({
@@ -100,20 +109,24 @@ const loader: LoaderFunction = async ({ params, request }) => {
     'name'
   ).sort((a, b) => a.name.localeCompare(b.name));
 
-  const data: RouteData = {
-    user: { ...user, sneakers },
-    brands: uniqueBrands,
-    selectedBrands,
-    sort: sortQuery === 'asc' ? 'asc' : 'desc',
-    sessionUser,
-  };
-
-  return json(data, {
-    headers: {
-      'Set-Cookie': sessionUser ? await commitSession(session) : '',
-      'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}`,
+  return json<RouteData>(
+    {
+      user: { ...user, sneakers },
+      brands: uniqueBrands,
+      selectedBrands,
+      sort: sortQuery === 'asc' ? 'asc' : 'desc',
+      sessionUser,
+      settings: {
+        showPurchasePrice: settings?.showPurchasePrice ?? false,
+      },
     },
-  });
+    {
+      headers: {
+        'Set-Cookie': sessionUser ? await commitSession(session) : '',
+        'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}, settings;dur=${settingsTime}`,
+      },
+    }
+  );
 };
 
 const headers: HeadersFunction = ({ loaderHeaders }) => ({
@@ -343,7 +356,11 @@ const UserSneakersPage: RouteComponent = () => {
         ) : (
           <ul className="grid grid-cols-2 px-4 py-6 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-4 xl:gap-x-8">
             {data.user.sneakers.map(sneaker => (
-              <SneakerCard key={sneaker.id} {...sneaker} />
+              <SneakerCard
+                key={sneaker.id}
+                {...sneaker}
+                showPurchasePrice={data.settings.showPurchasePrice}
+              />
             ))}
           </ul>
         )}

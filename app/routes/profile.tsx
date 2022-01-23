@@ -26,6 +26,11 @@ interface RouteData {
   user: {
     email: string;
     username: string;
+    settings: {
+      showPurchasePrice: boolean;
+      showRetailPrice: boolean;
+      showTotalPrice: boolean;
+    } | null;
   };
   profileError: Partial<EditProfileSchema> | undefined;
 }
@@ -48,6 +53,7 @@ const loader: LoaderFunction = async ({ request }) => {
     select: {
       email: true,
       username: true,
+      settings: true,
     },
   });
 
@@ -77,23 +83,51 @@ const action: ActionFunction = async ({ request }) => {
     });
   }
 
-  const req = await request.text();
-  const formData = new URLSearchParams(req);
+  const formData = await request.formData();
+
+  const email = formData.get('email');
+  const username = formData.get('username');
+  const showPurchasePrice = formData.get('showPurchasePrice');
+  const showRetailPrice = formData.get('showRetailPrice');
+  const showTotalPrice = formData.get('showTotalPrice');
 
   try {
-    const valid = await editProfile.validate(Object.fromEntries(formData), {
-      abortEarly: false,
-    });
+    const valid = await editProfile.validate(
+      {
+        email,
+        username,
+        settings: {
+          showPurchasePrice: showPurchasePrice === 'on',
+          showRetailPrice: showRetailPrice === 'on',
+          showTotalPrice: showTotalPrice === 'on',
+        },
+      },
+      { abortEarly: false }
+    );
 
-    const updatedUser = await prisma.user.update({
+    await prisma.user.update({
       data: {
         email: valid.email,
         username: valid.username,
+        settings: {
+          upsert: {
+            create: {
+              showPurchasePrice: valid.settings.showPurchasePrice,
+              showRetailPrice: valid.settings.showRetailPrice,
+              showTotalPrice: valid.settings.showTotalPrice,
+            },
+            update: {
+              showPurchasePrice: valid.settings.showPurchasePrice,
+              showRetailPrice: valid.settings.showRetailPrice,
+              showTotalPrice: valid.settings.showTotalPrice,
+            },
+          },
+        },
       },
       where: { id: userId },
     });
 
-    return redirect(`/${updatedUser.username}`);
+    return redirect('/profile');
   } catch (error: unknown) {
     console.error(error);
     if (error instanceof ValidationError) {
@@ -170,7 +204,7 @@ const ProfilePage: RouteComponent = () => {
   }, [data.profileError, pendingForm]);
 
   return (
-    <div>
+    <div className="max-w-screen-md px-6 mx-auto ">
       <h1>Edit Account</h1>
 
       {data.profileError && (
@@ -182,28 +216,54 @@ const ProfilePage: RouteComponent = () => {
         </div>
       )}
 
-      <Form method="post">
-        <fieldset disabled={!!pendingForm}>
-          <label htmlFor="email">
+      <Form method="post" replace>
+        <fieldset disabled={!!pendingForm} className="flex flex-col space-y-4">
+          <label>
             <span>Email:</span>
             <input
               className="w-full px-2 py-1 border border-gray-400 rounded"
               type="email"
               name="email"
-              id="email"
               defaultValue={data.user.email}
             />
           </label>
-          <label htmlFor="username">
+          <label>
             <span>Username:</span>
             <input
               className="w-full px-2 py-1 border border-gray-400 rounded"
               type="text"
               name="username"
-              id="username"
               defaultValue={data.user.username}
             />
           </label>
+
+          <label>
+            <span className="mr-2">Show Purchase Price of sneakers:</span>
+            <input
+              type="checkbox"
+              name="showPurchasePrice"
+              defaultChecked={data.user.settings?.showPurchasePrice ?? true}
+            />
+          </label>
+
+          <label>
+            <span className="mr-2">Show Retail Price of sneakers:</span>
+            <input
+              type="checkbox"
+              name="showRetailPrice"
+              defaultChecked={data.user.settings?.showRetailPrice ?? true}
+            />
+          </label>
+
+          <label>
+            <span className="mr-2">Show Total Price of collection:</span>
+            <input
+              type="checkbox"
+              name="showTotalPrice"
+              defaultChecked={data.user.settings?.showTotalPrice}
+            />
+          </label>
+
           <LoadingButton
             type="submit"
             disabled={!!pendingForm}

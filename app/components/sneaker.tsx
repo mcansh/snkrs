@@ -12,7 +12,11 @@ const sneakerWithBrand = Prisma.validator<Prisma.SneakerArgs>()({
 
 type SneakerWithBrand = Prisma.SneakerGetPayload<typeof sneakerWithBrand>;
 
-const SneakerCard: React.VFC<SneakerWithBrand> = ({
+interface Props extends SneakerWithBrand {
+  showPurchasePrice: boolean;
+}
+
+const SneakerCard: React.VFC<Props> = ({
   id,
   model,
   colorway,
@@ -21,33 +25,29 @@ const SneakerCard: React.VFC<SneakerWithBrand> = ({
   price,
   purchaseDate,
   sold,
+  showPurchasePrice,
 }) => {
   const sizes = [200, 400, 600];
 
-  const srcSet = sizes
-    .map(
-      size =>
-        `${getCloudinaryURL(imagePublicId, {
-          resize: {
-            type: 'pad',
-            width: size,
-            height: size,
-          },
-        })} ${size}w`
-    )
+  const images = sizes.map(size =>
+    getCloudinaryURL(imagePublicId, {
+      resize: {
+        type: 'pad',
+        width: size,
+        height: size,
+      },
+    })
+  );
+
+  const srcSet = images
+    .map((image, index) => `${image} ${sizes[index]}w`)
     .join(', ');
 
   return (
     <li>
       <div className="relative block w-full overflow-hidden bg-gray-100 rounded-lg group aspect-w-1 aspect-h-1 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-blue-500">
         <img
-          src={getCloudinaryURL(imagePublicId, {
-            resize: {
-              width: 200,
-              height: 200,
-              type: 'crop',
-            },
-          })}
+          src={images[0]}
           sizes="(min-width: 1024px) 25vw, 50vw"
           srcSet={srcSet}
           alt=""
@@ -61,6 +61,7 @@ const SneakerCard: React.VFC<SneakerWithBrand> = ({
         <Link
           to={`/sneakers/${id}`}
           className="absolute inset-0 focus:outline-none"
+          prefetch="intent"
         >
           <span className="sr-only">
             View details for {brand.name} {model}
@@ -72,7 +73,9 @@ const SneakerCard: React.VFC<SneakerWithBrand> = ({
           {brand.name} {model}
         </p>
         <p className="text-gray-500 truncate">{colorway}</p>
-        <p className="text-gray-500 truncate">{formatMoney(price)}</p>
+        {showPurchasePrice && (
+          <p className="text-gray-500 truncate">{formatMoney(price)}</p>
+        )}
         <p className="text-gray-500 truncate">
           Purchased {formatDate(purchaseDate)}
         </p>

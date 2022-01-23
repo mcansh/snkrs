@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { json, Link, useLoaderData } from 'remix';
 import type { Except } from 'type-fest';
 import type { LoaderFunction, MetaFunction } from 'remix';
+import invariant from 'tiny-invariant';
 
 import { formatDate } from '../utils/format-date';
 import { getCloudinaryURL } from '../utils/get-cloudinary-url';
@@ -36,20 +37,22 @@ type SneakerWithUser = Except<
   createdAt: string;
 };
 
-type RouteData =
-  | {
-      id: string;
-      sneaker?: never;
-      userCreatedSneaker?: never;
-    }
-  | {
-      sneaker: SneakerWithUser;
-      id: string;
-      userCreatedSneaker: boolean;
-    };
+interface RouteData {
+  sneaker: SneakerWithUser;
+  id: string;
+  userCreatedSneaker: boolean;
+  purchaseYear: number;
+  title: string;
+  settings: {
+    showPurchasePrice: boolean;
+    showRetailPrice: boolean;
+  };
+}
 
 const loader: LoaderFunction = ({ params, request }) =>
   withSession(request, async session => {
+    invariant(params.sneakerId, 'sneakerID is required');
+
     const sneaker = await prisma.sneaker.findUnique({
       where: { id: params.sneakerId },
       include: {
@@ -72,9 +75,19 @@ const loader: LoaderFunction = ({ params, request }) =>
 
     const userCreatedSneaker = sneaker.user.id === session.get(sessionKey);
 
-    const data: RouteData = {
-      id: params.sneakerId!,
+    const settings = await prisma.settings.findUnique({
+      where: { userId: sneaker.user.id },
+    });
+
+    return json<RouteData>({
+      id: params.sneakerId,
       userCreatedSneaker,
+      title: `${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`,
+      purchaseYear: new Date(sneaker.purchaseDate).getFullYear(),
+      settings: {
+        showPurchasePrice: settings?.showPurchasePrice ?? true,
+        showRetailPrice: settings?.showRetailPrice ?? false,
+      },
       sneaker: {
         ...sneaker,
         createdAt:
@@ -94,13 +107,11 @@ const loader: LoaderFunction = ({ params, request }) =>
             ? sneaker.updatedAt
             : sneaker.updatedAt.toISOString(),
       },
-    };
-
-    return json(data);
+    });
   });
 
 const meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
-  if (!data || !data.sneaker) {
+  if (!data) {
     return getSeoMeta({
       title: 'Sneaker Not Found',
     });
@@ -113,47 +124,19 @@ const meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
   });
 
   return getSeoMeta({
-    title: `${data.sneaker.brand.name} ${data.sneaker.model} – ${data.sneaker.colorway}`,
+    title: data.title,
     description: `${data.sneaker.user.fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`,
   });
 };
 
-function getEmoji(purchase: number, retail: number) {
-  const diff = retail - purchase;
-
-  if (diff >= 10000) return '💎';
-  if (diff >= 5000) return '💪';
-  if (diff >= 2500) return '🥳';
-  if (diff >= 1000) return '😎';
-  if (diff >= 500) return '😄';
-  if (diff <= 500) return '😕';
-  if (diff <= 1000) return '☹️';
-  if (diff <= 2500) return '😭';
-  return '🤯';
-}
-
 const SneakerPage: React.VFC = () => {
-  const { sneaker, id, userCreatedSneaker } = useLoaderData<RouteData>();
-
-  if (!sneaker) {
-    return (
-      <div className="flex items-center justify-center w-full h-full text-lg text-center">
-        <p>No sneaker with id &quot;{id}&quot;</p>
-      </div>
-    );
-  }
-
-  const title = `${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`;
-  const purchaseDate = new Date(sneaker.purchaseDate);
-
-  const atRetail = sneaker.retailPrice === sneaker.price;
-  const emoji = getEmoji(sneaker.price, sneaker.retailPrice);
+  const data = useLoaderData<RouteData>();
 
   const sizes = [200, 400, 600];
 
   const srcSet = sizes.map(
     size =>
-      `${getCloudinaryURL(sneaker.imagePublicId, {
+      `${getCloudinaryURL(data.sneaker.imagePublicId, {
         resize: {
           width: size,
           height: size,
@@ -164,11 +147,13 @@ const SneakerPage: React.VFC = () => {
 
   return (
     <main className="container h-full p-4 pb-6 mx-auto">
-      <Link to={`/${sneaker.user.username}`}>Back</Link>
+      <Link prefetch="intent" to={`/${data.sneaker.user.username}`}>
+        Back
+      </Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
         <div className="relative w-full overflow-hidden bg-gray-100 rounded-lg aspect-w-1 aspect-h-1">
           <img
-            src={getCloudinaryURL(sneaker.imagePublicId, {
+            src={getCloudinaryURL(data.sneaker.imagePublicId, {
               resize: {
                 type: 'pad',
                 width: 200,
@@ -177,55 +162,54 @@ const SneakerPage: React.VFC = () => {
             })}
             sizes="(min-width: 640px) 50vw, 100vw"
             srcSet={srcSet.join()}
-            alt={title}
+            alt={data.title}
             className="object-contain"
           />
         </div>
         <div className="flex flex-col justify-between">
           <div className="space-y-2">
-            <h1 className="text-2xl">{title}</h1>
+            <h1 className="text-2xl">{data.title}</h1>
 
-            {atRetail ? (
-              <p className="text-xl">{formatMoney(sneaker.price)}</p>
-            ) : (
-              <p className="text-xl">
-                Bought {sneaker.retailPrice > sneaker.price ? 'below' : 'above'}{' '}
-                retail ({formatMoney(sneaker.retailPrice)}) {emoji} for{' '}
-                {formatMoney(sneaker.price)}
-              </p>
+            {data.settings.showPurchasePrice && (
+              <p>Purchase Price {formatMoney(data.sneaker.price)}</p>
+            )}
+
+            {data.settings.showRetailPrice && (
+              <p>Retail Price {formatMoney(data.sneaker.retailPrice)}</p>
             )}
 
             <p className="text-md">
               Purchased on{' '}
-              <time dateTime={purchaseDate.toISOString()}>
-                {formatDate(purchaseDate)}
+              <time dateTime={data.sneaker.purchaseDate}>
+                {formatDate(data.sneaker.purchaseDate)}
               </time>
             </p>
 
             <p>
               Last Updated{' '}
-              <time dateTime={new Date(sneaker.updatedAt).toISOString()}>
-                {formatDate(sneaker.updatedAt)}
+              <time dateTime={data.sneaker.updatedAt}>
+                {formatDate(data.sneaker.updatedAt)}
               </time>
             </p>
 
-            {sneaker.sold && sneaker.soldDate && (
+            {data.sneaker.sold && data.sneaker.soldDate && (
               <p className="text-md">
                 Sold{' '}
-                <time dateTime={sneaker.soldDate}>
-                  {formatDate(sneaker.soldDate)}{' '}
-                  {sneaker.soldPrice && (
-                    <>For {formatMoney(sneaker.soldPrice)}</>
+                <time dateTime={data.sneaker.soldDate}>
+                  {formatDate(data.sneaker.soldDate)}{' '}
+                  {data.sneaker.soldPrice && (
+                    <>For {formatMoney(data.sneaker.soldPrice)}</>
                   )}
                 </time>
               </p>
             )}
 
             <Link
-              to={`/${sneaker.user.username}/yir/${purchaseDate.getFullYear()}`}
+              to={`/${data.sneaker.user.username}/yir/${data.purchaseYear}`}
               className="block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
+              prefetch="intent"
             >
-              See others purchased in {purchaseDate.getFullYear()}
+              See others purchased in {data.purchaseYear}
             </Link>
           </div>
 
@@ -235,15 +219,15 @@ const SneakerPage: React.VFC = () => {
               className="text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
               onClick={() => {
                 if ('share' in navigator) {
-                  const date = formatDate(purchaseDate, {
+                  const date = formatDate(data.sneaker.purchaseDate, {
                     month: 'long',
                     day: 'numeric',
                     year: 'numeric',
                   });
 
                   return navigator.share({
-                    title: `${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`,
-                    text: `${sneaker.user.fullName} bought the ${sneaker.brand.name} ${sneaker.model} on ${date}`,
+                    title: data.title,
+                    text: `${data.sneaker.user.fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`,
                     url: location.href,
                   });
                 }
@@ -253,9 +237,9 @@ const SneakerPage: React.VFC = () => {
             >
               Permalink
             </button>
-            {userCreatedSneaker && (
+            {data.userCreatedSneaker && (
               <Link
-                to={`/sneakers/${sneaker.id}/edit`}
+                to={`/sneakers/${data.sneaker.id}/edit`}
                 className="inline-block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
               >
                 Edit Sneaker

@@ -46,4 +46,18 @@ model User {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @default(now()) @updatedAt
   sneakers   Sneaker[]
+  settings   Settings?
+}
+
+model Settings {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+
+  // if true, shows the purchase price of a user's sneakers
+  showPurchasePrice Boolean @default(true)
+  // if true, shows the retail price of a user's sneakers
+  showRetailPrice   Boolean @default(true)
+  // if true, shows the total cost of a user's collection
+  showTotalPrice    Boolean @default(false)
 }
