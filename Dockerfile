@@ -60,4 +60,4 @@ COPY --from=build /remixapp/build /remixapp/build
 COPY --from=build /remixapp/public /remixapp/public
 ADD . .
 
-CMD ["npm", "run", "start"]
+CMD ["./start_with_migrations.sh"]
