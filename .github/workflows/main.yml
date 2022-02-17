@@ -17,7 +17,11 @@ jobs:
         uses: styfle/cancel-workflow-action@0.8.0
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v2
-      - uses: superfly/flyctl-actions@1.1
+
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Deploy
+        uses: superfly/flyctl-actions@1.1
         with:
           args: 'deploy'
