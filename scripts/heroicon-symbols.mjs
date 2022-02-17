@@ -43,7 +43,7 @@ async function wrapSymbol(inputPath, outputDir) {
               const { xmlns, ...attributes } = item.attributes;
 
               for (const attribute in attributes) {
-                if (Object.hasOwnProperty.call(attributes, attribute)) {
+                if (Object.hasOwn(attributes, attribute)) {
                   delete item.attributes[attribute];
                 }
               }
