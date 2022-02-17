@@ -61,4 +61,4 @@ COPY --from=build /remixapp/prisma /remixapp/prisma
 COPY --from=build /remixapp/build /remixapp/build
 ADD . .
 
-ENTRYPOINT [ "scripts/start-with-migrations.sh" ]
+ENTRYPOINT [ "scripts/start_with_migrations.sh" ]
