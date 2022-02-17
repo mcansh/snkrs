@@ -9,18 +9,18 @@ import type {
   LinksFunction,
 } from 'remix';
 
-import { getSession, destroySession } from '../session';
-import { sessionKey } from '../constants';
-import { prisma } from '../db.server';
-import { editProfile } from '../lib/schemas/edit-profile.server';
-import { yupToObject } from '../lib/yup-to-object';
-import { LoadingButton } from '../components/loading-button';
-import saveIcon from '../icons/outline/save.svg';
-import checkIcon from '../icons/outline/check.svg';
-import refreshIcon from '../icons/refresh-clockwise.svg';
-import exclamationCircleIcon from '../icons/outline/exclamation-circle.svg';
-import type { LoadingButtonProps } from '../components/loading-button';
-import type { EditProfileSchema } from '../lib/schemas/edit-profile.server';
+import { getSession, destroySession } from '~/session';
+import { sessionKey } from '~/constants';
+import { prisma } from '~/db.server';
+import { editProfile } from '~/lib/schemas/edit-profile.server';
+import { yupToObject } from '~/lib/yup-to-object';
+import { LoadingButton } from '~/components/loading-button';
+import saveIcon from '~/icons/outline/save.svg';
+import checkIcon from '~/icons/outline/check.svg';
+import refreshIcon from '~/icons/refresh-clockwise.svg';
+import exclamationCircleIcon from '~/icons/outline/exclamation-circle.svg';
+import type { LoadingButtonProps } from '~/components/loading-button';
+import type { EditProfileSchema } from '~/lib/schemas/edit-profile.server';
 
 interface RouteData {
   user: {

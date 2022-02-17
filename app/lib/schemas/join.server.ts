@@ -1,8 +1,8 @@
 import * as Yup from 'yup';
 
-import type { RemoveIndex } from '../../@types/types';
-
 import { reservedUsernames } from './reserved-usernames.server';
+
+import type { RemoveIndex } from '~/@types/types';
 
 const registerSchema = Yup.object().shape({
   email: Yup.string().email().required(),

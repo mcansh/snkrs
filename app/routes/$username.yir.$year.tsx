@@ -5,9 +5,9 @@ import { endOfYear, startOfYear } from 'date-fns';
 import type { MetaFunction, LoaderFunction } from 'remix';
 import invariant from 'tiny-invariant';
 
-import { SneakerCard } from '../components/sneaker';
-import { prisma } from '../db.server';
-import { getSeoMeta } from '../seo';
+import { SneakerCard } from '~/components/sneaker';
+import { prisma } from '~/db.server';
+import { getSeoMeta } from '~/seo';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
   select: { username: true, sneakers: { include: { brand: true } } },

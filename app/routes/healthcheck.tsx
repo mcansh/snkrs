@@ -1,7 +1,7 @@
 import type { RouteComponent, LoaderFunction, MetaFunction } from 'remix';
 import { useLoaderData, json } from 'remix';
 
-import { prisma } from '../db.server';
+import { prisma } from '~/db.server';
 
 interface RouteData {
   ok: boolean;

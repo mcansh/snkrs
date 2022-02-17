@@ -1,7 +1,7 @@
 import type { ActionFunction, LoaderFunction, Session } from 'remix';
 import { json } from 'remix';
 
-import { commitSession, getSession } from '../session';
+import { commitSession, getSession } from '~/session';
 
 export async function withSession(
   request: Request,

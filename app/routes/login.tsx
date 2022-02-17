@@ -4,26 +4,22 @@ import { ValidationError } from 'yup';
 import type { MetaFunction } from '@remix-run/react/routeModules';
 import type { ActionFunction, LinksFunction, LoaderFunction } from 'remix';
 
-import {
-  flashMessageKey,
-  redirectAfterAuthKey,
-  sessionKey,
-} from '../constants';
-import { InvalidLoginError } from '../errors';
-import { flashMessage } from '../flash-message';
-import { verify } from '../lib/auth';
-import { prisma } from '../db.server';
-import { withSession } from '../lib/with-session';
-import { LoadingButton } from '../components/loading-button';
-import checkIcon from '../icons/outline/check.svg';
-import refreshIcon from '../icons/refresh-clockwise.svg';
-import exclamationCircleIcon from '../icons/outline/exclamation-circle.svg';
-import loginIcon from '../icons/outline/login.svg';
-import { loginSchema } from '../lib/schemas/login.server';
-import { yupToObject } from '../lib/yup-to-object';
-import type { LoginSchema } from '../lib/schemas/login.server';
-import type { LoadingButtonProps } from '../components/loading-button';
-import { commitSession, getSession } from '../session';
+import { flashMessageKey, redirectAfterAuthKey, sessionKey } from '~/constants';
+import { InvalidLoginError } from '~/errors';
+import { flashMessage } from '~/flash-message';
+import { verify } from '~/lib/auth';
+import { prisma } from '~/db.server';
+import { withSession } from '~/lib/with-session';
+import { LoadingButton } from '~/components/loading-button';
+import checkIcon from '~/icons/outline/check.svg';
+import refreshIcon from '~/icons/refresh-clockwise.svg';
+import exclamationCircleIcon from '~/icons/outline/exclamation-circle.svg';
+import loginIcon from '~/icons/outline/login.svg';
+import { loginSchema } from '~/lib/schemas/login.server';
+import { yupToObject } from '~/lib/yup-to-object';
+import type { LoginSchema } from '~/lib/schemas/login.server';
+import type { LoadingButtonProps } from '~/components/loading-button';
+import { commitSession, getSession } from '~/session';
 
 interface RouteData {
   loginError: undefined | (Partial<LoginSchema> & { generic?: string });

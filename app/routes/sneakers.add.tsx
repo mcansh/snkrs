@@ -6,18 +6,13 @@ import NumberFormat from 'react-number-format';
 import accounting from 'accounting';
 import type { ActionFunction, LoaderFunction } from 'remix';
 
-import {
-  flashMessageKey,
-  redirectAfterAuthKey,
-  sessionKey,
-} from '../constants';
-import { prisma } from '../db.server';
-import { AuthorizationError } from '../errors';
-import { flashMessage } from '../flash-message';
-import { cloudinary } from '../lib/cloudinary.server';
-import { withSession } from '../lib/with-session';
-import { sneakerSchema } from '../lib/schemas/sneaker.server';
-
+import { flashMessageKey, redirectAfterAuthKey, sessionKey } from '~/constants';
+import { prisma } from '~/db.server';
+import { AuthorizationError } from '~/errors';
+import { flashMessage } from '~/flash-message';
+import { cloudinary } from '~/lib/cloudinary.server';
+import { withSession } from '~/lib/with-session';
+import { sneakerSchema } from '~/lib/schemas/sneaker.server';
 import { parseStringFormData } from '~/utils/parse-string-formdata';
 
 const meta = () => ({

@@ -2,9 +2,9 @@ import * as React from 'react';
 import { Prisma } from '@prisma/client';
 import { Link } from 'remix';
 
-import { getCloudinaryURL } from '../utils/get-cloudinary-url';
-import { formatMoney } from '../utils/format-money';
-import { formatDate } from '../utils/format-date';
+import { getCloudinaryURL } from '~/utils/get-cloudinary-url';
+import { formatMoney } from '~/utils/format-money';
+import { formatDate } from '~/utils/format-date';
 
 const sneakerWithBrand = Prisma.validator<Prisma.SneakerArgs>()({
   include: { brand: true },

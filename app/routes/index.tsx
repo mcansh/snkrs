@@ -1,10 +1,10 @@
 import { redirect } from 'remix';
 import type { LoaderFunction } from 'remix';
 
-import { flashMessageKey, sessionKey } from '../constants';
-import { prisma } from '../db.server';
-import { flashMessage } from '../flash-message';
-import { commitSession, getSession } from '../session';
+import { prisma } from '~/db.server';
+import { flashMessage } from '~/flash-message';
+import { commitSession, getSession } from '~/session';
+import { flashMessageKey, sessionKey } from '~/constants';
 
 const loader: LoaderFunction = async ({ request }) => {
   const session = await getSession(request.headers.get('Cookie'));

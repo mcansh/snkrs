@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import styles from '../styles/loading-button.css';
+import styles from '~/styles/loading-button.css';
 
 interface VoidFunctionComponentStyles<P = any> extends React.VFC<P> {
   styles: string;

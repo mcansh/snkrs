@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
 
-import type { RemoveIndex } from '../../@types/types';
+import type { RemoveIndex } from '~/@types/types';
 
 const loginSchema = Yup.object().shape({
   email: Yup.string().email().required(),

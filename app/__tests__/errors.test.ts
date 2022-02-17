@@ -5,7 +5,7 @@ import {
   InvalidLoginError,
   NotFoundError,
   UsernameTakenJoinError,
-} from '../errors';
+} from '~/errors';
 
 describe('Errors', () => {
   test('AuthenticationError exists', () => {

@@ -1,6 +1,6 @@
 import * as Yup from 'yup';
 
-import type { RemoveIndex } from '../../@types/types';
+import type { RemoveIndex } from '~/@types/types';
 
 const sneakerSchema = Yup.object().shape({
   model: Yup.string().required(),

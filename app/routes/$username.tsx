@@ -11,15 +11,15 @@ import type {
 } from 'remix';
 import clsx from 'clsx';
 
-import { prisma } from '../db.server';
-import x from '../icons/outline/x.svg';
-import menu from '../icons/outline/menu.svg';
-import { sessionKey } from '../constants';
-import { time } from '../lib/time';
-import { SneakerCard } from '../components/sneaker';
-import { commitSession, getSession } from '../session';
-import type { Maybe } from '../@types/types';
-import { getSeoMeta } from '../seo';
+import { prisma } from '~/db.server';
+import x from '~/icons/outline/x.svg';
+import menu from '~/icons/outline/menu.svg';
+import { sessionKey } from '~/constants';
+import { time } from '~/lib/time';
+import { SneakerCard } from '~/components/sneaker';
+import { commitSession, getSession } from '~/session';
+import type { Maybe } from '~/@types/types';
+import { getSeoMeta } from '~/seo';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
   select: {
