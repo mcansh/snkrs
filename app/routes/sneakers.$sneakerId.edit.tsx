@@ -17,9 +17,14 @@ import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix';
 import type { Except } from 'type-fest';
 
 import { formatDate } from '~/utils/format-date';
-import { getCloudinaryURL } from '~/utils/get-cloudinary-url';
+import { getImageUrl } from '~/utils/get-image-url';
 import { formatMoney } from '~/utils/format-money';
-import { flashMessageKey, redirectAfterAuthKey, sessionKey } from '~/constants';
+import {
+  flashMessageKey,
+  imageSizes,
+  redirectAfterAuthKey,
+  sessionKey,
+} from '~/constants';
 import { AuthorizationError, NotFoundError } from '~/errors';
 import { prisma } from '~/db.server';
 import { withSession } from '~/lib/with-session';
@@ -270,17 +275,8 @@ const EditSneakerPage: React.VFC = () => {
 
   const title = `Editing ${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`;
 
-  const sizes = [200, 400, 600];
-
-  const srcSet = sizes.map(
-    size =>
-      `${getCloudinaryURL(sneaker.imagePublicId, {
-        resize: {
-          type: 'pad',
-          width: size,
-          height: size,
-        },
-      })} ${size}w`
+  const srcSet = imageSizes.map(
+    size => `${getImageUrl(sneaker.imagePublicId, size.name)} ${size.w}w`
   );
 
   return (
@@ -291,13 +287,7 @@ const EditSneakerPage: React.VFC = () => {
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
         <div className="relative" style={{ paddingBottom: '100%' }}>
           <img
-            src={getCloudinaryURL(sneaker.imagePublicId, {
-              resize: {
-                type: 'pad',
-                width: 200,
-                height: 200,
-              },
-            })}
+            src={getImageUrl(sneaker.imagePublicId, 'desktop')}
             sizes="(min-width: 640px) 50vw, 100vw"
             srcSet={srcSet.join()}
             alt={title}

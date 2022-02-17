@@ -35,6 +35,7 @@ interface RouteData {
   ENV: {
     FATHOM_SITE_ID: string;
     FATHOM_SCRIPT_URL: string;
+    CLOUDFLARE_ACCOUNT_ID_HASH: string;
   };
 }
 
@@ -90,6 +91,7 @@ const loader: LoaderFunction = async ({ request }) => {
       ENV: {
         FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
         FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
+        CLOUDFLARE_ACCOUNT_ID_HASH: process.env.CLOUDFLARE_ACCOUNT_ID_HASH,
       },
     };
     return json(data, {
@@ -104,6 +106,7 @@ const loader: LoaderFunction = async ({ request }) => {
     ENV: {
       FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
       FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
+      CLOUDFLARE_ACCOUNT_ID_HASH: process.env.CLOUDFLARE_ACCOUNT_ID_HASH,
     },
   };
 
@@ -164,6 +167,11 @@ const App: React.VFC = () => {
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(ENV)}`,
+          }}
+        />
       </body>
     </html>
   );

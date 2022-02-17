@@ -6,10 +6,10 @@ import type { LoaderFunction, MetaFunction } from 'remix';
 import invariant from 'tiny-invariant';
 
 import { formatDate } from '~/utils/format-date';
-import { getCloudinaryURL } from '~/utils/get-cloudinary-url';
+import { getImageUrl } from '~/utils/get-image-url';
 import { formatMoney } from '~/utils/format-money';
 import { copy } from '~/utils/copy';
-import { sessionKey } from '~/constants';
+import { imageSizes, sessionKey } from '~/constants';
 import { prisma } from '~/db.server';
 import { withSession } from '~/lib/with-session';
 import { getSeoMeta } from '~/seo';
@@ -132,17 +132,8 @@ const meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
 const SneakerPage: React.VFC = () => {
   const data = useLoaderData<RouteData>();
 
-  const sizes = [200, 400, 600];
-
-  const srcSet = sizes.map(
-    size =>
-      `${getCloudinaryURL(data.sneaker.imagePublicId, {
-        resize: {
-          width: size,
-          height: size,
-          type: 'pad',
-        },
-      })} ${size}w`
+  const srcSet = imageSizes.map(
+    size => `${getImageUrl(data.sneaker.imagePublicId, size.name)} ${size.w}w`
   );
 
   return (
@@ -153,13 +144,7 @@ const SneakerPage: React.VFC = () => {
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
         <div className="relative w-full overflow-hidden bg-gray-100 rounded-lg aspect-w-1 aspect-h-1">
           <img
-            src={getCloudinaryURL(data.sneaker.imagePublicId, {
-              resize: {
-                type: 'pad',
-                width: 200,
-                height: 200,
-              },
-            })}
+            src={getImageUrl(data.sneaker.imagePublicId, 'desktop')}
             sizes="(min-width: 640px) 50vw, 100vw"
             srcSet={srcSet.join()}
             alt={data.title}

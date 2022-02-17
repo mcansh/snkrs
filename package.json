@@ -35,7 +35,6 @@
     "@remix-run/server-runtime": "1.2.1",
     "accounting": "0.4.1",
     "cloudinary": "1.28.1",
-    "cloudinary-build-url": "0.2.4",
     "clsx": "1.1.1",
     "cuid": "2.1.8",
     "date-fns": "2.28.0",
@@ -57,7 +56,6 @@
     "yup": "0.32.11"
   },
   "devDependencies": {
-    "@cld-apis/types": "0.1.6",
     "@commitlint/cli": "16.2.1",
     "@commitlint/config-conventional": "16.2.1",
     "@mcansh/eslint-config": "4.0.0",
