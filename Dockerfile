@@ -1,6 +1,11 @@
 # base node image
 FROM node:16-bullseye-slim as base
 
+# set for base and all that inherit from it
+ENV NODE_ENV=production
+ARG COMMIT_SHA
+ENV COMMIT_SHA=$COMMIT_SHA
+
 # install open ssl for prisma
 RUN apt-get update && apt-get install -y openssl
 
@@ -30,9 +35,6 @@ RUN npm prune --production
 # build app
 FROM base as build
 
-ARG COMMIT_SHA
-ENV COMMIT_SHA=$COMMIT_SHA
-
 WORKDIR /remixapp/
 
 COPY --from=deps /remixapp/node_modules /remixapp/node_modules
@@ -50,14 +52,13 @@ RUN npm run build
 # build smaller image for running
 FROM base
 
-ENV NODE_ENV=production
-
 WORKDIR /remixapp/
 
 COPY --from=production-deps /remixapp/node_modules /remixapp/node_modules
 COPY --from=build /remixapp/node_modules/.prisma /remixapp/node_modules/.prisma
-COPY --from=build /remixapp/build /remixapp/build
 COPY --from=build /remixapp/public /remixapp/public
+COPY --from=build /remixapp/prisma /remixapp/prisma
+COPY --from=build /remixapp/build /remixapp/build
 ADD . .
 
-ENTRYPOINT ["./start_with_migrations.sh"]
+ENTRYPOINT [ "scripts/start-with-migrations.sh" ]
