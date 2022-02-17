@@ -25,10 +25,5 @@ module.exports = {
         ...result,
       },
     },
-    {
-      name: 'Redis',
-      script: './scripts/start-redis.sh',
-      ignore_watch: ['.'],
-    },
   ],
 };
