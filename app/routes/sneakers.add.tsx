@@ -18,6 +18,8 @@ import { cloudinary } from '../lib/cloudinary.server';
 import { withSession } from '../lib/with-session';
 import { sneakerSchema } from '../lib/schemas/sneaker.server';
 
+import { parseStringFormData } from '~/utils/parse-string-formdata';
+
 const meta = () => ({
   title: 'Add a sneaker to your collection',
 });
@@ -46,36 +48,32 @@ const loader: LoaderFunction = ({ request }) =>
 const action: ActionFunction = ({ request }) =>
   withSession(request, async session => {
     try {
-      const formData = await bodyParser.toSearchParams(request);
-
       const userId = session.get(sessionKey) as string | undefined;
 
       if (!userId) {
         throw new AuthorizationError();
       }
 
-      const brand = formData.get('brand') as string;
-      const model = formData.get('model') as string;
-      const colorway = formData.get('colorway') as string;
-      const rawPrice = formData.get('price') as string;
-      const rawRetailPrice = formData.get('retailPrice') as string;
-      const purchaseDate = formData.get('purchaseDate');
-      const size = parseInt(formData.get('size') as string, 10);
-      const image = formData.get('image');
+      const formData = await parseStringFormData(request);
 
-      const price = Number(rawPrice) || accounting.unformat(rawPrice) * 100;
-      const retailPrice =
-        Number(rawRetailPrice) || accounting.unformat(rawRetailPrice) * 100;
+      const price = formData.price
+        ? Number(formData.price) || accounting.unformat(formData.price) * 100
+        : undefined;
+      const retailPrice = formData.retailPrice
+        ? Number(formData.retailPrice) ||
+          accounting.unformat(formData.retailPrice) * 100
+        : undefined;
+      const size = formData.size ? parseInt(formData.size, 10) : undefined;
 
       const valid = await sneakerSchema.validate({
-        brand,
-        model,
-        colorway,
+        brand: formData.brand,
+        model: formData.model,
+        colorway: formData.colorway,
         price,
         retailPrice,
-        purchaseDate,
+        purchaseDate: formData.purchaseDate,
         size,
-        imagePublicId: image,
+        imagePublicId: formData.image,
       });
 
       let imagePublicId = '';
@@ -106,11 +104,11 @@ const action: ActionFunction = ({ request }) =>
           brand: {
             connectOrCreate: {
               where: {
-                name: brand,
+                name: valid.brand,
               },
               create: {
-                name: brand,
-                slug: slugify(brand, { lower: true }),
+                name: valid.brand,
+                slug: slugify(valid.brand, { lower: true }),
               },
             },
           },
