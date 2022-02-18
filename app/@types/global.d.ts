@@ -6,5 +6,6 @@ declare namespace NodeJS {
     FATHOM_SCRIPT_URL: string;
     NODE_ENV: 'development' | 'production' | 'test';
     CLOUDFLARE_ACCOUNT_ID_HASH: string;
+    CLOUDFLARE_ACCOUNT_ID: string;
   }
 }

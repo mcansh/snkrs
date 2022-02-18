@@ -1,27 +1,35 @@
 import React from 'react';
-import { Form, json, redirect, useTransition } from 'remix';
+import {
+  Form,
+  json,
+  redirect,
+  unstable_parseMultipartFormData,
+  useTransition,
+} from 'remix';
 import { ValidationError } from 'yup';
 import slugify from 'slugify';
 import NumberFormat from 'react-number-format';
 import accounting from 'accounting';
-import type { ActionFunction, LoaderFunction } from 'remix';
+import type { ActionFunction, LoaderFunction, MetaFunction } from 'remix';
 
 import { flashMessageKey, redirectAfterAuthKey, sessionKey } from '~/constants';
 import { prisma } from '~/db.server';
 import { AuthorizationError } from '~/errors';
 import { flashMessage } from '~/flash-message';
-import { cloudinary } from '~/lib/cloudinary.server';
 import { withSession } from '~/lib/with-session';
 import { sneakerSchema } from '~/lib/schemas/sneaker.server';
-import { parseStringFormData } from '~/utils/parse-string-formdata';
+import { getSeoMeta } from '~/seo';
+import { createUploadHandler } from '~/lib/upload-image.server';
 
-const meta = () => ({
-  title: 'Add a sneaker to your collection',
-});
+let meta: MetaFunction = () => {
+  return getSeoMeta({
+    title: 'Add a sneaker to your collection',
+  });
+};
 
-const loader: LoaderFunction = ({ request }) =>
+let loader: LoaderFunction = ({ request }) =>
   withSession(request, session => {
-    const userId = session.get(sessionKey) as string | undefined;
+    let userId = session.get(sessionKey) as string | undefined;
 
     try {
       if (!userId) {
@@ -40,60 +48,55 @@ const loader: LoaderFunction = ({ request }) =>
     }
   });
 
-const action: ActionFunction = ({ request }) =>
+let action: ActionFunction = ({ request }) =>
   withSession(request, async session => {
     try {
-      const userId = session.get(sessionKey) as string | undefined;
+      let userId = session.get(sessionKey) as string | undefined;
 
       if (!userId) {
         throw new AuthorizationError();
       }
 
-      const formData = await parseStringFormData(request);
+      let uploadHandler = createUploadHandler(['image']);
+      let formData = await unstable_parseMultipartFormData(
+        request,
+        uploadHandler
+      );
+      let brand = formData.get('brand');
+      let model = formData.get('model');
+      let colorway = formData.get('colorway');
+      let purchaseDate = formData.get('purchaseDate');
+      let rawPrice = formData.get('price');
+      let rawRetailPrice = formData.get('retailPrice');
+      let rawSize = formData.get('size');
+      let image = formData.get('image');
 
-      const price = formData.price
-        ? Number(formData.price) || accounting.unformat(formData.price) * 100
-        : undefined;
-      const retailPrice = formData.retailPrice
-        ? Number(formData.retailPrice) ||
-          accounting.unformat(formData.retailPrice) * 100
-        : undefined;
-      const size = formData.size ? parseInt(formData.size, 10) : undefined;
+      let price =
+        typeof rawPrice === 'string'
+          ? Number(rawPrice) || accounting.unformat(rawPrice) * 100
+          : undefined;
+      let retailPrice =
+        typeof rawRetailPrice === 'string'
+          ? Number(rawRetailPrice) || accounting.unformat(rawRetailPrice) * 100
+          : undefined;
+      let size =
+        typeof rawSize === 'string' ? parseInt(rawSize, 10) : undefined;
 
-      const valid = await sneakerSchema.validate({
-        brand: formData.brand,
-        model: formData.model,
-        colorway: formData.colorway,
-        price,
-        retailPrice,
-        purchaseDate: formData.purchaseDate,
-        size,
-        imagePublicId: formData.image,
-      });
+      let valid = await sneakerSchema.validate(
+        {
+          brand,
+          model,
+          colorway,
+          price,
+          retailPrice,
+          purchaseDate,
+          size,
+          imagePublicId: image,
+        },
+        { abortEarly: false }
+      );
 
-      let imagePublicId = '';
-      if (valid.imagePublicId) {
-        // image was already uploaded to our cloudinary bucket
-        if (valid.imagePublicId.startsWith('shoes/')) {
-          imagePublicId = valid.imagePublicId;
-        } else if (
-          /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi.test(
-            valid.imagePublicId
-          )
-        ) {
-          // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
-          const res = await cloudinary.v2.uploader.upload(valid.imagePublicId, {
-            resource_type: 'image',
-            folder: 'shoes',
-          });
-
-          imagePublicId = res.public_id;
-        } else {
-          // no image provided
-        }
-      }
-
-      const sneaker = await prisma.sneaker.create({
+      let sneaker = await prisma.sneaker.create({
         data: {
           user: { connect: { id: userId } },
           brand: {
@@ -113,7 +116,7 @@ const action: ActionFunction = ({ request }) =>
           purchaseDate: valid.purchaseDate.toISOString(),
           retailPrice: valid.retailPrice,
           size: valid.size,
-          imagePublicId,
+          imagePublicId: valid.imagePublicId,
         },
         include: { user: { select: { username: true } }, brand: true },
       });
@@ -137,14 +140,14 @@ const action: ActionFunction = ({ request }) =>
     }
   });
 
-const NewSneakerPage: React.VFC = () => {
-  const transition = useTransition();
-  const pendingForm = transition.submission;
+let NewSneakerPage: React.VFC = () => {
+  let transition = useTransition();
+  let pendingForm = transition.submission;
 
   return (
     <main className="container h-full p-4 pb-6 mx-auto">
       <h2 className="py-4 text-lg">Add a sneaker to your collection</h2>
-      <Form method="post">
+      <Form method="post" encType="multipart/form-data">
         <fieldset
           disabled={!!pendingForm}
           className="w-full space-y-2 sm:grid sm:items-center sm:gap-x-4 sm:gap-y-6 sm:grid-cols-2 sm:space-y-0"
@@ -234,9 +237,10 @@ const NewSneakerPage: React.VFC = () => {
             </span>
             <input
               className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              type="text"
+              type="file"
               name="image"
-              placeholder="1200x1200 photo or cloudinary publicId"
+              accept="image/*"
+              placeholder="1200x1200 photo"
             />
           </label>
           <button

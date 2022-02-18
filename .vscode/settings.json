@@ -3,5 +3,5 @@
   "search.exclude": {
     "**/prisma/migrations": true
   },
-  "cSpell.words": ["Cloudinary"]
+  "cSpell.words": []
 }

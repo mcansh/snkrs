@@ -59,7 +59,7 @@ const { getSession, commitSession, destroySession }: SessionStorage =
       maxAge: 60 * 60 * 24 * 14, // 2 weeks
       httpOnly: true,
       path: '/',
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
     },
   });
 

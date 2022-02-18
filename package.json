@@ -34,7 +34,6 @@
     "@remix-run/serve": "1.2.1",
     "@remix-run/server-runtime": "1.2.1",
     "accounting": "0.4.1",
-    "cloudinary": "1.28.1",
     "clsx": "1.1.1",
     "cuid": "2.1.8",
     "date-fns": "2.28.0",
@@ -51,6 +50,7 @@
     "remix-seo": "0.1.0",
     "reserved-email-addresses-list": "0.0.9",
     "slugify": "1.6.5",
+    "stream-to-blob": "2.0.1",
     "tiny-invariant": "1.2.0",
     "type-fest": "2.11.2",
     "yup": "0.32.11"

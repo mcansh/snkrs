@@ -86,19 +86,19 @@ const loader: LoaderFunction = async ({ request }) => {
   const flash = session.get(flashMessageKey) as string | undefined;
 
   if (flash) {
-    const data: RouteData = {
-      flash,
-      ENV: {
-        FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
-        FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
-        CLOUDFLARE_ACCOUNT_ID_HASH: process.env.CLOUDFLARE_ACCOUNT_ID_HASH,
+    return json<RouteData>(
+      {
+        flash,
+        ENV: {
+          FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
+          FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
+          CLOUDFLARE_ACCOUNT_ID_HASH: process.env.CLOUDFLARE_ACCOUNT_ID_HASH,
+        },
       },
-    };
-    return json(data, {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
+      {
+        headers: { 'Set-Cookie': await commitSession(session) },
+      }
+    );
   }
 
   const data: RouteData = {

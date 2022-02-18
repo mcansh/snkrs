@@ -7,6 +7,7 @@ import {
   redirect,
   useTransition,
   json,
+  unstable_parseMultipartFormData,
 } from 'remix';
 import { format, parseISO } from 'date-fns';
 import slugify from 'slugify';
@@ -15,6 +16,7 @@ import accounting from 'accounting';
 import NumberFormat from 'react-number-format';
 import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix';
 import type { Except } from 'type-fest';
+import { ValidationError } from 'yup';
 
 import { formatDate } from '~/utils/format-date';
 import { getImageUrl } from '~/utils/get-image-url';
@@ -29,8 +31,10 @@ import { AuthorizationError, NotFoundError } from '~/errors';
 import { prisma } from '~/db.server';
 import { withSession } from '~/lib/with-session';
 import { flashMessage } from '~/flash-message';
+import type { SneakerSchema } from '~/lib/schemas/sneaker.server';
 import { sneakerSchema } from '~/lib/schemas/sneaker.server';
-import { cloudinary } from '~/lib/cloudinary.server';
+import { createUploadHandler } from '~/lib/upload-image.server';
+import { yupToObject } from '~/lib/yup-to-object';
 
 const sneakerWithBrandAndUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
@@ -128,10 +132,12 @@ const action: ActionFunction = ({ request, params }) =>
     const { sneakerId } = params;
 
     try {
+      if (!userId) {
+        throw new AuthorizationError();
+      }
+
       const originalSneaker = await prisma.sneaker.findUnique({
-        where: {
-          id: sneakerId,
-        },
+        where: { id: sneakerId },
       });
 
       if (!originalSneaker) {
@@ -142,63 +148,55 @@ const action: ActionFunction = ({ request, params }) =>
         throw new AuthorizationError();
       }
 
-      const requestBody = await request.text();
-      const formData = new URLSearchParams(requestBody);
-      const data = Object.fromEntries(formData);
+      let uploadHandler = createUploadHandler(['image']);
+      let formData = await unstable_parseMultipartFormData(
+        request,
+        uploadHandler
+      );
 
-      if (!userId) {
-        throw new AuthorizationError();
-      }
+      let brand = formData.get('brand');
+      let model = formData.get('model');
+      let colorway = formData.get('colorway');
+      let purchaseDate = formData.get('purchaseDate');
+      let soldDate = formData.get('soldDate');
+      let rawSoldPrice = formData.get('soldPrice');
+      let sold = formData.get('sold');
+      let rawPrice = formData.get('price');
+      let rawRetailPrice = formData.get('retailPrice');
+      let rawSize = formData.get('size');
+      let image = formData.get('image');
 
-      const rawPrice = formData.get('price') as string;
-      const rawRetailPrice = formData.get('retailPrice') as string;
-
-      const price = Number(rawPrice) || accounting.unformat(rawPrice) * 100;
-      const retailPrice =
-        Number(rawRetailPrice) || accounting.unformat(rawRetailPrice) * 100;
+      let price =
+        typeof rawPrice === 'string'
+          ? Number(rawPrice) || accounting.unformat(rawPrice) * 100
+          : undefined;
+      let retailPrice =
+        typeof rawRetailPrice === 'string'
+          ? Number(rawRetailPrice) || accounting.unformat(rawRetailPrice) * 100
+          : undefined;
+      let soldPrice =
+        typeof rawSoldPrice === 'string'
+          ? Number(rawSoldPrice) || accounting.unformat(rawSoldPrice) * 100
+          : undefined;
+      let size =
+        typeof rawSize === 'string' ? parseInt(rawSize, 10) : undefined;
 
       const valid = await sneakerSchema.validate(
         {
-          brand: data.brand,
-          colorway: data.colorway,
-          imagePublicId: data.image,
-          model: data.model,
+          brand,
+          colorway,
+          imagePublicId: image,
+          model,
           price,
-          purchaseDate: new Date(data.purchaseDate).toISOString(),
+          purchaseDate,
           retailPrice,
-          size: Number(data.size),
-          sold: data.sold,
-          soldDate:
-            data.sold && data.soldDate
-              ? new Date(data.soldDate).toISOString()
-              : undefined,
-          soldPrice:
-            data.sold && data.soldPrice ? Number(data.soldPrice) : undefined,
+          size,
+          sold: sold === 'on',
+          soldDate: soldDate ? soldDate : undefined,
+          soldPrice: soldPrice ? soldPrice : undefined,
         },
         { abortEarly: false }
       );
-
-      let imagePublicId = '';
-      if (originalSneaker.imagePublicId !== valid.imagePublicId) {
-        // image was already uploaded to our cloudinary bucket
-        if (valid.imagePublicId.startsWith('shoes/')) {
-          imagePublicId = valid.imagePublicId;
-        } else if (
-          /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi.test(
-            valid.imagePublicId
-          )
-        ) {
-          // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
-          const res = await cloudinary.v2.uploader.upload(valid.imagePublicId, {
-            resource_type: 'image',
-            folder: 'shoes',
-          });
-
-          imagePublicId = res.public_id;
-        } else {
-          // no image provided
-        }
-      }
 
       await prisma.sneaker.update({
         where: { id: sneakerId },
@@ -215,15 +213,15 @@ const action: ActionFunction = ({ request, params }) =>
             },
           },
           colorway: valid.colorway,
-          imagePublicId,
+          imagePublicId: valid.imagePublicId,
           model: valid.model,
           price: valid.price,
           purchaseDate: valid.purchaseDate,
           retailPrice: valid.retailPrice,
           size: valid.size,
           sold: valid.sold,
-          soldDate: valid.soldDate ? valid.soldDate : null,
-          soldPrice: valid.soldPrice ? valid.soldPrice : null,
+          soldDate: valid.sold && valid.soldDate ? valid.soldDate : null,
+          soldPrice: valid.sold && valid.soldPrice ? valid.soldPrice : null,
         },
         select: {
           user: { select: { username: true } },
@@ -239,6 +237,12 @@ const action: ActionFunction = ({ request, params }) =>
 
       return redirect(request.url);
     } catch (error: unknown) {
+      if (error instanceof ValidationError) {
+        const aggregateErrors = yupToObject<SneakerSchema>(error);
+        session.flash(flashMessageKey, JSON.stringify(aggregateErrors));
+        return redirect(request.url);
+      }
+
       if (error instanceof Error) {
         session.flash(flashMessageKey, flashMessage(error.message, 'error'));
       }
@@ -317,6 +321,7 @@ const EditSneakerPage: React.VFC = () => {
             disabled={!!pendingForm}
             className="pb-4 space-y-2 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-2"
           >
+            <input type="hidden" name="image" value={sneaker.imagePublicId} />
             <input
               className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
               type="text"
@@ -358,14 +363,14 @@ const EditSneakerPage: React.VFC = () => {
               placeholder="Price (in cents)"
               className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
               prefix="$"
-              defaultValue={sneaker.price}
+              defaultValue={sneaker.price / 100}
             />
             <NumberFormat
               name="retailPrice"
               placeholder="Retail Price (in cents)"
               className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
               prefix="$"
-              defaultValue={sneaker.retailPrice}
+              defaultValue={sneaker.retailPrice / 100}
             />
             <input
               className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
@@ -405,15 +410,15 @@ const EditSneakerPage: React.VFC = () => {
                 name="soldDate"
                 min={format(parseISO(sneaker.purchaseDate), formatter)}
               />
-              <input
+              <NumberFormat
                 className={clsx(
                   'p-1 border-2 border-gray-200 rounded appearance-none',
                   sold ? '' : 'hidden'
                 )}
-                type="number"
-                defaultValue={sneaker.soldPrice ?? ''}
-                placeholder="Sold Price"
+                defaultValue={sneaker.soldPrice ? sneaker.soldPrice / 100 : ''}
+                placeholder="Sold Price (in cents)"
                 name="soldPrice"
+                prefix="$"
               />
             </div>
             <button
