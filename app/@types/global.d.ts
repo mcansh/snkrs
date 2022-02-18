@@ -7,5 +7,6 @@ declare namespace NodeJS {
     NODE_ENV: 'development' | 'production' | 'test';
     CLOUDFLARE_ACCOUNT_ID_HASH: string;
     CLOUDFLARE_ACCOUNT_ID: string;
+    CLOUDFLARE_IMAGES_API_TOKEN: string;
   }
 }
