@@ -39,6 +39,12 @@ interface RouteData {
   };
 }
 
+declare global {
+  interface Window {
+    ENV: RouteData['ENV'];
+  }
+}
+
 const meta: MetaFunction = () => ({
   ...getSeoMeta(),
   'apple-mobile-web-app-title': 'Sneakers',
