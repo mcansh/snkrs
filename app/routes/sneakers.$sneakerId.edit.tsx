@@ -17,6 +17,7 @@ import NumberFormat from 'react-number-format';
 import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix';
 import type { Except } from 'type-fest';
 import { ValidationError } from 'yup';
+import invariant from 'tiny-invariant';
 
 import { formatDate } from '~/utils/format-date';
 import { getImageUrl } from '~/utils/get-image-url';
@@ -33,7 +34,7 @@ import { withSession } from '~/lib/with-session';
 import { flashMessage } from '~/flash-message';
 import type { SneakerSchema } from '~/lib/schemas/sneaker.server';
 import { sneakerSchema } from '~/lib/schemas/sneaker.server';
-import { createUploadHandler } from '~/lib/upload-image.server';
+import { uploadHandler } from '~/lib/upload-image.server';
 import { yupToObject } from '~/lib/yup-to-object';
 
 const sneakerWithBrandAndUser = Prisma.validator<Prisma.SneakerArgs>()({
@@ -72,6 +73,7 @@ type RouteData =
 
 const loader: LoaderFunction = ({ params, request }) =>
   withSession(request, async session => {
+    invariant(params.sneakerId, 'sneakerID is required');
     try {
       const sneaker = await prisma.sneaker.findUnique({
         where: { id: params.sneakerId },
@@ -82,7 +84,7 @@ const loader: LoaderFunction = ({ params, request }) =>
       });
 
       if (!sneaker) {
-        const data: RouteData = { id: params.sneakerId! };
+        const data: RouteData = { id: params.sneakerId };
         return json(data, { status: 404 });
       }
 
@@ -95,7 +97,7 @@ const loader: LoaderFunction = ({ params, request }) =>
       }
 
       const data: RouteData = {
-        id: params.sneakerId!,
+        id: params.sneakerId,
         userCreatedSneaker,
         sneaker: {
           ...sneaker,
@@ -148,7 +150,6 @@ const action: ActionFunction = ({ request, params }) =>
         throw new AuthorizationError();
       }
 
-      let uploadHandler = createUploadHandler(['image']);
       let formData = await unstable_parseMultipartFormData(
         request,
         uploadHandler

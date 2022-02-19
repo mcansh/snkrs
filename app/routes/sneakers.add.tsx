@@ -19,7 +19,7 @@ import { flashMessage } from '~/flash-message';
 import { withSession } from '~/lib/with-session';
 import { sneakerSchema } from '~/lib/schemas/sneaker.server';
 import { getSeoMeta } from '~/seo';
-import { createUploadHandler } from '~/lib/upload-image.server';
+import { uploadHandler } from '~/lib/upload-image.server';
 
 let meta: MetaFunction = () => {
   return getSeoMeta({
@@ -57,7 +57,6 @@ let action: ActionFunction = ({ request }) =>
         throw new AuthorizationError();
       }
 
-      let uploadHandler = createUploadHandler(['image']);
       let formData = await unstable_parseMultipartFormData(
         request,
         uploadHandler

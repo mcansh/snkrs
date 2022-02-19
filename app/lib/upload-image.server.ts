@@ -17,43 +17,34 @@ interface UploadResult {
   messages: Array<{ code: number; message: string }>;
 }
 
-export function createUploadHandler(
-  mediaInputNames: Array<string>
-): UploadHandler {
-  return async ({ name, stream }) => {
-    if (!mediaInputNames.includes(name)) {
-      stream.resume();
-      return;
-    }
+export let uploadHandler: UploadHandler = async ({ stream }) => {
+  const filename = cuid();
 
-    const filename = cuid();
+  let blob = await streamToBlob(stream);
 
-    let blob = await streamToBlob(stream);
+  const body = new FormData();
+  body.append('file', blob, filename);
 
-    const body = new FormData();
-    body.append('file', blob, filename);
+  let url = new URL(
+    `/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/images/v1`,
+    'https://api.cloudflare.com'
+  );
 
-    let url = new URL(
-      `/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/images/v1`,
-      'https://api.cloudflare.com'
-    );
+  const uploadPromise = await fetch(url.toString(), {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.CLOUDFLARE_IMAGES_API_TOKEN}`,
+    },
+    body,
+  });
 
-    const uploadPromise = await fetch(url.toString(), {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.CLOUDFLARE_IMAGES_API_TOKEN}`,
-      },
-      body,
-    });
+  let response = (await uploadPromise.json()) as UploadResult;
 
-    let response = (await uploadPromise.json()) as UploadResult;
+  if (response.success && response.result) {
+    return response.result.id;
+  }
 
-    if (response.success && response.result) {
-      return response.result.id;
-    }
-
-    throw new Error(
-      `Cloudflare upload failed: ${response.errors.map(error => error.message)}`
-    );
-  };
-}
+  throw new Error(
+    `Cloudflare upload failed: ${response.errors.map(error => error.message)}`
+  );
+};
