@@ -18,33 +18,37 @@ interface UploadResult {
 }
 
 export let uploadHandler: UploadHandler = async ({ stream }) => {
-  const filename = cuid();
-
   let blob = await streamToBlob(stream);
+  return uploadImage(blob);
+};
 
+export async function uploadImage(blob: Blob): Promise<string | undefined> {
+  const filename = cuid();
   const body = new FormData();
   body.append('file', blob, filename);
 
-  let url = new URL(
-    `/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/images/v1`,
-    'https://api.cloudflare.com'
-  );
+  try {
+    let url = new URL(
+      `/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/images/v1`,
+      'https://api.cloudflare.com'
+    );
 
-  const uploadPromise = await fetch(url.toString(), {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.CLOUDFLARE_IMAGES_API_TOKEN}`,
-    },
-    body,
-  });
+    const uploadPromise = await fetch(url.toString(), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.CLOUDFLARE_IMAGES_API_TOKEN}`,
+      },
+      body,
+    });
 
-  let response = (await uploadPromise.json()) as UploadResult;
+    if (!uploadPromise.ok) {
+      throw new Error(`${uploadPromise.status} ${uploadPromise.statusText}`);
+    }
 
-  if (response.success && response.result) {
-    return response.result.id;
+    let response = (await uploadPromise.json()) as UploadResult;
+    return response.result?.id;
+  } catch (error: unknown) {
+    console.error(error);
+    return undefined;
   }
-
-  throw new Error(
-    `Cloudflare upload failed: ${response.errors.map(error => error.message)}`
-  );
-};
+}
