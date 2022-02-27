@@ -31,8 +31,12 @@ function createRedisSessionStorage({
     async readData(id) {
       const session = await redis.get(id);
       if (!session) return null;
-      const data = JSON.parse(session);
-      return data;
+      try {
+        return JSON.parse(session);
+      } catch (error: unknown) {
+        // invalid session data
+        return null;
+      }
     },
     async updateData(id, data, expires) {
       const now = new Date();
