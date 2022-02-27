@@ -97,4 +97,4 @@ WORKDIR /remixapp/
 # add stuff
 ADD . .
 
-CMD ["sh", "start_with_migrations.sh"]
+CMD ["sh", "scripts/start_with_migrations.sh"]
