@@ -47,7 +47,7 @@ processes = []
   [[services.http_checks]]
     interval = 600000 # 10 minutes
     grace_period = "5s"
-    methid = "get"
+    method = "get"
     path = "/healthcheck"
     protocol = "http"
     timeout = 2000

@@ -48,8 +48,6 @@ const meta: MetaFunction = () => ({
   'apple-mobile-web-app-capable': 'yes',
   'apple-mobile-web-app-status-bar-style': 'black-translucent',
   viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
-  robots: 'index,follow',
-  googlebot: 'index,follow',
 });
 
 const links: LinksFunction = () => [

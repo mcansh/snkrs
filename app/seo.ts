@@ -8,6 +8,10 @@ const { getSeo, getSeoLinks, getSeoMeta } = initSeo({
     type: 'website',
     locale: 'en_US',
   },
+  robots: {
+    noIndex: false,
+    noFollow: false,
+  },
 });
 
 export { getSeo, getSeoLinks, getSeoMeta };
