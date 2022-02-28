@@ -24,6 +24,24 @@ async function start() {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await app.register(fastifyExpress);
 
+    app.addHook('preHandler', (request, reply, done) => {
+      console.log(`${request.method} ${request.url}`);
+
+      if (
+        request.method.toLowerCase() === 'post' &&
+        process.env.FLY_REGION &&
+        process.env.FLY_PRIMARY_REGION &&
+        process.env.FLY_REGION !== process.env.FLY_PRIMARY_REGION
+      ) {
+        return reply
+          .status(202)
+          .header('fly-replay', `region=${process.env.FLY_PRIMARY_REGION}`)
+          .send(`rewriting to ${process.env.FLY_PRIMARY_REGION}`);
+      }
+
+      return done();
+    });
+
     app.use(
       '/build',
       sirv('public/build', {
