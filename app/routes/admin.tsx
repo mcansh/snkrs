@@ -23,6 +23,7 @@ import { prisma } from '~/db.server';
 import { getSeoMeta } from '~/seo';
 import { getSession } from '~/session';
 import { isAdmin } from '~/lib/schemas/user.server';
+import type { RouteHandle } from '~/@types/types';
 
 interface LoaderData {
   users: Array<{
@@ -46,8 +47,12 @@ export let loader: LoaderFunction = async ({ request }) => {
 
   let user = await prisma.user.findUnique({ where: { id: userId } });
 
-  if (!user || user.username !== 'loganmcansh') {
+  if (!user) {
     return redirect(`/login?returnTo=${request.url}`);
+  }
+
+  if (!isAdmin(user)) {
+    return redirect(`/${user.username}`);
   }
 
   let users = await prisma.user.findMany({
@@ -268,110 +273,140 @@ export let meta: MetaFunction = () => {
   });
 };
 
+export let handle: RouteHandle = {
+  bodyClassName: 'bg-gray-100 py-6',
+};
+
 export default function AdminPanel() {
   let data = useLoaderData<LoaderData>();
 
   return (
-    <div className="bg-gray-100 py-6">
-      <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div className="flex flex-col">
-          <Form reloadDocument method="post" encType="multipart/form-data">
-            <label>
-              <span className="block text-sm font-medium leading-5 text-gray-700">
-                Upload Users CSV
-              </span>
-              <input type="file" name="users" accept="text/csv" />
-            </label>
-            <label>
-              <span className="block text-sm font-medium leading-5 text-gray-700">
-                Upload Sneakers CSV
-              </span>
-              <input type="file" name="sneakers" accept="text/csv" />
-            </label>
-            <label>
-              <span className="block text-sm font-medium leading-5 text-gray-700">
-                Upload Brand CSV
-              </span>
-              <input type="file" name="brand" accept="text/csv" />
-            </label>
-            <label>
-              <span className="block text-sm font-medium leading-5 text-gray-700">
-                Upload Settings CSV
-              </span>
-              <input type="file" name="settings" accept="text/csv" />
-            </label>
-            <button className="block bg-blue-500 text-white" type="submit">
-              Upload
-            </button>
-          </Form>
-          <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-              <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Name
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Username
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Email
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        Sneaker Count
-                      </th>
-                      <th scope="col" className="relative px-6 py-3">
-                        <span className="sr-only">Edit</span>
-                      </th>
+    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+      <div className="flex flex-col">
+        <Form
+          reloadDocument
+          method="post"
+          encType="multipart/form-data"
+          className="space-y-2 flex flex-col max-w-xs px-2"
+        >
+          <label>
+            <span className="block text-sm font-medium leading-5 text-gray-700">
+              Upload Users CSV
+            </span>
+            <input
+              type="file"
+              name="users"
+              accept="text/csv"
+              className="file:bg-slate-300 file:rounded file:px-2 file:py-1 file:border-none file:shadow-sm file:cursor-pointer"
+            />
+          </label>
+          <label>
+            <span className="block text-sm font-medium leading-5 text-gray-700">
+              Upload Sneakers CSV
+            </span>
+            <input
+              type="file"
+              name="sneakers"
+              accept="text/csv"
+              className="file:bg-slate-300 file:rounded file:px-2 file:py-1 file:border-none file:shadow-sm file:cursor-pointer"
+            />
+          </label>
+          <label>
+            <span className="block text-sm font-medium leading-5 text-gray-700">
+              Upload Brand CSV
+            </span>
+            <input
+              type="file"
+              name="brand"
+              accept="text/csv"
+              className="file:bg-slate-300 file:rounded file:px-2 file:py-1 file:border-none file:shadow-sm file:cursor-pointer"
+            />
+          </label>
+          <label>
+            <span className="block text-sm font-medium leading-5 text-gray-700">
+              Upload Settings CSV
+            </span>
+            <input
+              type="file"
+              name="settings"
+              accept="text/csv"
+              className="file:bg-slate-300 file:rounded file:px-2 file:py-1 file:border-none file:shadow-sm file:cursor-pointer"
+            />
+          </label>
+          <button
+            className="w-fit bg-blue-500 text-white px-2 py-1 rounded cursor-pointer"
+            type="submit"
+          >
+            Upload
+          </button>
+        </Form>
+        <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
+          <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+            <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Name
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Username
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Email
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Sneaker Count
+                    </th>
+                    <th scope="col" className="relative px-6 py-3">
+                      <span className="sr-only">Edit</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.users.map((person, personIdx) => (
+                    <tr
+                      key={person.email}
+                      className={
+                        personIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                      }
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {person.fullName}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {person.username}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {person.email}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {person.sneakers}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <Link
+                          to={`users/${person.username}`}
+                          className="text-indigo-600 hover:text-indigo-900"
+                        >
+                          Edit
+                        </Link>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {data.users.map((person, personIdx) => (
-                      <tr
-                        key={person.email}
-                        className={
-                          personIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                        }
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {person.fullName}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {person.username}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {person.email}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {person.sneakers}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <Link
-                            to={`users/${person.username}`}
-                            className="text-indigo-600 hover:text-indigo-900"
-                          >
-                            Edit
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

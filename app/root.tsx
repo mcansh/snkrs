@@ -10,6 +10,7 @@ import {
   json,
   Outlet,
   ScrollRestoration,
+  useMatches,
 } from 'remix';
 import * as Fathom from 'fathom-client';
 import toast from 'react-hot-toast';
@@ -27,7 +28,7 @@ import { flashMessageKey } from './constants';
 import { Notifications } from './notifications';
 import refreshClockwise from './icons/refresh-clockwise.svg';
 import { getSession, commitSession } from './session';
-import type { Flash } from './@types/types';
+import type { Flash, Match } from './@types/types';
 import { getSeoLinks, getSeoMeta } from './seo';
 
 interface RouteData {
@@ -115,6 +116,11 @@ const App: React.VFC = () => {
   const transition = useTransition();
   const pendingLocation = transition.location;
 
+  let matches = useMatches() as unknown as Array<Match>;
+  let handleBodyClassName = matches
+    .filter(match => match.handle?.bodyClassName)
+    .map(match => match.handle?.bodyClassName);
+
   React.useEffect(() => {
     Fathom.load(ENV.FATHOM_SITE_ID, {
       excludedDomains: ['localhost'],
@@ -147,7 +153,8 @@ const App: React.VFC = () => {
       <body
         className={clsx(
           'min-h-screen',
-          pendingLocation ? 'opacity-60 cursor-not-allowed' : ''
+          pendingLocation ? 'opacity-60 cursor-not-allowed' : '',
+          handleBodyClassName
         )}
       >
         <Notifications />
@@ -176,8 +183,6 @@ const CatchBoundary: React.VFC = () => {
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <meta property="og:type" content="website" />
-        <meta property="og:locale" content="en_US" />
         <title>
           {caught.status} {caught.statusText}
         </title>
@@ -202,8 +207,6 @@ const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <meta property="og:type" content="website" />
-        <meta property="og:locale" content="en_US" />
         <title>Shoot...</title>
         <Meta />
         <Links />

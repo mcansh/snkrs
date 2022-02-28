@@ -1,10 +1,12 @@
+import type { useMatches } from 'remix';
+
 export type Flash =
   | string
   | { message: string; type: 'error' | 'info' | 'success' };
 
 export type Maybe<T> = T | null | undefined;
 
-type RemoveIndex<T> = {
+export type RemoveIndex<T> = {
   [P in keyof T as string extends P
     ? never
     : number extends P
@@ -12,4 +14,10 @@ type RemoveIndex<T> = {
     : P]: T[P];
 };
 
-export { RemoveIndex };
+export interface RouteHandle {
+  bodyClassName?: string;
+}
+
+export type Match = Omit<ReturnType<typeof useMatches>, 'handle'> & {
+  handle?: RouteHandle;
+};
