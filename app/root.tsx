@@ -1,26 +1,9 @@
 import * as React from 'react';
-import {
-  Links,
-  Meta,
-  Scripts,
-  LiveReload,
-  useLoaderData,
-  useTransition,
-  useCatch,
-  json,
-  Outlet,
-  ScrollRestoration,
-  useMatches,
-} from 'remix';
+import type { LinksFunction, LoaderFunction, MetaFunction } from 'remix';
+import { useLoaderData, useTransition, json, Outlet, useMatches } from 'remix';
 import * as Fathom from 'fathom-client';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
-import type {
-  ErrorBoundaryComponent,
-  LinksFunction,
-  LoaderFunction,
-  MetaFunction,
-} from 'remix';
 
 import globalCSS from './styles/global.css';
 import interCSS from './styles/inter.css';
@@ -30,6 +13,10 @@ import refreshClockwise from './icons/refresh-clockwise.svg';
 import { getSession, commitSession } from './session';
 import type { Flash, Match } from './@types/types';
 import { getSeoLinks, getSeoMeta } from './seo';
+import { Document } from './components/document';
+
+export { CatchBoundary } from '~/components/root-catch-boundary';
+export { ErrorBoundary } from '~/components/root-error-boundary';
 
 interface RouteData {
   flash?: Flash;
@@ -39,7 +26,7 @@ interface RouteData {
   };
 }
 
-const meta: MetaFunction = () => ({
+export const meta: MetaFunction = () => ({
   ...getSeoMeta(),
   'apple-mobile-web-app-title': 'Sneakers',
   'application-name': 'Sneakers',
@@ -50,7 +37,7 @@ const meta: MetaFunction = () => ({
   viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
 });
 
-const links: LinksFunction = () => [
+export const links: LinksFunction = () => [
   ...getSeoLinks(),
   { rel: 'stylesheet', href: globalCSS },
   { rel: 'stylesheet', href: interCSS },
@@ -79,9 +66,9 @@ const links: LinksFunction = () => [
   { rel: 'mask-icon', href: '/safari-pinned-tab.svg', color: '#000000' },
 ];
 
-const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request }) => {
   const session = await getSession(request.headers.get('Cookie'));
-  const flash = session.get(flashMessageKey) as string | undefined;
+  const flash = session.get(flashMessageKey) as Flash | undefined;
 
   if (flash) {
     const data: RouteData = {
@@ -109,15 +96,13 @@ const loader: LoaderFunction = async ({ request }) => {
   return json(data);
 };
 
-const App: React.VFC = () => {
+export default function App() {
   const { flash, ENV } = useLoaderData<RouteData>();
   const transition = useTransition();
   const pendingLocation = transition.location;
 
   let matches = useMatches() as unknown as Array<Match>;
-  let handleBodyClassName = matches
-    .filter(match => match.handle?.bodyClassName)
-    .map(match => match.handle?.bodyClassName);
+  let handleBodyClassName = matches.map(match => match.handle?.bodyClassName);
 
   React.useEffect(() => {
     Fathom.load(ENV.FATHOM_SITE_ID, {
@@ -139,97 +124,26 @@ const App: React.VFC = () => {
         ),
       });
     }
-  });
+  }, [flash]);
 
   return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <Meta />
-        <Links />
-      </head>
-      <body
-        className={clsx(
-          'min-h-screen',
-          pendingLocation ? 'opacity-60 cursor-not-allowed' : '',
-          handleBodyClassName
-        )}
-      >
-        <Notifications />
+    <Document
+      bodyClassName={clsx(
+        pendingLocation ? 'opacity-60 cursor-not-allowed' : '',
+        handleBodyClassName
+      )}
+    >
+      <Notifications />
 
-        {pendingLocation && (
-          <div className="fixed z-10 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 transform-gpu">
-            <svg className="z-10 w-10 h-10 text-blue-600 animate-spin">
-              <use href={`${refreshClockwise}#refresh-clockwise`} />
-            </svg>
-          </div>
-        )}
+      {pendingLocation && (
+        <div className="fixed z-10 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 transform-gpu">
+          <svg className="z-10 w-10 h-10 text-blue-600 animate-spin">
+            <use href={`${refreshClockwise}#refresh-clockwise`} />
+          </svg>
+        </div>
+      )}
 
-        <Outlet />
-        <ScrollRestoration />
-        <Scripts />
-        <LiveReload />
-      </body>
-    </html>
+      <Outlet />
+    </Document>
   );
-};
-
-const CatchBoundary: React.VFC = () => {
-  const caught = useCatch();
-
-  return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <title>
-          {caught.status} {caught.statusText}
-        </title>
-        <Meta />
-        <Links />
-      </head>
-      <body className="min-h-screen w-[90%] max-w-5xl mx-auto pt-20 space-y-4 font-mono text-center text-white bg-blue-bsod">
-        <h1 className="inline-block text-3xl font-bold bg-white text-blue-bsod">
-          {caught.status} {caught.statusText}
-        </h1>
-        <Scripts />
-        <LiveReload />
-      </body>
-    </html>
-  );
-};
-
-const ErrorBoundary: ErrorBoundaryComponent = ({ error }) => {
-  console.error('Check your server terminal output');
-
-  return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <title>Shoot...</title>
-        <Meta />
-        <Links />
-      </head>
-      <body className="min-h-screen w-[90%] max-w-5xl mx-auto pt-20 space-y-4 font-mono text-center text-white bg-blue-bsod">
-        <h1 className="inline-block text-3xl font-bold bg-white text-blue-bsod">
-          Uncaught Exception!
-        </h1>
-        <p>
-          If you are not the developer, please click back in your browser and
-          try again.
-        </p>
-        <pre className="px-4 py-2 overflow-auto border-4 border-white">
-          {error.message}
-        </pre>
-        <p>
-          There was an uncaught exception in your application. Check the browser
-          console and/or the server console to inspect the error.
-        </p>
-        <Scripts />
-        <LiveReload />
-      </body>
-    </html>
-  );
-};
-
-export default App;
-export { CatchBoundary, ErrorBoundary, links, loader, meta };
+}

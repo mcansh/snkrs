@@ -1,5 +1,5 @@
 function flashMessage(message: string, type: 'error' | 'info' | 'success') {
-  return JSON.stringify({ message, type });
+  return { message, type };
 }
 
 export { flashMessage };
