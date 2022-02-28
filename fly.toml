@@ -8,6 +8,12 @@ processes = []
 
 [env]
   PORT = "8080"
+  DATABASE_URL = "file:/data/db"
+  FLY_PRIMARY_REGION = "ord"
+
+[mounts]
+  destination = "/data"
+  source = "data"
 
 [experimental]
   allowed_public_ports = []
@@ -46,7 +52,3 @@ processes = []
     protocol = "http"
     timeout = 2000
     tls_skip_verify = false
-
-[[statics]]
-  guest_path = "/app/public"
-  url_prefix = "/"

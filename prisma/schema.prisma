@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource postgresql {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -47,6 +47,7 @@ model User {
   updatedAt  DateTime  @default(now()) @updatedAt
   sneakers   Sneaker[]
   settings   Settings?
+  role       String    @default("USER") // sqlite doesnt have enums 😢
 }
 
 model Settings {

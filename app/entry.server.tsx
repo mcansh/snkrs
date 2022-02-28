@@ -24,7 +24,7 @@ const contentSecurityPolicy = `${Object.entries(cspSettings)
   .map(([key, val]) => `${key} ${val.filter(Boolean).join(' ')}`)
   .join(';')}`;
 
-function handleDocumentRequest(
+export default function handleDocumentRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
@@ -76,17 +76,22 @@ function handleDocumentRequest(
   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Opener-Policy
   responseHeaders.set('Cross-Origin-Opener-Policy', 'same-origin');
 
+  if (process.env.FLY_REGION) {
+    responseHeaders.set('X-Fly-Region', process.env.FLY_REGION);
+  }
+
   return new Response(`<!DOCTYPE html>${markup}`, {
     status: responseStatusCode,
     headers: responseHeaders,
   });
 }
 
-const handleDataRequest: HandleDataRequestFunction = (
+export const handleDataRequest: HandleDataRequestFunction = (
   response,
   { request }
 ) => {
-  if (!response.headers.has('Cache-Control')) {
+  let method = request.method.toLowerCase();
+  if (method === 'get' && !response.headers.has('Cache-Control')) {
     const purpose = request.headers.get('Purpose');
     response.headers.set(
       'Cache-Control',
@@ -94,8 +99,9 @@ const handleDataRequest: HandleDataRequestFunction = (
     );
   }
 
+  if (process.env.FLY_REGION) {
+    response.headers.set('X-Fly-Region', process.env.FLY_REGION);
+  }
+
   return response;
 };
-
-export default handleDocumentRequest;
-export { handleDataRequest };

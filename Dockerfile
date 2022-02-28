@@ -1,3 +1,23 @@
+FROM golang:1.17.7-bullseye as litestream-builder
+
+# set gopath for easy reference later
+ENV GOPATH=/go
+
+# install wget and unzip to download and extract litestream source
+RUN apt-get update && apt-get install -y wget unzip
+
+# download and extract litestream source
+RUN wget https://github.com/benbjohnson/litestream/archive/refs/heads/main.zip
+RUN unzip ./main.zip -d /src
+
+# set working dir to litestream source
+WORKDIR /src/litestream-main
+
+# build and install litestream binary
+RUN go install ./cmd/litestream
+
+###############################################################################
+
 # base node image
 FROM node:16-bullseye-slim as base
 
@@ -6,7 +26,7 @@ ENV NODE_ENV=production
 ARG COMMIT_SHA
 ENV COMMIT_SHA=$COMMIT_SHA
 
-# install open ssl for prisma
+# install openssl for prisma
 RUN apt-get update && apt-get install -y openssl
 
 ###############################################################################
@@ -16,49 +36,65 @@ FROM base as deps
 
 WORKDIR /remixapp/
 
-ADD package.json package-lock.json .npmrc ./
+ADD package.json package-lock.json ./
 RUN npm install --production=false
 
 ###############################################################################
 
-# setup production node_modules
 FROM base as production-deps
 
 WORKDIR /remixapp/
 
+# Copy deps and prune off dev ones
 COPY --from=deps /remixapp/node_modules /remixapp/node_modules
-ADD package.json package-lock.json .npmrc /remixapp/
+ADD package.json package-lock.json ./
 RUN npm prune --production
 
 ###############################################################################
 
-# build app
 FROM base as build
+
+ENV NODE_ENV=production
 
 WORKDIR /remixapp/
 
 COPY --from=deps /remixapp/node_modules /remixapp/node_modules
 
-# schema doesn't change much so these will stay cached
+# cache the prisma schema
 ADD prisma .
 RUN npx prisma generate
 
-# app code changes all the time
+# build the app
 ADD . .
 RUN npm run build
 
 ###############################################################################
 
-# build smaller image for running
+# finally, build the production image with minimal footprint
 FROM base
 
+ENV NODE_ENV=production
+
+# copy litestream binary to /usr/local/bin
+COPY --from=litestream-builder /go/bin/litestream /usr/bin/litestream
+# copy litestream setup script
+ADD setup-litestream.js /remixapp/setup-litestream.js
+# copy litestream configs
+ADD etc/litestream.primary.yml /etc/litestream.primary.yml
+ADD etc/litestream.replica.yml /etc/litestream.replica.yml
+
+# copy over production deps
+COPY --from=production-deps /remixapp/node_modules /remixapp/node_modules
+# copy over generated prisma client
+COPY --from=build /remixapp/node_modules/.prisma /remixapp/node_modules/.prisma
+# copy over built application and assets
+COPY --from=build /remixapp/build /remixapp/build
+COPY --from=build /remixapp/public /remixapp/public
+
+# set working dir
 WORKDIR /remixapp/
 
-COPY --from=production-deps /remixapp/node_modules /remixapp/node_modules
-COPY --from=build /remixapp/node_modules/.prisma /remixapp/node_modules/.prisma
-COPY --from=build /remixapp/public /remixapp/public
-COPY --from=build /remixapp/prisma /remixapp/prisma
-COPY --from=build /remixapp/build /remixapp/build
+# add stuff
 ADD . .
 
-ENTRYPOINT ["scripts/start_with_migrations.sh"]
+CMD ["sh", "scripts/start_with_migrations.sh"]

@@ -18,8 +18,12 @@ module.exports = {
     },
     {
       name: 'Remix',
-      script: 'remix dev',
+      script: 'remix watch',
       ignore_watch: ['.'],
+    },
+    {
+      name: 'Fastify',
+      script: 'node ./build/index.js',
       env: {
         NODE_ENV: 'development',
         ...result,
