@@ -1,27 +1,21 @@
-import { Form, json, Link, useLoaderData, useSubmit } from 'remix';
+import { Form, json, Link, redirect, useLoaderData, useSubmit } from 'remix';
 import { Prisma } from '@prisma/client';
 import uniqBy from 'lodash.uniqby';
 import { Disclosure } from '@headlessui/react';
 import type { Brand, User } from '@prisma/client';
-import type {
-  RouteComponent,
-  LoaderFunction,
-  MetaFunction,
-  HeadersFunction,
-} from 'remix';
+import type { LoaderFunction, MetaFunction, HeadersFunction } from 'remix';
 import clsx from 'clsx';
 
 import { prisma } from '~/db.server';
 import x from '~/icons/outline/x.svg';
 import menu from '~/icons/outline/menu.svg';
 import { sessionKey } from '~/constants';
-import { time } from '~/lib/time';
 import { SneakerCard } from '~/components/sneaker';
 import { commitSession, getSession } from '~/session';
 import type { Maybe } from '~/@types/types';
 import { getSeoMeta } from '~/seo';
 
-const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
+let userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
   select: {
     username: true,
     id: true,
@@ -39,75 +33,71 @@ export interface RouteData {
   user: UserWithSneakers;
   selectedBrands: Array<string>;
   sort: 'asc' | 'desc';
-  sessionUser?: Maybe<Pick<User, 'givenName' | 'id'>>;
+  sessionUser?: Maybe<Pick<User, 'givenName' | 'id'>> | null;
   settings: {
     showPurchasePrice: boolean;
   };
 }
 
-const loader: LoaderFunction = async ({ params, request }) => {
-  const session = await getSession(request.headers.get('Cookie'));
+export let loader: LoaderFunction = async ({ params, request }) => {
+  let session = await getSession(request.headers.get('Cookie'));
+  let url = new URL(request.url);
+  let userId = session.get(sessionKey);
 
-  const { searchParams } = new URL(request.url);
-  const userId = session.get(sessionKey);
+  let selectedBrands = url.searchParams.getAll('brand');
+  let sortQuery = url.searchParams.get('sort');
+  let sort: Prisma.SortOrder = sortQuery === 'asc' ? 'asc' : 'desc';
 
-  const selectedBrands = searchParams.getAll('brand');
-  const sortQuery = searchParams.get('sort');
-  const sort = sortQuery === 'asc' ? 'asc' : 'desc';
-
-  const [userTime, user] = await time(() =>
-    prisma.user.findUnique({
-      where: {
-        username: params.username,
-      },
-      select: {
-        username: true,
-        id: true,
-        fullName: true,
-        sneakers: {
-          include: { brand: true },
-          orderBy: {
-            purchaseDate: sort,
-          },
+  let user = await prisma.user.findUnique({
+    where: {
+      username: params.username,
+    },
+    select: {
+      username: true,
+      id: true,
+      fullName: true,
+      sneakers: {
+        include: { brand: true },
+        orderBy: {
+          purchaseDate: sort,
         },
       },
-    })
-  );
+    },
+  });
 
   if (!user) {
     throw new Response("This user doesn't exist", { status: 404 });
   }
 
-  const [settingsTime, settings] = await time(() =>
-    prisma.settings.findUnique({
-      where: { userId: user.id },
-    })
-  );
+  let settings = await prisma.settings.findUnique({
+    where: { userId: user.id },
+  });
 
-  const [sessionUserTime, sessionUser] = userId
-    ? await time(() =>
-        prisma.user.findUnique({
-          where: {
-            id: userId,
-          },
-          select: {
-            givenName: true,
-            id: true,
-          },
-        })
-      )
-    : [0, undefined];
+  let sessionUser = userId
+    ? await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          givenName: true,
+          id: true,
+        },
+      })
+    : null;
 
-  const sneakers = selectedBrands.length
+  let sneakers = selectedBrands.length
     ? user.sneakers.filter(sneaker =>
         selectedBrands.includes(sneaker.brand.slug)
       )
     : user.sneakers;
 
-  const uniqueBrands = uniqBy(
+  let uniqueBrands = uniqBy(
     user.sneakers.map(sneaker => sneaker.brand),
     'name'
   ).sort((a, b) => a.name.localeCompare(b.name));
+
+  if (uniqueBrands.every(brand => selectedBrands.includes(brand.slug))) {
+    url.searchParams.delete('brand');
+    return redirect(url.toString());
+  }
 
   return json<RouteData>(
     {
@@ -123,24 +113,23 @@ const loader: LoaderFunction = async ({ params, request }) => {
     {
       headers: {
         'Set-Cookie': sessionUser ? await commitSession(session) : '',
-        'Server-Timing': `user;dur=${userTime}, sessionUser;dur=${sessionUserTime}, settings;dur=${settingsTime}`,
       },
     }
   );
 };
 
-const headers: HeadersFunction = ({ loaderHeaders }) => ({
+export let headers: HeadersFunction = ({ loaderHeaders }) => ({
   'Server-Timing': loaderHeaders.get('Server-Timing') ?? '',
 });
 
-const meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
+export let meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
   if (!data?.user) {
     return getSeoMeta({
       title: "Ain't nothing here",
     });
   }
 
-  const name = `${data.user.fullName}${
+  let name = `${data.user.fullName}${
     data.user.fullName.endsWith('s') ? "'" : "'s"
   }`;
 
@@ -158,14 +147,14 @@ const meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
   });
 };
 
-const sortOptions = [
+let sortOptions = [
   { value: 'desc', display: 'Recent first' },
   { value: 'asc', display: 'Oldest first' },
 ];
 
-const UserSneakersPage: RouteComponent = () => {
-  const data = useLoaderData<RouteData>();
-  const submit = useSubmit();
+export default function UserSneakersPage() {
+  let data = useLoaderData<RouteData>();
+  let submit = useSubmit();
 
   if (
     data.sessionUser &&
@@ -367,7 +356,4 @@ const UserSneakersPage: RouteComponent = () => {
       </main>
     </div>
   );
-};
-
-export default UserSneakersPage;
-export { headers, loader, meta };
+}
