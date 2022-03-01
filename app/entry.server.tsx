@@ -92,10 +92,16 @@ export const handleDataRequest: HandleDataRequestFunction = (
 ) => {
   let method = request.method.toLowerCase();
   if (method === 'get' && !response.headers.has('Cache-Control')) {
-    const purpose = request.headers.get('Purpose');
+    let purpose =
+      request.headers.get('Purpose') ??
+      request.headers.get('X-Purpose') ??
+      request.headers.get('Sec-Purpose') ??
+      request.headers.get('Sec-Fetch-Purpose') ??
+      request.headers.get('Moz-Purpose');
+
     response.headers.set(
       'Cache-Control',
-      purpose === 'prefetch' ? 'max-age=3' : 'no-cache'
+      purpose === 'prefetch' ? 'private max-age=3' : ''
     );
   }
 
