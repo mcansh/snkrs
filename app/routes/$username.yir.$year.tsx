@@ -10,7 +10,11 @@ import { prisma } from '~/db.server';
 import { getSeoMeta } from '~/seo';
 
 const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
-  select: { username: true, sneakers: { include: { brand: true } } },
+  select: {
+    username: true,
+    sneakers: { include: { brand: true } },
+    settings: true,
+  },
 });
 
 type UserWithSneakers = Prisma.UserGetPayload<typeof userWithSneakers>;
@@ -37,6 +41,7 @@ const loader: LoaderFunction = async ({ params }) => {
     where: { username: params.username },
     select: {
       username: true,
+      settings: true,
       sneakers: {
         orderBy: { purchaseDate: 'asc' },
         include: { brand: true },
@@ -93,7 +98,11 @@ const SneakersYearInReview: React.VFC = () => {
 
       <ul className="grid grid-cols-2 gap-2 sm:gap-x-6 gap-y-8 lg:grid-cols-4 xl:gap-x-8">
         {user.sneakers.map(sneaker => (
-          <SneakerCard key={sneaker.id} {...sneaker} />
+          <SneakerCard
+            key={sneaker.id}
+            {...sneaker}
+            showPurchasePrice={user.settings?.showPurchasePrice ?? true}
+          />
         ))}
       </ul>
     </main>
