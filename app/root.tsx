@@ -12,7 +12,7 @@ import { Notifications } from './notifications';
 import refreshClockwise from './icons/refresh-clockwise.svg';
 import { getSession, commitSession } from './session';
 import type { Flash, Match } from './@types/types';
-import { getSeoLinks, getSeoMeta } from './seo';
+import { getSeo } from './seo';
 import { Document } from './components/document';
 
 export { CatchBoundary } from '~/components/root-catch-boundary';
@@ -26,8 +26,10 @@ interface RouteData {
   };
 }
 
+let [seoMeta, seoLinks] = getSeo();
+
 export const meta: MetaFunction = () => ({
-  ...getSeoMeta(),
+  ...seoMeta,
   'apple-mobile-web-app-title': 'Sneakers',
   'application-name': 'Sneakers',
   'msapplication-TileColor': '#000000',
@@ -38,7 +40,7 @@ export const meta: MetaFunction = () => ({
 });
 
 export const links: LinksFunction = () => [
-  ...getSeoLinks(),
+  ...seoLinks,
   { rel: 'stylesheet', href: globalCSS },
   { rel: 'stylesheet', href: interCSS },
   {
