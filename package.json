@@ -68,6 +68,7 @@
     "@commitlint/config-conventional": "16.2.1",
     "@mcansh/eslint-config": "4.0.0",
     "@remix-run/dev": "1.2.3-pre.0",
+    "@remix-run/eslint-config": "1.2.3",
     "@tailwindcss/aspect-ratio": "0.4.0",
     "@tailwindcss/forms": "0.4.0",
     "@testing-library/jest-dom": "5.16.2",

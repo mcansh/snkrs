@@ -7,7 +7,7 @@ import type { ActionFunction, LinksFunction, LoaderFunction } from 'remix';
 import { flashMessageKey, redirectAfterAuthKey, sessionKey } from '~/constants';
 import { InvalidLoginError } from '~/errors';
 import { flashMessage } from '~/flash-message';
-import { verify } from '~/lib/auth';
+import { verify } from '~/lib/auth.server';
 import { prisma } from '~/db.server';
 import { withSession } from '~/lib/with-session';
 import { LoadingButton } from '~/components/loading-button';

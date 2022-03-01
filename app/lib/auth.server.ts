@@ -1,5 +1,6 @@
+import crypto from 'crypto';
+
 async function hash(password: string): Promise<string> {
-  const crypto = await import('crypto');
   return new Promise((resolve, reject) => {
     // generate random 16 bytes long salt
     const salt = crypto.randomBytes(16).toString('hex');
@@ -12,7 +13,6 @@ async function hash(password: string): Promise<string> {
 }
 
 async function verify(password: string, hashed: string): Promise<boolean> {
-  const crypto = await import('crypto');
   return new Promise((resolve, reject) => {
     const [salt, key] = hashed.split(':');
     crypto.scrypt(password, salt, 64, (err, derivedKey) => {

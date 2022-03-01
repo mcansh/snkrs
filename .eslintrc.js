@@ -1,5 +1,5 @@
 module.exports = {
-  extends: ['@mcansh/eslint-config/typescript'],
+  extends: ['@mcansh/eslint-config/typescript', '@remix-run/eslint-config'],
   rules: {
     'prefer-const': 'off',
     'import/no-mutable-exports': 'off',

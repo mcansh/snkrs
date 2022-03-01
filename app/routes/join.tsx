@@ -14,7 +14,7 @@ import { prisma } from '~/db.server';
 import { flashMessage } from '~/flash-message';
 import { EmailTakenJoinError, UsernameTakenJoinError } from '~/errors';
 import { registerSchema } from '~/lib/schemas/user.server';
-import { hash } from '~/lib/auth';
+import { hash } from '~/lib/auth.server';
 import checkIcon from '~/icons/outline/check.svg';
 import refreshIcon from '~/icons/refresh-clockwise.svg';
 import exclamationCircleIcon from '~/icons/outline/exclamation-circle.svg';
