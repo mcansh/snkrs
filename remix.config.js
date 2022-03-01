@@ -7,5 +7,5 @@ module.exports = {
   publicPath: '/build/',
   server: './server.ts',
   devServerPort: 8002,
-  devServerBroadcastDelay: 1000,
+  devServerBroadcastDelay: 1500,
 };
