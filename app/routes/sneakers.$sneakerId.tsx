@@ -9,10 +9,9 @@ import { formatDate } from '~/utils/format-date';
 import { getCloudinaryURL } from '~/utils/get-cloudinary-url';
 import { formatMoney } from '~/utils/format-money';
 import { copy } from '~/utils/copy';
-import { sessionKey } from '~/constants';
 import { prisma } from '~/db.server';
-import { withSession } from '~/lib/with-session';
 import { getSeoMeta } from '~/seo';
+import { getUserId } from '~/session.server';
 
 const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
@@ -49,66 +48,67 @@ interface RouteData {
   };
 }
 
-const loader: LoaderFunction = ({ params, request }) =>
-  withSession(request, async session => {
-    invariant(params.sneakerId, 'sneakerID is required');
+const loader: LoaderFunction = async ({ params, request }) => {
+  invariant(params.sneakerId, 'sneakerID is required');
 
-    const sneaker = await prisma.sneaker.findUnique({
-      where: { id: params.sneakerId },
-      include: {
-        brand: true,
-        user: {
-          select: {
-            id: true,
-            username: true,
-            fullName: true,
-          },
+  let userId = await getUserId(request);
+
+  const sneaker = await prisma.sneaker.findUnique({
+    where: { id: params.sneakerId },
+    include: {
+      brand: true,
+      user: {
+        select: {
+          id: true,
+          username: true,
+          fullName: true,
         },
       },
-    });
-
-    if (!sneaker) {
-      throw new Response(`Sneaker not found with id ${params.sneakerId}`, {
-        status: 404,
-      });
-    }
-
-    const userCreatedSneaker = sneaker.user.id === session.get(sessionKey);
-
-    const settings = await prisma.settings.findUnique({
-      where: { userId: sneaker.user.id },
-    });
-
-    return json<RouteData>({
-      id: params.sneakerId,
-      userCreatedSneaker,
-      title: `${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`,
-      purchaseYear: new Date(sneaker.purchaseDate).getFullYear(),
-      settings: {
-        showPurchasePrice: settings?.showPurchasePrice ?? true,
-        showRetailPrice: settings?.showRetailPrice ?? false,
-      },
-      sneaker: {
-        ...sneaker,
-        createdAt:
-          typeof sneaker.createdAt === 'string'
-            ? sneaker.createdAt
-            : sneaker.createdAt.toISOString(),
-        soldDate:
-          typeof sneaker.soldDate === 'string'
-            ? sneaker.soldDate
-            : sneaker.soldDate?.toISOString(),
-        purchaseDate:
-          typeof sneaker.purchaseDate === 'string'
-            ? sneaker.purchaseDate
-            : sneaker.purchaseDate.toISOString(),
-        updatedAt:
-          typeof sneaker.updatedAt === 'string'
-            ? sneaker.updatedAt
-            : sneaker.updatedAt.toISOString(),
-      },
-    });
+    },
   });
+
+  if (!sneaker) {
+    throw new Response(`Sneaker not found with id ${params.sneakerId}`, {
+      status: 404,
+    });
+  }
+
+  const userCreatedSneaker = sneaker.user.id === userId;
+
+  const settings = await prisma.settings.findUnique({
+    where: { userId: sneaker.user.id },
+  });
+
+  return json<RouteData>({
+    id: params.sneakerId,
+    userCreatedSneaker,
+    title: `${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`,
+    purchaseYear: new Date(sneaker.purchaseDate).getFullYear(),
+    settings: {
+      showPurchasePrice: settings?.showPurchasePrice ?? true,
+      showRetailPrice: settings?.showRetailPrice ?? false,
+    },
+    sneaker: {
+      ...sneaker,
+      createdAt:
+        typeof sneaker.createdAt === 'string'
+          ? sneaker.createdAt
+          : sneaker.createdAt.toISOString(),
+      soldDate:
+        typeof sneaker.soldDate === 'string'
+          ? sneaker.soldDate
+          : sneaker.soldDate?.toISOString(),
+      purchaseDate:
+        typeof sneaker.purchaseDate === 'string'
+          ? sneaker.purchaseDate
+          : sneaker.purchaseDate.toISOString(),
+      updatedAt:
+        typeof sneaker.updatedAt === 'string'
+          ? sneaker.updatedAt
+          : sneaker.updatedAt.toISOString(),
+    },
+  });
+};
 
 const meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
   if (!data) {

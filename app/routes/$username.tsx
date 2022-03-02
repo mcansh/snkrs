@@ -9,9 +9,8 @@ import clsx from 'clsx';
 import { prisma } from '~/db.server';
 import x from '~/icons/outline/x.svg';
 import menu from '~/icons/outline/menu.svg';
-import { sessionKey } from '~/constants';
 import { SneakerCard } from '~/components/sneaker';
-import { sessionStorage } from '~/session.server';
+import { getUserId, sessionStorage } from '~/session.server';
 import type { Maybe } from '~/@types/types';
 import { getSeoMeta } from '~/seo';
 
@@ -42,7 +41,7 @@ export interface RouteData {
 export let loader: LoaderFunction = async ({ params, request }) => {
   let session = await sessionStorage.getSession(request.headers.get('Cookie'));
   let url = new URL(request.url);
-  let userId = session.get(sessionKey);
+  let userId = await getUserId(request);
 
   let selectedBrands = url.searchParams.getAll('brand');
   let sortQuery = url.searchParams.get('sort');
@@ -58,9 +57,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
       fullName: true,
       sneakers: {
         include: { brand: true },
-        orderBy: {
-          purchaseDate: sort,
-        },
+        orderBy: { purchaseDate: sort },
       },
     },
   });

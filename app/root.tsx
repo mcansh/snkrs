@@ -1,17 +1,20 @@
 import * as React from 'react';
-import type { LinksFunction, LoaderFunction, MetaFunction } from 'remix';
+import type {
+  LinksFunction,
+  LoaderFunction,
+  MetaFunction,
+  ShouldReloadFunction,
+} from 'remix';
 import { useLoaderData, useTransition, json, Outlet, useMatches } from 'remix';
 import * as Fathom from 'fathom-client';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
 
-import globalCSS from './styles/global.css';
-import interCSS from './styles/inter.css';
-import { flashMessageKey } from './constants';
-import { Notifications } from './notifications';
+import globalStylesHref from './styles/global.css';
+import interStylesHref from './styles/inter.css';
 import refreshClockwise from './icons/refresh-clockwise.svg';
 import { sessionStorage } from './session.server';
-import type { Flash, Match } from './@types/types';
+import type { Match } from './@types/types';
 import { getSeo } from './seo';
 import { Document } from './components/document';
 
@@ -19,7 +22,6 @@ export { CatchBoundary } from '~/components/root-catch-boundary';
 export { ErrorBoundary } from '~/components/root-error-boundary';
 
 interface RouteData {
-  flash?: Flash;
   ENV: {
     FATHOM_SITE_ID: string;
     FATHOM_SCRIPT_URL: string;
@@ -28,7 +30,7 @@ interface RouteData {
 
 let [seoMeta, seoLinks] = getSeo();
 
-export const meta: MetaFunction = () => ({
+export let meta: MetaFunction = () => ({
   ...seoMeta,
   'apple-mobile-web-app-title': 'Sneakers',
   'application-name': 'Sneakers',
@@ -39,10 +41,10 @@ export const meta: MetaFunction = () => ({
   viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
 });
 
-export const links: LinksFunction = () => [
+export let links: LinksFunction = () => [
   ...seoLinks,
-  { rel: 'stylesheet', href: globalCSS },
-  { rel: 'stylesheet', href: interCSS },
+  { rel: 'stylesheet', href: globalStylesHref },
+  { rel: 'stylesheet', href: interStylesHref },
   {
     rel: 'icon',
     href: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext x='0' y='14'%3E👟%3C/text%3E%3C/svg%3E",
@@ -68,42 +70,25 @@ export const links: LinksFunction = () => [
   { rel: 'mask-icon', href: '/safari-pinned-tab.svg', color: '#000000' },
 ];
 
-export const loader: LoaderFunction = async ({ request }) => {
-  const session = await sessionStorage.getSession(
-    request.headers.get('Cookie')
-  );
-  const flash = session.get(flashMessageKey) as Flash | undefined;
-
-  if (flash) {
-    const data: RouteData = {
-      flash,
-      ENV: {
-        FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
-        FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
-      },
-    };
-    return json(data, {
-      headers: {
-        'Set-Cookie': await sessionStorage.commitSession(session),
-      },
-    });
-  }
-
-  const data: RouteData = {
-    flash: undefined,
+export let loader: LoaderFunction = async () => {
+  return json<RouteData>({
     ENV: {
       FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
       FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
     },
-  };
+  });
+};
 
-  return json(data);
+// don't reload our root loader
+export let unstable_shouldReload: ShouldReloadFunction = () => {
+  return false;
 };
 
 export default function App() {
-  const { flash, ENV } = useLoaderData<RouteData>();
-  const transition = useTransition();
-  const pendingLocation = transition.location;
+  let { ENV } = useLoaderData<RouteData>();
+  let transition = useTransition();
+  let pendingLocation = transition.location;
+  let [showPendingSpinner, setShowPendingSpinner] = React.useState(false);
 
   let matches = useMatches() as unknown as Array<Match>;
   let handleBodyClassName = matches.map(match => match.handle?.bodyClassName);
@@ -116,30 +101,26 @@ export default function App() {
   }, [ENV]);
 
   React.useEffect(() => {
-    if (flash) {
-      toast(typeof flash === 'string' ? flash : flash.message, {
-        className: clsx(
-          'p-2 text-white rounded-lg',
-          typeof flash === 'string'
-            ? 'bg-purple-500'
-            : flash.type === 'error'
-            ? 'bg-red-500'
-            : 'bg-purple-500'
-        ),
-      });
+    let timerId: number;
+    if (pendingLocation) {
+      timerId = window.setTimeout(() => {
+        setShowPendingSpinner(true);
+      }, 500);
     }
-  }, [flash]);
+
+    return () => {
+      window.clearTimeout(timerId);
+    };
+  }, [pendingLocation]);
 
   return (
     <Document
       bodyClassName={clsx(
-        pendingLocation ? 'opacity-60 cursor-not-allowed' : '',
+        showPendingSpinner ? 'opacity-60 cursor-not-allowed' : '',
         handleBodyClassName
       )}
     >
-      <Notifications />
-
-      {pendingLocation && (
+      {showPendingSpinner && (
         <div className="fixed z-10 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 transform-gpu">
           <svg className="z-10 w-10 h-10 text-blue-600 animate-spin">
             <use href={`${refreshClockwise}#refresh-clockwise`} />

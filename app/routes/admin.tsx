@@ -18,11 +18,14 @@ import {
 import * as CSV from 'csv-string';
 import type { Brand, Settings, Sneaker, User } from '@prisma/client';
 
-import { sessionKey } from '~/constants';
 import { prisma } from '~/db.server';
 import { getSeoMeta } from '~/seo';
-import { sessionStorage } from '~/session.server';
-import { isAdmin } from '~/lib/schemas/user.server';
+import {
+  isAdmin,
+  requireUser,
+  requireUserId,
+  sessionStorage,
+} from '~/session.server';
 import type { RouteHandle } from '~/@types/types';
 
 interface LoaderData {
@@ -38,22 +41,9 @@ interface LoaderData {
 }
 
 export let loader: LoaderFunction = async ({ request }) => {
-  let session = await sessionStorage.getSession(request.headers.get('Cookie'));
-  let userId = session.get(sessionKey);
+  let user = await requireUser(request);
 
-  if (!userId) {
-    return redirect(`/login?returnTo=${request.url}`);
-  }
-
-  let user = await prisma.user.findUnique({ where: { id: userId } });
-
-  if (!user) {
-    return redirect(`/login?returnTo=${request.url}`);
-  }
-
-  if (!isAdmin(user)) {
-    return redirect(`/${user.username}`);
-  }
+  if (!isAdmin(user)) return redirect(`/${user.username}`);
 
   let users = await prisma.user.findMany({
     select: {
@@ -113,22 +103,9 @@ function parseCSVStream(stream: Readable) {
 type MakeValueString<T> = { [K in keyof T]: string };
 
 export let action: ActionFunction = async ({ request }) => {
-  let session = await sessionStorage.getSession(request.headers.get('Cookie'));
-  let userId = session.get(sessionKey);
+  let user = await requireUser(request);
 
-  if (!userId) {
-    return redirect(`/login?returnTo=${request.url}`);
-  }
-
-  let user = await prisma.user.findUnique({ where: { id: userId } });
-
-  if (!user) {
-    return redirect(`/login?returnTo=${request.url}`);
-  }
-
-  if (!isAdmin(user)) {
-    return redirect(`/${user.username}`);
-  }
+  if (!isAdmin(user)) return redirect(`/${user.username}`);
 
   let uploadHandler: UploadHandler = async ({ stream, name }) => {
     let results = await parseCSVStream(stream);

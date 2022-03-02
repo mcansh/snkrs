@@ -1,28 +1,31 @@
-import * as Yup from 'yup';
-import type { User } from '@prisma/client';
+import { z } from 'zod';
 
 import { reservedUsernames } from './reserved-usernames.server';
 
-import type { RemoveIndex } from '~/@types/types';
-
-export const registerSchema = Yup.object().shape({
-  email: Yup.string().email().required(),
-  givenName: Yup.string().required(),
-  familyName: Yup.string().required(),
-  password: Yup.string().min(12).required(),
-  username: Yup.string()
-    .required()
-    .notOneOf(reservedUsernames, 'A user with this username already exists'),
+export let registerSchema = z.object({
+  email: z.string().email(),
+  givenName: z.string(),
+  familyName: z.string(),
+  password: z.string().min(12),
+  username: z
+    .string()
+    .refine(username => !reservedUsernames.includes(username), {
+      message: 'Username is reserved',
+    }),
 });
 
-export const loginSchema = Yup.object().shape({
-  email: Yup.string().email().required(),
-  password: Yup.string().min(12).required(),
+export let loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(12),
 });
 
-export type LoginSchema = RemoveIndex<Yup.InferType<typeof loginSchema>>;
-export type RegisterSchema = RemoveIndex<Yup.InferType<typeof registerSchema>>;
+export type LoginSchema = z.infer<typeof loginSchema>;
+export type RegisterSchema = z.infer<typeof registerSchema>;
 
-export function isAdmin(user: User): boolean {
-  return user.role === 'ADMIN';
-}
+export type PossibleRegistrationErrors = z.inferFlattenedErrors<
+  typeof registerSchema
+>['fieldErrors'];
+
+export type PossibleLoginErrors = z.inferFlattenedErrors<
+  typeof loginSchema
+>['fieldErrors'];

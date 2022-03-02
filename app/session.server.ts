@@ -1,58 +1,11 @@
-import { createSessionStorage, SessionStorage } from 'remix';
-import cuid from 'cuid';
-import { addWeeks, differenceInMilliseconds } from 'date-fns';
+import type { Session } from 'remix';
+import { redirect } from 'remix';
+import type { User } from '@prisma/client';
 
-import { redis } from './lib/redis.server';
+import { createRedisSessionStorage } from './redis-session.server';
+import { prisma } from './db.server';
 
-function createRedisSessionStorage({
-  cookie,
-}: {
-  cookie: Parameters<typeof createSessionStorage>['0']['cookie'];
-}) {
-  return createSessionStorage({
-    cookie,
-    async createData(data, expires) {
-      // `expires` is a Date after which the data should be considered
-      // invalid. You could use it to invalidate the data somehow or
-      // automatically purge this record from your database.
-      const id = cuid();
-
-      const now = new Date();
-
-      const diff = expires
-        ? differenceInMilliseconds(expires, now)
-        : addWeeks(now, 2).getTime();
-
-      await redis.set(id, JSON.stringify(data), 'px', diff);
-
-      return id;
-    },
-    async readData(id) {
-      const session = await redis.get(id);
-      if (!session) return null;
-      try {
-        return JSON.parse(session);
-      } catch (error: unknown) {
-        // invalid session data
-        return null;
-      }
-    },
-    async updateData(id, data, expires) {
-      const now = new Date();
-
-      const diff = expires
-        ? differenceInMilliseconds(expires, now)
-        : addWeeks(now, 2).getTime();
-
-      await redis.set(id, JSON.stringify(data), 'px', diff);
-    },
-    async deleteData(id) {
-      await redis.del(id);
-    },
-  });
-}
-
-export const sessionStorage = createRedisSessionStorage({
+export let sessionStorage = createRedisSessionStorage({
   cookie: {
     name: '__session',
     secrets: [process.env.SESSION_PASSWORD],
@@ -63,3 +16,68 @@ export const sessionStorage = createRedisSessionStorage({
     secure: process.env.NODE_ENV === 'production',
   },
 });
+
+export function getSession(request: Request): Promise<Session> {
+  return sessionStorage.getSession(request.headers.get('Cookie'));
+}
+
+let USER_SESSION_KEY = 'userId';
+
+export async function getUserId(request: Request): Promise<string | undefined> {
+  let session = await getSession(request);
+  return session.get(USER_SESSION_KEY);
+}
+
+export async function requireUserId(
+  request: Request,
+  redirectTo: string = request.url
+): Promise<string> {
+  let userId = await getUserId(request);
+  if (!userId) {
+    let searchParams = new URLSearchParams();
+    searchParams.set('redirectTo', redirectTo);
+    throw redirect(`/login?${searchParams.toString()}`);
+  }
+  return userId;
+}
+
+export async function requireUser(
+  request: Request,
+  redirectTo: string = request.url
+): Promise<User> {
+  let userId = await requireUserId(request, redirectTo);
+  let user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    let searchParams = new URLSearchParams();
+    searchParams.set('redirectTo', redirectTo);
+    throw redirect(`/login?${searchParams.toString()}`);
+  }
+  return user;
+}
+
+export async function createUserSession(
+  request: Request,
+  userId: string,
+  redirectTo: string
+): Promise<Response> {
+  let session = await getSession(request);
+  session.set(USER_SESSION_KEY, userId);
+  return redirect(redirectTo, {
+    headers: {
+      'Set-Cookie': await sessionStorage.commitSession(session),
+    },
+  });
+}
+
+export async function logout(request: Request): Promise<Response> {
+  let session = await getSession(request);
+  return redirect('/', {
+    headers: {
+      'Set-Cookie': await sessionStorage.destroySession(session),
+    },
+  });
+}
+
+export function isAdmin(user: User): boolean {
+  return user.role === 'ADMIN';
+}

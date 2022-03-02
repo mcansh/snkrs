@@ -15,17 +15,16 @@ import accounting from 'accounting';
 import NumberFormat from 'react-number-format';
 import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix';
 import type { Except } from 'type-fest';
+import invariant from 'tiny-invariant';
 
 import { formatDate } from '~/utils/format-date';
 import { getCloudinaryURL } from '~/utils/get-cloudinary-url';
 import { formatMoney } from '~/utils/format-money';
-import { flashMessageKey, redirectAfterAuthKey, sessionKey } from '~/constants';
-import { AuthorizationError, NotFoundError } from '~/errors';
 import { prisma } from '~/db.server';
-import { withSession } from '~/lib/with-session';
-import { flashMessage } from '~/flash-message';
+import type { PossibleErrors } from '~/lib/schemas/sneaker.server';
 import { sneakerSchema } from '~/lib/schemas/sneaker.server';
 import { cloudinary } from '~/lib/cloudinary.server';
+import { requireUserId } from '~/session.server';
 
 const sneakerWithBrandAndUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
@@ -61,190 +60,166 @@ type RouteData =
       userCreatedSneaker?: never;
     };
 
-const loader: LoaderFunction = ({ params, request }) =>
-  withSession(request, async session => {
-    try {
-      const sneaker = await prisma.sneaker.findUnique({
-        where: { id: params.sneakerId },
-        include: {
-          user: { select: { familyName: true, givenName: true, id: true } },
-          brand: true,
-        },
-      });
+const loader: LoaderFunction = async ({ params, request }) => {
+  invariant(params.sneakerId);
+  let userId = await requireUserId(request);
 
-      if (!sneaker) {
-        const data: RouteData = { id: params.sneakerId! };
-        return json(data, { status: 404 });
-      }
-
-      const userId = session.get(sessionKey) as string | undefined;
-
-      const userCreatedSneaker = sneaker.user.id === userId;
-
-      if (!userId || !userCreatedSneaker) {
-        throw new AuthorizationError();
-      }
-
-      const data: RouteData = {
-        id: params.sneakerId!,
-        userCreatedSneaker,
-        sneaker: {
-          ...sneaker,
-          createdAt:
-            typeof sneaker.createdAt === 'string'
-              ? sneaker.createdAt
-              : sneaker.createdAt.toISOString(),
-          purchaseDate:
-            typeof sneaker.purchaseDate === 'string'
-              ? sneaker.purchaseDate
-              : sneaker.purchaseDate.toISOString(),
-          soldDate:
-            typeof sneaker.soldDate === 'string'
-              ? sneaker.soldDate
-              : sneaker.soldDate?.toISOString(),
-        },
-      };
-
-      return json(data);
-    } catch (error: unknown) {
-      if (error instanceof AuthorizationError) {
-        return redirect(`/login?${redirectAfterAuthKey}=${request.url}`);
-      } else {
-        console.error(error);
-      }
-
-      return redirect('/login');
-    }
+  const sneaker = await prisma.sneaker.findUnique({
+    where: { id: params.sneakerId },
+    include: {
+      user: { select: { familyName: true, givenName: true, id: true } },
+      brand: true,
+    },
   });
 
-const action: ActionFunction = ({ request, params }) =>
-  withSession(request, async session => {
-    const userId = session.get(sessionKey) as string | undefined;
-    const { sneakerId } = params;
+  if (!sneaker) {
+    throw new Response(`No sneaker found with id ${params.sneakerId}`, {
+      status: 404,
+    });
+  }
 
-    try {
-      const originalSneaker = await prisma.sneaker.findUnique({
-        where: {
-          id: sneakerId,
-        },
-      });
+  const userCreatedSneaker = sneaker.user.id === userId;
 
-      if (!originalSneaker) {
-        throw new NotFoundError();
-      }
+  if (!userCreatedSneaker) {
+    throw new Response("You don't have permission to edit this sneaker", {
+      status: 403,
+    });
+  }
 
-      if (originalSneaker.userId !== userId) {
-        throw new AuthorizationError();
-      }
+  return json<RouteData>({
+    id: params.sneakerId,
+    userCreatedSneaker,
+    sneaker: {
+      ...sneaker,
+      createdAt:
+        typeof sneaker.createdAt === 'string'
+          ? sneaker.createdAt
+          : sneaker.createdAt.toISOString(),
+      purchaseDate:
+        typeof sneaker.purchaseDate === 'string'
+          ? sneaker.purchaseDate
+          : sneaker.purchaseDate.toISOString(),
+      soldDate:
+        typeof sneaker.soldDate === 'string'
+          ? sneaker.soldDate
+          : sneaker.soldDate?.toISOString(),
+    },
+  });
+};
 
-      const requestBody = await request.text();
-      const formData = new URLSearchParams(requestBody);
-      const data = Object.fromEntries(formData);
+interface ActionData {
+  errors: PossibleErrors;
+}
 
-      if (!userId) {
-        throw new AuthorizationError();
-      }
+const action: ActionFunction = async ({ request, params }) => {
+  let userId = await requireUserId(request);
+  const { sneakerId } = params;
+  invariant(sneakerId);
 
-      const rawPrice = formData.get('price') as string;
-      const rawRetailPrice = formData.get('retailPrice') as string;
+  const originalSneaker = await prisma.sneaker.findUnique({
+    where: { id: sneakerId },
+  });
 
-      const price = Number(rawPrice) || accounting.unformat(rawPrice) * 100;
-      const retailPrice =
-        Number(rawRetailPrice) || accounting.unformat(rawRetailPrice) * 100;
+  if (!originalSneaker) {
+    throw new Response(`No sneaker found with id ${sneakerId}`, {
+      status: 404,
+    });
+  }
 
-      const valid = await sneakerSchema.validate(
+  if (originalSneaker.userId !== userId) {
+    throw new Response("You don't have permission to edit this sneaker", {
+      status: 403,
+    });
+  }
+
+  const requestBody = await request.text();
+  const formData = new URLSearchParams(requestBody);
+  const data = Object.fromEntries(formData);
+
+  const rawPrice = formData.get('price') as string;
+  const rawRetailPrice = formData.get('retailPrice') as string;
+
+  const price = Number(rawPrice) || accounting.unformat(rawPrice) * 100;
+  const retailPrice =
+    Number(rawRetailPrice) || accounting.unformat(rawRetailPrice) * 100;
+
+  const valid = sneakerSchema.safeParse({
+    brand: data.brand,
+    colorway: data.colorway,
+    imagePublicId: data.image,
+    model: data.model,
+    price,
+    purchaseDate: new Date(data.purchaseDate).toISOString(),
+    retailPrice,
+    size: Number(data.size),
+    sold: data.sold,
+    soldDate: data.soldDate,
+    soldPrice: data.sold && data.soldPrice ? Number(data.soldPrice) : undefined,
+  });
+
+  if (!valid.success) {
+    return json<ActionData>({
+      errors: valid.error.flatten().fieldErrors,
+    });
+  }
+
+  let imagePublicId = '';
+  if (originalSneaker.imagePublicId !== valid.data.imagePublicId) {
+    // image was already uploaded to our cloudinary bucket
+    if (valid.data.imagePublicId.startsWith('shoes/')) {
+      imagePublicId = valid.data.imagePublicId;
+    } else if (
+      /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi.test(
+        valid.data.imagePublicId
+      )
+    ) {
+      // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
+      const res = await cloudinary.v2.uploader.upload(
+        valid.data.imagePublicId,
         {
-          brand: data.brand,
-          colorway: data.colorway,
-          imagePublicId: data.image,
-          model: data.model,
-          price,
-          purchaseDate: new Date(data.purchaseDate).toISOString(),
-          retailPrice,
-          size: Number(data.size),
-          sold: data.sold,
-          soldDate:
-            data.sold && data.soldDate
-              ? new Date(data.soldDate).toISOString()
-              : undefined,
-          soldPrice:
-            data.sold && data.soldPrice ? Number(data.soldPrice) : undefined,
-        },
-        { abortEarly: false }
-      );
-
-      let imagePublicId = '';
-      if (originalSneaker.imagePublicId !== valid.imagePublicId) {
-        // image was already uploaded to our cloudinary bucket
-        if (valid.imagePublicId.startsWith('shoes/')) {
-          imagePublicId = valid.imagePublicId;
-        } else if (
-          /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi.test(
-            valid.imagePublicId
-          )
-        ) {
-          // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
-          const res = await cloudinary.v2.uploader.upload(valid.imagePublicId, {
-            resource_type: 'image',
-            folder: 'shoes',
-          });
-
-          imagePublicId = res.public_id;
-        } else {
-          // no image provided
+          resource_type: 'image',
+          folder: 'shoes',
         }
-      }
-
-      await prisma.sneaker.update({
-        where: { id: sneakerId },
-        data: {
-          brand: {
-            connectOrCreate: {
-              create: {
-                name: valid.brand,
-                slug: slugify(valid.brand, { lower: true }),
-              },
-              where: {
-                slug: slugify(valid.brand, { lower: true }),
-              },
-            },
-          },
-          colorway: valid.colorway,
-          imagePublicId,
-          model: valid.model,
-          price: valid.price,
-          purchaseDate: valid.purchaseDate,
-          retailPrice: valid.retailPrice,
-          size: valid.size,
-          sold: valid.sold,
-          soldDate: valid.soldDate ? valid.soldDate : null,
-          soldPrice: valid.soldPrice ? valid.soldPrice : null,
-        },
-        select: {
-          user: { select: { username: true } },
-          brand: true,
-          purchaseDate: true,
-        },
-      });
-
-      session.flash(
-        flashMessageKey,
-        flashMessage(`Updated ${sneakerId}`, 'success')
       );
 
-      return redirect(request.url);
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        session.flash(flashMessageKey, flashMessage(error.message, 'error'));
-      }
-      if (error instanceof AuthorizationError) {
-        return redirect(`/login?${redirectAfterAuthKey}=${request.url}`);
-      }
-
-      console.error(error);
-      return redirect(request.url);
+      imagePublicId = res.public_id;
+    } else {
+      // no image provided
     }
+  }
+
+  await prisma.sneaker.update({
+    where: { id: sneakerId },
+    data: {
+      brand: {
+        connectOrCreate: {
+          create: {
+            name: valid.data.brand,
+            slug: slugify(valid.data.brand, { lower: true }),
+          },
+          where: { slug: slugify(valid.data.brand, { lower: true }) },
+        },
+      },
+      colorway: valid.data.colorway,
+      imagePublicId,
+      model: valid.data.model,
+      price: valid.data.price,
+      purchaseDate: valid.data.purchaseDate,
+      retailPrice: valid.data.retailPrice,
+      size: valid.data.size,
+      sold: valid.data.sold,
+      soldDate: valid.data.soldDate ? valid.data.soldDate : null,
+      soldPrice: valid.data.soldPrice ? valid.data.soldPrice : null,
+    },
+    select: {
+      user: { select: { username: true } },
+      brand: true,
+      purchaseDate: true,
+    },
   });
+
+  return redirect(request.url);
+};
 
 const meta: MetaFunction = ({ data }: { data: RouteData | null }) => ({
   title: data?.sneaker

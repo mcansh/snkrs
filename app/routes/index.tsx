@@ -4,32 +4,22 @@ import { json, Link, redirect } from 'remix';
 import type { LoaderFunction } from 'remix';
 
 import { prisma } from '~/db.server';
-import { flashMessage } from '~/flash-message';
-import { sessionStorage } from '~/session.server';
-import { flashMessageKey, sessionKey } from '~/constants';
+import { getUserId } from '~/session.server';
 import menuIconUrl from '~/icons/outline/menu.svg';
 import xIconUrl from '~/icons/outline/x.svg';
 
 export let loader: LoaderFunction = async ({ request }) => {
-  let session = await sessionStorage.getSession(request.headers.get('Cookie'));
-  let userId = session.get(sessionKey);
+  let userId = await getUserId(request);
 
   if (userId) {
     let user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (user) {
-      return redirect(`/${user.username}`);
+      throw redirect(`/${user.username}`);
     }
-
-    session.flash(flashMessageKey, flashMessage('User not found', 'error'));
-    session.unset(sessionKey);
   }
 
-  return json(null, {
-    headers: {
-      'Set-Cookie': await sessionStorage.commitSession(session),
-    },
-  });
+  return json(null);
 };
 
 export default function IndexPage() {
