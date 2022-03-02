@@ -56,7 +56,6 @@
     "react-number-format": "4.9.1",
     "remix": "1.2.3-pre.0",
     "remix-seo": "0.1.0",
-    "reserved-email-addresses-list": "0.0.9",
     "sirv": "2.0.2",
     "slugify": "1.6.5",
     "tiny-invariant": "1.2.0",

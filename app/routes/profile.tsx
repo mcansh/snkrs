@@ -10,8 +10,8 @@ import type { ActionFunction, LoaderFunction, MetaFunction } from 'remix';
 
 import { requireUser, requireUserId } from '~/session.server';
 import { prisma } from '~/db.server';
-import { editProfile } from '~/lib/schemas/edit-profile.server';
-import type { PossibleEditProfileErrors } from '~/lib/schemas/edit-profile.server';
+import { editProfile } from '~/lib/schemas/user.server';
+import type { PossibleEditProfileErrors } from '~/lib/schemas/user.server';
 import { getSeoMeta } from '~/seo';
 
 interface RouteData {
