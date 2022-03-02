@@ -1,6 +1,6 @@
 import { parseISO } from 'date-fns';
 
-const baseFormatDateOptions: Intl.DateTimeFormatOptions = {
+let baseFormatDateOptions: Intl.DateTimeFormatOptions = {
   month: 'short',
   day: 'numeric',
   year: 'numeric',
@@ -10,7 +10,7 @@ function formatDate(
   date: Date | number | string,
   additionalFormatOptions: Intl.DateTimeFormatOptions = {}
 ) {
-  const formatter = new Intl.DateTimeFormat('en-US', {
+  let formatter = new Intl.DateTimeFormat('en-US', {
     ...baseFormatDateOptions,
     ...additionalFormatOptions,
   });

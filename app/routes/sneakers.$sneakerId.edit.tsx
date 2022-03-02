@@ -26,7 +26,7 @@ import { sneakerSchema } from '~/lib/schemas/sneaker.server';
 import { cloudinary } from '~/lib/cloudinary.server';
 import { requireUserId } from '~/session.server';
 
-const sneakerWithBrandAndUser = Prisma.validator<Prisma.SneakerArgs>()({
+let sneakerWithBrandAndUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
     brand: true,
     user: {
@@ -60,11 +60,11 @@ type RouteData =
       userCreatedSneaker?: never;
     };
 
-const loader: LoaderFunction = async ({ params, request }) => {
+let loader: LoaderFunction = async ({ params, request }) => {
   invariant(params.sneakerId);
   let userId = await requireUserId(request);
 
-  const sneaker = await prisma.sneaker.findUnique({
+  let sneaker = await prisma.sneaker.findUnique({
     where: { id: params.sneakerId },
     include: {
       user: { select: { familyName: true, givenName: true, id: true } },
@@ -78,7 +78,7 @@ const loader: LoaderFunction = async ({ params, request }) => {
     });
   }
 
-  const userCreatedSneaker = sneaker.user.id === userId;
+  let userCreatedSneaker = sneaker.user.id === userId;
 
   if (!userCreatedSneaker) {
     throw new Response("You don't have permission to edit this sneaker", {
@@ -111,12 +111,12 @@ interface ActionData {
   errors: PossibleErrors;
 }
 
-const action: ActionFunction = async ({ request, params }) => {
+let action: ActionFunction = async ({ request, params }) => {
   let userId = await requireUserId(request);
-  const { sneakerId } = params;
+  let { sneakerId } = params;
   invariant(sneakerId);
 
-  const originalSneaker = await prisma.sneaker.findUnique({
+  let originalSneaker = await prisma.sneaker.findUnique({
     where: { id: sneakerId },
   });
 
@@ -132,18 +132,18 @@ const action: ActionFunction = async ({ request, params }) => {
     });
   }
 
-  const requestBody = await request.text();
-  const formData = new URLSearchParams(requestBody);
-  const data = Object.fromEntries(formData);
+  let requestBody = await request.text();
+  let formData = new URLSearchParams(requestBody);
+  let data = Object.fromEntries(formData);
 
-  const rawPrice = formData.get('price') as string;
-  const rawRetailPrice = formData.get('retailPrice') as string;
+  let rawPrice = formData.get('price') as string;
+  let rawRetailPrice = formData.get('retailPrice') as string;
 
-  const price = Number(rawPrice) || accounting.unformat(rawPrice) * 100;
-  const retailPrice =
+  let price = Number(rawPrice) || accounting.unformat(rawPrice) * 100;
+  let retailPrice =
     Number(rawRetailPrice) || accounting.unformat(rawRetailPrice) * 100;
 
-  const valid = sneakerSchema.safeParse({
+  let valid = sneakerSchema.safeParse({
     brand: data.brand,
     colorway: data.colorway,
     imagePublicId: data.image,
@@ -174,13 +174,10 @@ const action: ActionFunction = async ({ request, params }) => {
       )
     ) {
       // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
-      const res = await cloudinary.v2.uploader.upload(
-        valid.data.imagePublicId,
-        {
-          resource_type: 'image',
-          folder: 'shoes',
-        }
-      );
+      let res = await cloudinary.v2.uploader.upload(valid.data.imagePublicId, {
+        resource_type: 'image',
+        folder: 'shoes',
+      });
 
       imagePublicId = res.public_id;
     } else {
@@ -221,19 +218,19 @@ const action: ActionFunction = async ({ request, params }) => {
   return redirect(request.url);
 };
 
-const meta: MetaFunction = ({ data }: { data: RouteData | null }) => ({
+let meta: MetaFunction = ({ data }: { data: RouteData | null }) => ({
   title: data?.sneaker
     ? `Editing ${data.sneaker.brand.name} ${data.sneaker.model} – ${data.sneaker.colorway}`
     : 'Not Found',
 });
 
-const formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+let formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
-const EditSneakerPage: React.VFC = () => {
-  const { sneaker, id } = useLoaderData<RouteData>();
-  const transition = useTransition();
-  const pendingForm = transition.submission;
-  const [sold, setSold] = React.useState(sneaker?.sold ?? false);
+let EditSneakerPage: React.VFC = () => {
+  let { sneaker, id } = useLoaderData<RouteData>();
+  let transition = useTransition();
+  let pendingForm = transition.submission;
+  let [sold, setSold] = React.useState(sneaker?.sold ?? false);
 
   if (!sneaker) {
     return (
@@ -243,11 +240,11 @@ const EditSneakerPage: React.VFC = () => {
     );
   }
 
-  const title = `Editing ${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`;
+  let title = `Editing ${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`;
 
-  const sizes = [200, 400, 600];
+  let sizes = [200, 400, 600];
 
-  const srcSet = sizes.map(
+  let srcSet = sizes.map(
     size =>
       `${getCloudinaryURL(sneaker.imagePublicId, {
         resize: {

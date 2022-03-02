@@ -26,14 +26,14 @@ interface ActionData {
 }
 
 export let action: ActionFunction = async ({ request }) => {
-  const body = await request.formData();
-  const email = body.get('email');
-  const givenName = body.get('givenName');
-  const familyName = body.get('familyName');
-  const username = body.get('username');
-  const password = body.get('password');
+  let body = await request.formData();
+  let email = body.get('email');
+  let givenName = body.get('givenName');
+  let familyName = body.get('familyName');
+  let username = body.get('username');
+  let password = body.get('password');
 
-  const valid = registerSchema.safeParse({
+  let valid = registerSchema.safeParse({
     email,
     givenName,
     familyName,
@@ -48,7 +48,7 @@ export let action: ActionFunction = async ({ request }) => {
     );
   }
 
-  const foundUser = await prisma.user.findFirst({
+  let foundUser = await prisma.user.findFirst({
     where: {
       OR: [{ email: valid.data.email }, { username: valid.data.username }],
     },
@@ -68,9 +68,9 @@ export let action: ActionFunction = async ({ request }) => {
     );
   }
 
-  const hashed = await hash(valid.data.password);
+  let hashed = await hash(valid.data.password);
 
-  const newUser = await prisma.user.create({
+  let newUser = await prisma.user.create({
     data: {
       email: valid.data.email,
       familyName: valid.data.familyName,
@@ -96,9 +96,9 @@ export let meta: MetaFunction = () => ({
 });
 
 export default function JoinPage() {
-  const transition = useTransition();
-  const pendingForm = transition.submission;
-  const data = useLoaderData<RouteData>();
+  let transition = useTransition();
+  let pendingForm = transition.submission;
+  let data = useLoaderData<RouteData>();
 
   return (
     <div className="flex flex-col justify-center items-center h-screen">

@@ -4,7 +4,7 @@ import etag from 'etag';
 import type { EntryContext, HandleDataRequestFunction } from 'remix';
 
 // https://securityheaders.com
-const cspSettings = {
+let cspSettings = {
   'default-src': ["'self'"],
   'img-src': [
     "'self'",
@@ -20,7 +20,7 @@ const cspSettings = {
   ],
 };
 
-const contentSecurityPolicy = `${Object.entries(cspSettings)
+let contentSecurityPolicy = `${Object.entries(cspSettings)
   .map(([key, val]) => `${key} ${val.filter(Boolean).join(' ')}`)
   .join(';')}`;
 
@@ -30,7 +30,7 @@ export default function handleDocumentRequest(
   responseHeaders: Headers,
   remixContext: EntryContext
 ) {
-  const url = new URL(request.url);
+  let url = new URL(request.url);
   if (url.hostname === 'sneakers.mcan.sh') {
     return redirect(`https://snkrs.mcan.sh${url.pathname}`);
   }
@@ -40,11 +40,11 @@ export default function handleDocumentRequest(
   }
 
   // eslint-disable-next-line testing-library/render-result-naming-convention
-  const markup = renderToString(
+  let markup = renderToString(
     <RemixServer url={request.url} context={remixContext} />
   );
 
-  const markupETag = etag(markup);
+  let markupETag = etag(markup);
 
   if (markupETag === request.headers.get('If-None-Match')) {
     return new Response('', { status: 304 });
@@ -86,7 +86,7 @@ export default function handleDocumentRequest(
   });
 }
 
-export const handleDataRequest: HandleDataRequestFunction = (
+export let handleDataRequest: HandleDataRequestFunction = (
   response,
   { request }
 ) => {

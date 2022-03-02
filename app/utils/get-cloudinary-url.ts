@@ -5,7 +5,7 @@ function getCloudinaryURL(
   publicId: string,
   transformations: TransformerOption
 ) {
-  const url = buildUrl(publicId, {
+  let url = buildUrl(publicId, {
     cloud: {
       secure: true,
       cloudName: 'dof0zryca',

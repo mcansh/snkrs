@@ -8,7 +8,7 @@ function getParams<T extends ParsedUrlQuery>(
   params: T
 ): { [key: string]: string } {
   return Object.entries(params).reduce((acc, [key, values]) => {
-    const value = getParam(values);
+    let value = getParam(values);
     return { ...acc, [key]: value };
   }, {});
 }

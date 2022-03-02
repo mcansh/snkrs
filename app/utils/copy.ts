@@ -4,9 +4,9 @@ function copy(textToCopy: string) {
   }
 
   // 0. save the current focused element so we can refocus it when we're done
-  const currentFocus = document.activeElement as HTMLElement | null;
+  let currentFocus = document.activeElement as HTMLElement | null;
   // 1. create a new textarea for our clipboard shenanigans
-  const textArea = document.createElement('textarea');
+  let textArea = document.createElement('textarea');
   // 2. set the value of the ta to what we want to copy
   textArea.value = textToCopy;
   // 3. append it to the body

@@ -13,7 +13,7 @@ import { prisma } from '~/db.server';
 import { getSeoMeta } from '~/seo';
 import { getUserId } from '~/session.server';
 
-const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
+let sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
     brand: true,
     user: {
@@ -48,12 +48,12 @@ interface RouteData {
   };
 }
 
-const loader: LoaderFunction = async ({ params, request }) => {
+let loader: LoaderFunction = async ({ params, request }) => {
   invariant(params.sneakerId, 'sneakerID is required');
 
   let userId = await getUserId(request);
 
-  const sneaker = await prisma.sneaker.findUnique({
+  let sneaker = await prisma.sneaker.findUnique({
     where: { id: params.sneakerId },
     include: {
       brand: true,
@@ -73,9 +73,9 @@ const loader: LoaderFunction = async ({ params, request }) => {
     });
   }
 
-  const userCreatedSneaker = sneaker.user.id === userId;
+  let userCreatedSneaker = sneaker.user.id === userId;
 
-  const settings = await prisma.settings.findUnique({
+  let settings = await prisma.settings.findUnique({
     where: { userId: sneaker.user.id },
   });
 
@@ -110,14 +110,14 @@ const loader: LoaderFunction = async ({ params, request }) => {
   });
 };
 
-const meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
+let meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
   if (!data) {
     return getSeoMeta({
       title: 'Sneaker Not Found',
     });
   }
 
-  const date = formatDate(data.sneaker.purchaseDate, {
+  let date = formatDate(data.sneaker.purchaseDate, {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
@@ -129,12 +129,12 @@ const meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
   });
 };
 
-const SneakerPage: React.VFC = () => {
-  const data = useLoaderData<RouteData>();
+let SneakerPage: React.VFC = () => {
+  let data = useLoaderData<RouteData>();
 
-  const sizes = [200, 400, 600];
+  let sizes = [200, 400, 600];
 
-  const srcSet = sizes.map(
+  let srcSet = sizes.map(
     size =>
       `${getCloudinaryURL(data.sneaker.imagePublicId, {
         resize: {
@@ -219,7 +219,7 @@ const SneakerPage: React.VFC = () => {
               className="text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
               onClick={() => {
                 if ('share' in navigator) {
-                  const date = formatDate(data.sneaker.purchaseDate, {
+                  let date = formatDate(data.sneaker.purchaseDate, {
                     month: 'long',
                     day: 'numeric',
                     year: 'numeric',
