@@ -10,7 +10,7 @@ import interCSS from './styles/inter.css';
 import { flashMessageKey } from './constants';
 import { Notifications } from './notifications';
 import refreshClockwise from './icons/refresh-clockwise.svg';
-import { getSession, commitSession } from './session';
+import { sessionStorage } from './session.server';
 import type { Flash, Match } from './@types/types';
 import { getSeo } from './seo';
 import { Document } from './components/document';
@@ -69,7 +69,9 @@ export const links: LinksFunction = () => [
 ];
 
 export const loader: LoaderFunction = async ({ request }) => {
-  const session = await getSession(request.headers.get('Cookie'));
+  const session = await sessionStorage.getSession(
+    request.headers.get('Cookie')
+  );
   const flash = session.get(flashMessageKey) as Flash | undefined;
 
   if (flash) {
@@ -82,7 +84,7 @@ export const loader: LoaderFunction = async ({ request }) => {
     };
     return json(data, {
       headers: {
-        'Set-Cookie': await commitSession(session),
+        'Set-Cookie': await sessionStorage.commitSession(session),
       },
     });
   }

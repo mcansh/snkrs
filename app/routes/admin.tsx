@@ -21,7 +21,7 @@ import type { Brand, Settings, Sneaker, User } from '@prisma/client';
 import { sessionKey } from '~/constants';
 import { prisma } from '~/db.server';
 import { getSeoMeta } from '~/seo';
-import { getSession } from '~/session';
+import { sessionStorage } from '~/session.server';
 import { isAdmin } from '~/lib/schemas/user.server';
 import type { RouteHandle } from '~/@types/types';
 
@@ -38,7 +38,7 @@ interface LoaderData {
 }
 
 export let loader: LoaderFunction = async ({ request }) => {
-  let session = await getSession(request.headers.get('Cookie'));
+  let session = await sessionStorage.getSession(request.headers.get('Cookie'));
   let userId = session.get(sessionKey);
 
   if (!userId) {
@@ -113,7 +113,7 @@ function parseCSVStream(stream: Readable) {
 type MakeValueString<T> = { [K in keyof T]: string };
 
 export let action: ActionFunction = async ({ request }) => {
-  let session = await getSession(request.headers.get('Cookie'));
+  let session = await sessionStorage.getSession(request.headers.get('Cookie'));
   let userId = session.get(sessionKey);
 
   if (!userId) {

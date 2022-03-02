@@ -9,7 +9,7 @@ import type {
   LinksFunction,
 } from 'remix';
 
-import { getSession, destroySession } from '~/session';
+import { sessionStorage } from '~/session.server';
 import { sessionKey } from '~/constants';
 import { prisma } from '~/db.server';
 import { editProfile } from '~/lib/schemas/edit-profile.server';
@@ -36,14 +36,16 @@ interface RouteData {
 }
 
 const loader: LoaderFunction = async ({ request }) => {
-  const session = await getSession(request.headers.get('Cookie'));
+  const session = await sessionStorage.getSession(
+    request.headers.get('Cookie')
+  );
   const userId = session.get(sessionKey);
   const profileError = session.get('profileError');
 
   if (!userId) {
     return redirect(`/login?returnTo=/profile`, {
       headers: {
-        'Set-Cookie': await destroySession(session),
+        'Set-Cookie': await sessionStorage.destroySession(session),
       },
     });
   }
@@ -60,7 +62,7 @@ const loader: LoaderFunction = async ({ request }) => {
   if (!user) {
     return redirect(`/login?returnTo=/profile`, {
       headers: {
-        'Set-Cookie': await destroySession(session),
+        'Set-Cookie': await sessionStorage.destroySession(session),
       },
     });
   }
@@ -71,14 +73,16 @@ const loader: LoaderFunction = async ({ request }) => {
 };
 
 const action: ActionFunction = async ({ request }) => {
-  const session = await getSession(request.headers.get('Cookie'));
+  const session = await sessionStorage.getSession(
+    request.headers.get('Cookie')
+  );
 
   const userId = session.get(sessionKey);
 
   if (!userId) {
     return redirect(`/login?returnTo=/profile`, {
       headers: {
-        'Set-Cookie': await destroySession(session),
+        'Set-Cookie': await sessionStorage.destroySession(session),
       },
     });
   }

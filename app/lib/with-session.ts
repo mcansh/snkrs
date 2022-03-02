@@ -1,7 +1,7 @@
 import type { ActionFunction, LoaderFunction, Session } from 'remix';
 import { json } from 'remix';
 
-import { commitSession, getSession } from '~/session';
+import { sessionStorage } from '~/session.server';
 
 export async function withSession(
   request: Request,
@@ -9,7 +9,9 @@ export async function withSession(
     session: Session
   ) => ReturnType<ActionFunction> | ReturnType<LoaderFunction>
 ) {
-  const session = await getSession(request.headers.get('Cookie'));
+  const session = await sessionStorage.getSession(
+    request.headers.get('Cookie')
+  );
 
   // pass the session to the loader/action and let it handle the response
   let response: Response = await next(session);
@@ -20,7 +22,10 @@ export async function withSession(
   }
 
   // commit the session automatically
-  response.headers.append('Set-Cookie', await commitSession(session));
+  response.headers.append(
+    'Set-Cookie',
+    await sessionStorage.commitSession(session)
+  );
 
   return response;
 }

@@ -19,7 +19,7 @@ import { yupToObject } from '~/lib/yup-to-object';
 import { loginSchema } from '~/lib/schemas/user.server';
 import type { LoginSchema } from '~/lib/schemas/user.server';
 import type { LoadingButtonProps } from '~/components/loading-button';
-import { commitSession, getSession } from '~/session';
+import { sessionStorage } from '~/session.server';
 
 interface RouteData {
   loginError: undefined | (Partial<LoginSchema> & { generic?: string });
@@ -58,7 +58,9 @@ const loader: LoaderFunction = ({ request }) =>
   });
 
 const action: ActionFunction = async ({ request }) => {
-  const session = await getSession(request.headers.get('Cookie'));
+  const session = await sessionStorage.getSession(
+    request.headers.get('Cookie')
+  );
   const requestBody = await request.text();
   const body = new URLSearchParams(requestBody);
   const email = body.get('email');
@@ -94,7 +96,7 @@ const action: ActionFunction = async ({ request }) => {
     );
     return redirect(redirectTo ?? '/', {
       headers: {
-        'Set-Cookie': await commitSession(session),
+        'Set-Cookie': await sessionStorage.commitSession(session),
       },
     });
   } catch (error: unknown) {
@@ -104,7 +106,7 @@ const action: ActionFunction = async ({ request }) => {
       session.flash('loginError', aggregateErrors);
       return redirect(request.url, {
         headers: {
-          'Set-Cookie': await commitSession(session),
+          'Set-Cookie': await sessionStorage.commitSession(session),
         },
       });
     }
@@ -113,7 +115,7 @@ const action: ActionFunction = async ({ request }) => {
       session.flash('loginError', { generic: error.message });
       return redirect(request.url, {
         headers: {
-          'Set-Cookie': await commitSession(session),
+          'Set-Cookie': await sessionStorage.commitSession(session),
         },
       });
     }
@@ -121,7 +123,7 @@ const action: ActionFunction = async ({ request }) => {
     session.flash('loginError', { generic: 'something went wrong' });
     return redirect(request.url, {
       headers: {
-        'Set-Cookie': await commitSession(session),
+        'Set-Cookie': await sessionStorage.commitSession(session),
       },
     });
   }

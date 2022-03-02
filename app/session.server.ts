@@ -1,7 +1,6 @@
-import { createSessionStorage } from 'remix';
+import { createSessionStorage, SessionStorage } from 'remix';
 import cuid from 'cuid';
 import { addWeeks, differenceInMilliseconds } from 'date-fns';
-import type { SessionStorage } from 'remix';
 
 import { redis } from './lib/redis.server';
 
@@ -53,18 +52,14 @@ function createRedisSessionStorage({
   });
 }
 
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const { getSession, commitSession, destroySession }: SessionStorage =
-  createRedisSessionStorage({
-    cookie: {
-      name: '__session',
-      secrets: [process.env.SESSION_PASSWORD],
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 14, // 2 weeks
-      httpOnly: true,
-      path: '/',
-      secure: process.env.NODE_ENV === 'production',
-    },
-  });
-
-export { getSession, commitSession, destroySession };
+export const sessionStorage = createRedisSessionStorage({
+  cookie: {
+    name: '__session',
+    secrets: [process.env.SESSION_PASSWORD],
+    sameSite: 'strict',
+    maxAge: 60 * 60 * 24 * 14, // 2 weeks
+    httpOnly: true,
+    path: '/',
+    secure: process.env.NODE_ENV === 'production',
+  },
+});

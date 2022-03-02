@@ -5,13 +5,13 @@ import type { LoaderFunction } from 'remix';
 
 import { prisma } from '~/db.server';
 import { flashMessage } from '~/flash-message';
-import { commitSession, getSession } from '~/session';
+import { sessionStorage } from '~/session.server';
 import { flashMessageKey, sessionKey } from '~/constants';
 import menuIconUrl from '~/icons/outline/menu.svg';
 import xIconUrl from '~/icons/outline/x.svg';
 
 export let loader: LoaderFunction = async ({ request }) => {
-  let session = await getSession(request.headers.get('Cookie'));
+  let session = await sessionStorage.getSession(request.headers.get('Cookie'));
   let userId = session.get(sessionKey);
 
   if (userId) {
@@ -27,7 +27,7 @@ export let loader: LoaderFunction = async ({ request }) => {
 
   return json(null, {
     headers: {
-      'Set-Cookie': await commitSession(session),
+      'Set-Cookie': await sessionStorage.commitSession(session),
     },
   });
 };

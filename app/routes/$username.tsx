@@ -11,7 +11,7 @@ import x from '~/icons/outline/x.svg';
 import menu from '~/icons/outline/menu.svg';
 import { sessionKey } from '~/constants';
 import { SneakerCard } from '~/components/sneaker';
-import { commitSession, getSession } from '~/session';
+import { sessionStorage } from '~/session.server';
 import type { Maybe } from '~/@types/types';
 import { getSeoMeta } from '~/seo';
 
@@ -40,7 +40,7 @@ export interface RouteData {
 }
 
 export let loader: LoaderFunction = async ({ params, request }) => {
-  let session = await getSession(request.headers.get('Cookie'));
+  let session = await sessionStorage.getSession(request.headers.get('Cookie'));
   let url = new URL(request.url);
   let userId = session.get(sessionKey);
 
@@ -112,7 +112,9 @@ export let loader: LoaderFunction = async ({ params, request }) => {
     },
     {
       headers: {
-        'Set-Cookie': sessionUser ? await commitSession(session) : '',
+        'Set-Cookie': sessionUser
+          ? await sessionStorage.commitSession(session)
+          : '',
       },
     }
   );

@@ -1,11 +1,11 @@
 import { Form, json, redirect } from 'remix';
 import type { ActionFunction, LoaderFunction } from 'remix';
 
-import { destroySession, getSession } from '~/session';
+import { sessionStorage } from '~/session.server';
 import { sessionKey } from '~/constants';
 
 export let loader: LoaderFunction = async ({ request }) => {
-  let session = await getSession(request.headers.get('Cookie'));
+  let session = await sessionStorage.getSession(request.headers.get('Cookie'));
   if (!session.has(sessionKey)) {
     return redirect('/');
   }
@@ -13,10 +13,10 @@ export let loader: LoaderFunction = async ({ request }) => {
 };
 
 export let action: ActionFunction = async ({ request }) => {
-  let session = await getSession(request.headers.get('Cookie'));
+  let session = await sessionStorage.getSession(request.headers.get('Cookie'));
   return redirect('/', {
     headers: {
-      'Set-Cookie': await destroySession(session),
+      'Set-Cookie': await sessionStorage.destroySession(session),
     },
   });
 };
