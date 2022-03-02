@@ -1,10 +1,10 @@
 import {
   redirect,
   useTransition,
-  useLoaderData,
   json,
   useActionData,
   Form,
+  Link,
 } from 'remix';
 import type { MetaFunction } from '@remix-run/react/routeModules';
 import type { ActionFunction, LoaderFunction } from 'remix';
@@ -13,10 +13,7 @@ import Alert from '@reach/alert';
 import { verify } from '~/lib/auth.server';
 import { prisma } from '~/db.server';
 import { loginSchema } from '~/lib/schemas/user.server';
-import type {
-  LoginSchema,
-  PossibleLoginErrors,
-} from '~/lib/schemas/user.server';
+import type { PossibleLoginErrors } from '~/lib/schemas/user.server';
 import {
   createUserSession,
   getSession,
@@ -25,10 +22,6 @@ import {
 } from '~/session.server';
 import { getSeoMeta } from '~/seo';
 import type { RouteHandle } from '~/@types/types';
-
-interface RouteData {
-  loginError: undefined | (Partial<LoginSchema> & { generic?: string });
-}
 
 export let loader: LoaderFunction = async ({ request }) => {
   let userId = await getUserId(request);
@@ -110,7 +103,6 @@ export let handle: RouteHandle = {
 };
 
 export default function LoginPage() {
-  let data = useLoaderData<RouteData>();
   let actionData = useActionData<ActionData>();
   let transition = useTransition();
   let pendingForm = transition.submission;
@@ -140,7 +132,6 @@ export default function LoginPage() {
                     name="email"
                     type="email"
                     autoComplete="email"
-                    required
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     aria-invalid={actionData?.errors.email ? true : undefined}
                     aria-errormessage={
@@ -148,9 +139,14 @@ export default function LoginPage() {
                     }
                   />
                   {actionData?.errors.email && (
-                    <Alert className="text-red-500 mt-1" id="email-error">
+                    <Alert
+                      className="mt-2 text-sm text-red-600"
+                      id="email-error"
+                    >
                       {actionData.errors.email.map(error => (
-                        <p key={error}>{error}</p>
+                        <p className="mt-1" key={error}>
+                          {error}
+                        </p>
                       ))}
                     </Alert>
                   )}
@@ -170,7 +166,6 @@ export default function LoginPage() {
                     name="password"
                     type="password"
                     autoComplete="current-password"
-                    required
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     aria-invalid={
                       actionData?.errors.password ? true : undefined
@@ -180,25 +175,33 @@ export default function LoginPage() {
                     }
                   />
                   {actionData?.errors.password && (
-                    <Alert className="text-red-500 mt-1" id="password-error">
+                    <Alert
+                      className="mt-2 text-sm text-red-600"
+                      id="password-error"
+                    >
                       {actionData.errors.password.map(error => (
-                        <p key={error}>{error}</p>
+                        <p className="mt-1" key={error}>
+                          {error}
+                        </p>
                       ))}
                     </Alert>
                   )}
                 </div>
               </div>
 
-              {/* <div className="flex items-center justify-end">
-              <div className="text-sm">
-                <a
-                  href="#"
-                  className="font-medium text-indigo-600 hover:text-indigo-500"
-                >
-                  Forgot your password?
-                </a>
+              <div className="flex items-center justify-between">
+                <div className="text-sm">
+                  <span className="text-gray-900">New here?</span>
+                </div>
+                <div className="text-sm">
+                  <Link
+                    to="/join"
+                    className="font-medium text-indigo-600 hover:text-indigo-500"
+                  >
+                    Join
+                  </Link>
+                </div>
               </div>
-            </div> */}
 
               <div>
                 <button
