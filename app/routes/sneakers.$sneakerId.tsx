@@ -4,6 +4,7 @@ import { json, Link, useLoaderData } from 'remix';
 import type { Except } from 'type-fest';
 import type { LoaderFunction, MetaFunction } from 'remix';
 import invariant from 'tiny-invariant';
+import { route } from 'routes-gen';
 
 import { formatDate } from '~/utils/format-date';
 import { getCloudinaryURL } from '~/utils/get-cloudinary-url';
@@ -147,7 +148,10 @@ let SneakerPage: React.VFC = () => {
 
   return (
     <main className="container h-full p-4 pb-6 mx-auto">
-      <Link prefetch="intent" to={`/${data.sneaker.user.username}`}>
+      <Link
+        prefetch="intent"
+        to={route('/:username', { username: data.sneaker.user.username })}
+      >
         Back
       </Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
@@ -205,7 +209,10 @@ let SneakerPage: React.VFC = () => {
             )}
 
             <Link
-              to={`/${data.sneaker.user.username}/yir/${data.purchaseYear}`}
+              to={route('/:username/yir/:year', {
+                username: data.sneaker.user.username,
+                year: data.purchaseYear.toString(),
+              })}
               className="block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
               prefetch="intent"
             >
@@ -239,7 +246,9 @@ let SneakerPage: React.VFC = () => {
             </button>
             {data.userCreatedSneaker && (
               <Link
-                to={`/sneakers/${data.sneaker.id}/edit`}
+                to={route('/sneakers/:sneakerId/edit', {
+                  sneakerId: data.sneaker.id,
+                })}
                 className="inline-block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
               >
                 Edit Sneaker

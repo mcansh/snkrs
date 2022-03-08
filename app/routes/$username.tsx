@@ -5,6 +5,7 @@ import { Disclosure } from '@headlessui/react';
 import type { Brand, User } from '@prisma/client';
 import type { LoaderFunction, MetaFunction, HeadersFunction } from 'remix';
 import clsx from 'clsx';
+import { route } from 'routes-gen';
 
 import { prisma } from '~/db.server';
 import x from '~/icons/outline/x.svg';
@@ -168,7 +169,7 @@ export default function UserSneakersPage() {
         <h2 className="mb-2 text-2xl font-bold">Let&apos;s Get Started</h2>
         <Link
           className="text-purple-600 transition-colors duration-150 ease-in-out hover:text-purple-300"
-          to="/sneakers/add"
+          to={route('/sneakers/add')}
         >
           Add a sneaker to your collection
         </Link>

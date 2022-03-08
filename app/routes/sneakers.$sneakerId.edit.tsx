@@ -16,6 +16,7 @@ import NumberFormat from 'react-number-format';
 import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix';
 import type { Except } from 'type-fest';
 import invariant from 'tiny-invariant';
+import { route } from 'routes-gen';
 
 import { formatDate } from '~/utils/format-date';
 import { getCloudinaryURL } from '~/utils/get-cloudinary-url';
@@ -257,7 +258,10 @@ let EditSneakerPage: React.VFC = () => {
 
   return (
     <main className="container h-full p-4 pb-6 mx-auto">
-      <Link prefetch="intent" to={`/sneakers/${sneaker.id}`}>
+      <Link
+        prefetch="intent"
+        to={route('/sneakers/:sneakerId', { sneakerId: sneaker.id })}
+      >
         Back
       </Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">

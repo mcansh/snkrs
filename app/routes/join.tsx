@@ -9,6 +9,7 @@ import {
 } from 'remix';
 import Alert from '@reach/alert';
 import clsx from 'clsx';
+import { route } from 'routes-gen';
 
 import { prisma } from '~/db.server';
 import { registerSchema } from '~/lib/schemas/user.server';
@@ -235,7 +236,7 @@ export default function JoinPage() {
                 </div>
                 <div className="text-sm">
                   <Link
-                    to="/login"
+                    to={route('/login')}
                     className="font-medium text-indigo-600 hover:text-indigo-500"
                   >
                     Sign in

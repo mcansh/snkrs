@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Prisma } from '@prisma/client';
 import { Link } from 'remix';
+import { route } from 'routes-gen';
 
 import { getCloudinaryURL } from '~/utils/get-cloudinary-url';
 import { formatMoney } from '~/utils/format-money';
@@ -59,7 +60,7 @@ let SneakerCard: React.VFC<Props> = ({
           </span>
         )}
         <Link
-          to={`/sneakers/${id}`}
+          to={route('/sneakers/:sneakerId', { sneakerId: id })}
           className="absolute inset-0 focus:outline-none"
           prefetch="intent"
         >

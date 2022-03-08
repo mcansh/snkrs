@@ -4,6 +4,7 @@ import slugify from 'slugify';
 import NumberFormat from 'react-number-format';
 import accounting from 'accounting';
 import type { ActionFunction, LoaderFunction } from 'remix';
+import { route } from 'routes-gen';
 
 import { prisma } from '~/db.server';
 import { cloudinary } from '~/lib/cloudinary.server';
@@ -105,7 +106,7 @@ let action: ActionFunction = async ({ request }) => {
     include: { user: { select: { username: true } }, brand: true },
   });
 
-  return redirect(`/sneakers/${sneaker.id}`);
+  return redirect(route('/sneakers/:sneakerId', { sneakerId: sneaker.id }));
 };
 
 let NewSneakerPage: React.VFC = () => {

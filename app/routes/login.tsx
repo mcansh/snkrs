@@ -9,6 +9,7 @@ import {
 import type { MetaFunction } from '@remix-run/react/routeModules';
 import type { ActionFunction, LoaderFunction } from 'remix';
 import Alert from '@reach/alert';
+import { route } from 'routes-gen';
 
 import { verify } from '~/lib/auth.server';
 import { prisma } from '~/db.server';
@@ -195,7 +196,7 @@ export default function LoginPage() {
                 </div>
                 <div className="text-sm">
                   <Link
-                    to="/join"
+                    to={route('/join')}
                     className="font-medium text-indigo-600 hover:text-indigo-500"
                   >
                     Join
