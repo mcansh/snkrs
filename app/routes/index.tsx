@@ -2,34 +2,25 @@ import * as React from 'react';
 import { Popover, Transition } from '@headlessui/react';
 import { json, Link, redirect } from 'remix';
 import type { LoaderFunction } from 'remix';
+import { route } from 'routes-gen';
 
 import { prisma } from '~/db.server';
-import { flashMessage } from '~/flash-message';
-import { commitSession, getSession } from '~/session';
-import { flashMessageKey, sessionKey } from '~/constants';
+import { getUserId } from '~/session.server';
 import menuIconUrl from '~/icons/outline/menu.svg';
 import xIconUrl from '~/icons/outline/x.svg';
 
 export let loader: LoaderFunction = async ({ request }) => {
-  let session = await getSession(request.headers.get('Cookie'));
-  let userId = session.get(sessionKey);
+  let userId = await getUserId(request);
 
   if (userId) {
     let user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (user) {
-      return redirect(`/${user.username}`);
+      throw redirect(`/${user.username}`);
     }
-
-    session.flash(flashMessageKey, flashMessage('User not found', 'error'));
-    session.unset(sessionKey);
   }
 
-  return json(null, {
-    headers: {
-      'Set-Cookie': await commitSession(session),
-    },
-  });
+  return json(null);
 };
 
 export default function IndexPage() {
@@ -110,7 +101,7 @@ export default function IndexPage() {
             >
               <div className="flex items-center flex-1 md:absolute md:inset-y-0 md:left-0">
                 <div className="flex items-center justify-between w-full md:w-auto">
-                  <Link to="/">
+                  <Link to={route('/')}>
                     <span className="sr-only">SNKRS</span>
                     <img
                       className="h-10 w-auto sm:h-12"
@@ -131,7 +122,7 @@ export default function IndexPage() {
               <div className="hidden md:absolute md:flex md:items-center md:justify-end md:inset-y-0 md:right-0">
                 <span className="inline-flex rounded-md shadow">
                   <Link
-                    to="/login"
+                    to={route('/login')}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-50"
                   >
                     Log in
@@ -173,7 +164,7 @@ export default function IndexPage() {
                   </div>
                 </div>
                 <Link
-                  to="/login"
+                  to={route('/login')}
                   className="block w-full px-5 py-3 text-center font-medium text-indigo-600 bg-gray-50 hover:bg-gray-100"
                 >
                   Log in
@@ -195,7 +186,7 @@ export default function IndexPage() {
             <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
               <div className="rounded-md shadow">
                 <Link
-                  to="/join"
+                  to={route('/join')}
                   className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg md:px-10"
                 >
                   Get started
@@ -203,7 +194,7 @@ export default function IndexPage() {
               </div>
               <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
                 <Link
-                  to="/loganmcansh"
+                  to={route('/:username', { username: 'loganmcansh' })}
                   prefetch="intent"
                   className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
                 >

@@ -3,7 +3,7 @@ import { useCatch } from 'remix';
 import { Document } from './document';
 
 export function CatchBoundary() {
-  const caught = useCatch();
+  let caught = useCatch();
 
   return (
     <Document

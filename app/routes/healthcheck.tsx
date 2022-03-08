@@ -7,7 +7,7 @@ interface RouteData {
   ok: boolean;
 }
 
-const loader: LoaderFunction = async () => {
+let loader: LoaderFunction = async () => {
   try {
     await prisma.user.count();
     return json({ ok: true });
@@ -17,12 +17,12 @@ const loader: LoaderFunction = async () => {
   }
 };
 
-const meta: MetaFunction = () => ({
+let meta: MetaFunction = () => ({
   title: 'Health Check',
 });
 
-const Page: RouteComponent = () => {
-  const data = useLoaderData<RouteData>();
+let Page: RouteComponent = () => {
+  let data = useLoaderData<RouteData>();
   return data.ok ? <h1>Everything is fine</h1> : <h1>Something went wrong</h1>;
 };
 

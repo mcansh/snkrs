@@ -9,7 +9,7 @@ import { SneakerCard } from '~/components/sneaker';
 import { prisma } from '~/db.server';
 import { getSeoMeta } from '~/seo';
 
-const userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
+let userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
   select: {
     username: true,
     sneakers: { include: { brand: true } },
@@ -24,20 +24,20 @@ interface RouteData {
   year: number;
 }
 
-const loader: LoaderFunction = async ({ params }) => {
+let loader: LoaderFunction = async ({ params }) => {
   invariant(params.year, 'year is required');
   invariant(params.username, 'username is required');
-  const year = parseInt(params.year, 10);
+  let year = parseInt(params.year, 10);
 
-  const date = new Date(year, 0);
-  const start = startOfYear(date);
-  const end = endOfYear(date);
+  let date = new Date(year, 0);
+  let start = startOfYear(date);
+  let end = endOfYear(date);
 
   if (year > new Date().getFullYear()) {
     throw new Response('Requested year is in the future', { status: 404 });
   }
 
-  const user = await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: { username: params.username },
     select: {
       username: true,
@@ -62,22 +62,22 @@ const loader: LoaderFunction = async ({ params }) => {
   return json<RouteData>({ user, year });
 };
 
-const meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
+let meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
   if (!data?.user) {
     return getSeoMeta({
       title: "Ain't nothing here",
     });
   }
 
-  const sneakers = data.user.sneakers.length === 1 ? 'sneaker' : 'sneakers';
+  let sneakers = data.user.sneakers.length === 1 ? 'sneaker' : 'sneakers';
   return getSeoMeta({
     title: `${data.year} • ${data.user.username}`,
     description: `${data.user.username} bought ${data.user.sneakers.length} ${sneakers} in ${data.year}`,
   });
 };
 
-const SneakersYearInReview: React.VFC = () => {
-  const { user, year } = useLoaderData<RouteData>();
+let SneakersYearInReview: React.VFC = () => {
+  let { user, year } = useLoaderData<RouteData>();
 
   if (!user.sneakers.length) {
     return (

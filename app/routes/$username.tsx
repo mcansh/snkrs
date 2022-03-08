@@ -5,13 +5,13 @@ import { Disclosure } from '@headlessui/react';
 import type { Brand, User } from '@prisma/client';
 import type { LoaderFunction, MetaFunction, HeadersFunction } from 'remix';
 import clsx from 'clsx';
+import { route } from 'routes-gen';
 
 import { prisma } from '~/db.server';
 import x from '~/icons/outline/x.svg';
 import menu from '~/icons/outline/menu.svg';
-import { sessionKey } from '~/constants';
 import { SneakerCard } from '~/components/sneaker';
-import { commitSession, getSession } from '~/session';
+import { getUserId, sessionStorage } from '~/session.server';
 import type { Maybe } from '~/@types/types';
 import { getSeoMeta } from '~/seo';
 
@@ -40,9 +40,9 @@ export interface RouteData {
 }
 
 export let loader: LoaderFunction = async ({ params, request }) => {
-  let session = await getSession(request.headers.get('Cookie'));
+  let session = await sessionStorage.getSession(request.headers.get('Cookie'));
   let url = new URL(request.url);
-  let userId = session.get(sessionKey);
+  let userId = await getUserId(request);
 
   let selectedBrands = url.searchParams.getAll('brand');
   let sortQuery = url.searchParams.get('sort');
@@ -58,9 +58,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
       fullName: true,
       sneakers: {
         include: { brand: true },
-        orderBy: {
-          purchaseDate: sort,
-        },
+        orderBy: { purchaseDate: sort },
       },
     },
   });
@@ -112,7 +110,9 @@ export let loader: LoaderFunction = async ({ params, request }) => {
     },
     {
       headers: {
-        'Set-Cookie': sessionUser ? await commitSession(session) : '',
+        'Set-Cookie': sessionUser
+          ? await sessionStorage.commitSession(session)
+          : '',
       },
     }
   );
@@ -169,7 +169,7 @@ export default function UserSneakersPage() {
         <h2 className="mb-2 text-2xl font-bold">Let&apos;s Get Started</h2>
         <Link
           className="text-purple-600 transition-colors duration-150 ease-in-out hover:text-purple-300"
-          to="/sneakers/add"
+          to={route('/sneakers/add')}
         >
           Add a sneaker to your collection
         </Link>

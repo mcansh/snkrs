@@ -1,19 +1,56 @@
-import * as Yup from 'yup';
+import { isBefore } from 'date-fns';
+import { z } from 'zod';
 
-import type { RemoveIndex } from '~/@types/types';
+export let sneakerSchema = z
+  .object({
+    model: z.string(),
+    colorway: z.string(),
+    brand: z.string(),
+    size: z.number().positive(),
+    imagePublicId: z.string(),
+    retailPrice: z.number().positive(),
+    price: z.number().positive(),
+    purchaseDate: z
+      .preprocess(data => {
+        if (data instanceof Date) return data;
+        if (typeof data === 'string') return new Date(data);
+      }, z.date())
+      .refine(date => {
+        isBefore(date, new Date());
+      }),
+    sold: z.boolean().optional().default(false),
+    soldDate: z
+      .preprocess(data => {
+        if (data instanceof Date) return data;
+        if (typeof data === 'string') return new Date(data);
+      }, z.date())
+      .optional(),
+    soldPrice: z.number().min(1).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.sold) {
+      if (!data.soldDate) {
+        ctx.addIssue({
+          path: ['soldDate'],
+          message: 'Sold date is required if the sneaker is sold',
+          code: z.ZodIssueCode.custom,
+        });
+      }
 
-export let sneakerSchema = Yup.object().shape({
-  model: Yup.string().required(),
-  colorway: Yup.string().required(),
-  brand: Yup.string().required(),
-  size: Yup.number().positive().required(),
-  imagePublicId: Yup.string().required(),
-  retailPrice: Yup.number().required().positive(),
-  price: Yup.number().positive().integer().required(),
-  purchaseDate: Yup.date().required().max(new Date()),
-  sold: Yup.boolean().notRequired().default(false),
-  soldDate: Yup.date().notRequired().max(new Date()),
-  soldPrice: Yup.number().notRequired().positive(),
-});
+      if (!data.soldPrice) {
+        ctx.addIssue({
+          path: ['soldPrice'],
+          message: 'Sold price is required if the sneaker is sold',
+          code: z.ZodIssueCode.custom,
+        });
+      }
 
-export type SneakerSchema = RemoveIndex<Yup.InferType<typeof sneakerSchema>>;
+      return ctx;
+    }
+  });
+
+export type SneakerSchema = z.infer<typeof sneakerSchema>;
+
+export type PossibleErrors = z.inferFlattenedErrors<
+  typeof sneakerSchema
+>['fieldErrors'];

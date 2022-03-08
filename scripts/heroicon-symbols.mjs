@@ -1,24 +1,24 @@
 import path from 'path';
 import { promises as fs } from 'fs';
 
-import makeDir from 'make-dir';
 import { optimize, createContentItem } from 'svgo';
+import prettier from 'prettier';
 
-const HEROCIONS_PATH = path.join(process.cwd(), 'node_modules/heroicons');
-const HEROCIONS_SOLID_PATH = path.join(HEROCIONS_PATH, 'solid');
-const HEROCIONS_OUTLINE_PATH = path.join(HEROCIONS_PATH, 'outline');
+let HEROCIONS_PATH = path.join(process.cwd(), 'node_modules/heroicons');
+let HEROCIONS_SOLID_PATH = path.join(HEROCIONS_PATH, 'solid');
+let HEROCIONS_OUTLINE_PATH = path.join(HEROCIONS_PATH, 'outline');
 
-const OUTDIR = path.join(process.cwd(), 'app/icons');
-const OUTDIR_SOLID = path.join(OUTDIR, 'solid');
-const OUTDIR_OUTLINE = path.join(OUTDIR, 'outline');
+let OUTDIR = path.join(process.cwd(), 'app/icons');
+let OUTDIR_SOLID = path.join(OUTDIR, 'solid');
+let OUTDIR_OUTLINE = path.join(OUTDIR, 'outline');
 
 async function wrapSymbol(inputPath, outputDir) {
-  const ext = path.extname(inputPath);
-  const base = path.basename(inputPath, ext);
-  const content = await fs.readFile(inputPath, 'utf-8');
-  const outputPath = path.join(outputDir, `${base}.svg`);
+  let ext = path.extname(inputPath);
+  let base = path.basename(inputPath, ext);
+  let content = await fs.readFile(inputPath, 'utf-8');
+  let outputPath = path.join(outputDir, `${base}.svg`);
 
-  const result = optimize(content, {
+  let result = optimize(content, {
     path: inputPath,
     plugins: [
       {
@@ -40,15 +40,15 @@ async function wrapSymbol(inputPath, outputDir) {
         fn: item => {
           if (item.type === 'element') {
             if (item.name === 'svg') {
-              const { xmlns, ...attributes } = item.attributes;
+              let { xmlns, ...attributes } = item.attributes;
 
-              for (const attribute in attributes) {
+              for (let attribute in attributes) {
                 if (Object.hasOwn(attributes, attribute)) {
                   delete item.attributes[attribute];
                 }
               }
 
-              const children = item.children;
+              let children = item.children;
 
               item.children = [
                 createContentItem({
@@ -65,17 +65,21 @@ async function wrapSymbol(inputPath, outputDir) {
     ],
   });
 
-  const optimizedSvgString = result.data;
-
-  return fs.writeFile(outputPath, optimizedSvgString);
+  return fs.writeFile(
+    outputPath,
+    prettier.format(result.data, { parser: 'html' })
+  );
 }
 
 async function compile() {
   // 1. verify all output directories exist
-  await Promise.all([makeDir(OUTDIR_OUTLINE), makeDir(OUTDIR_SOLID)]);
+  await Promise.all([
+    fs.mkdir(OUTDIR_OUTLINE, { recursive: true }),
+    fs.mkdir(OUTDIR_SOLID, { recursive: true }),
+  ]);
 
   // 2. get all svg icons from heroicons
-  const [solid, outline] = await Promise.all([
+  let [solid, outline] = await Promise.all([
     fs.readdir(HEROCIONS_SOLID_PATH),
     fs.readdir(HEROCIONS_OUTLINE_PATH),
   ]);

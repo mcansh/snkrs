@@ -10,6 +10,7 @@ processes = []
   PORT = "8080"
   DATABASE_URL = "file:/data/db"
   FLY_PRIMARY_REGION = "ord"
+  FLY = "1"
 
 [mounts]
   destination = "/data"

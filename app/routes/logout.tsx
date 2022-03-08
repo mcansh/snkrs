@@ -1,24 +1,16 @@
 import { Form, json, redirect } from 'remix';
 import type { ActionFunction, LoaderFunction } from 'remix';
 
-import { destroySession, getSession } from '~/session';
-import { sessionKey } from '~/constants';
+import { getUserId, logout } from '~/session.server';
 
 export let loader: LoaderFunction = async ({ request }) => {
-  let session = await getSession(request.headers.get('Cookie'));
-  if (!session.has(sessionKey)) {
-    return redirect('/');
-  }
+  let user = await getUserId(request);
+  if (!user) return redirect('/');
   return json(null);
 };
 
 export let action: ActionFunction = async ({ request }) => {
-  let session = await getSession(request.headers.get('Cookie'));
-  return redirect('/', {
-    headers: {
-      'Set-Cookie': await destroySession(session),
-    },
-  });
+  return logout(request);
 };
 
 export default function LogoutPage() {

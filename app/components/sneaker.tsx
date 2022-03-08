@@ -1,12 +1,13 @@
 import * as React from 'react';
 import { Prisma } from '@prisma/client';
 import { Link } from 'remix';
+import { route } from 'routes-gen';
 
 import { getCloudinaryURL } from '~/utils/get-cloudinary-url';
 import { formatMoney } from '~/utils/format-money';
 import { formatDate } from '~/utils/format-date';
 
-const sneakerWithBrand = Prisma.validator<Prisma.SneakerArgs>()({
+let sneakerWithBrand = Prisma.validator<Prisma.SneakerArgs>()({
   include: { brand: true },
 });
 
@@ -16,7 +17,7 @@ interface Props extends SneakerWithBrand {
   showPurchasePrice: boolean;
 }
 
-const SneakerCard: React.VFC<Props> = ({
+let SneakerCard: React.VFC<Props> = ({
   id,
   model,
   colorway,
@@ -27,9 +28,9 @@ const SneakerCard: React.VFC<Props> = ({
   sold,
   showPurchasePrice,
 }) => {
-  const sizes = [200, 400, 600];
+  let sizes = [200, 400, 600];
 
-  const images = sizes.map(size =>
+  let images = sizes.map(size =>
     getCloudinaryURL(imagePublicId, {
       resize: {
         type: 'pad',
@@ -39,7 +40,7 @@ const SneakerCard: React.VFC<Props> = ({
     })
   );
 
-  const srcSet = images
+  let srcSet = images
     .map((image, index) => `${image} ${sizes[index]}w`)
     .join(', ');
 
@@ -59,7 +60,7 @@ const SneakerCard: React.VFC<Props> = ({
           </span>
         )}
         <Link
-          to={`/sneakers/${id}`}
+          to={route('/sneakers/:sneakerId', { sneakerId: id })}
           className="absolute inset-0 focus:outline-none"
           prefetch="intent"
         >

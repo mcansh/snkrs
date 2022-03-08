@@ -1,145 +1,117 @@
 import React from 'react';
 import { Form, json, redirect, useTransition } from 'remix';
-import { ValidationError } from 'yup';
 import slugify from 'slugify';
 import NumberFormat from 'react-number-format';
 import accounting from 'accounting';
 import type { ActionFunction, LoaderFunction } from 'remix';
+import { route } from 'routes-gen';
 
-import { flashMessageKey, redirectAfterAuthKey, sessionKey } from '~/constants';
 import { prisma } from '~/db.server';
-import { AuthorizationError } from '~/errors';
-import { flashMessage } from '~/flash-message';
 import { cloudinary } from '~/lib/cloudinary.server';
-import { withSession } from '~/lib/with-session';
+import type { PossibleErrors } from '~/lib/schemas/sneaker.server';
 import { sneakerSchema } from '~/lib/schemas/sneaker.server';
 import { parseStringFormData } from '~/utils/parse-string-formdata';
+import { requireUserId } from '~/session.server';
+import { getSeoMeta } from '~/seo';
 
-const meta = () => ({
-  title: 'Add a sneaker to your collection',
-});
+let meta = () => {
+  return getSeoMeta({
+    title: 'Add a sneaker to your collection',
+  });
+};
 
-const loader: LoaderFunction = ({ request }) =>
-  withSession(request, session => {
-    const userId = session.get(sessionKey) as string | undefined;
+let loader: LoaderFunction = async ({ request }) => {
+  await requireUserId(request);
+  return json(null);
+};
 
-    try {
-      if (!userId) {
-        throw new AuthorizationError();
-      }
+interface ActionData {
+  errors: PossibleErrors;
+}
 
-      return json(null);
-    } catch (error: unknown) {
-      if (error instanceof AuthorizationError) {
-        session.flash(flashMessageKey, flashMessage(error.message, 'error'));
-        return redirect(`/login?${redirectAfterAuthKey}=${request.url}`);
-      } else {
-        console.error(error);
-      }
-      return redirect('/login');
-    }
+let action: ActionFunction = async ({ request }) => {
+  let userId = await requireUserId(request);
+  let formData = await parseStringFormData(request);
+
+  let price = formData.price
+    ? Number(formData.price) || accounting.unformat(formData.price) * 100
+    : undefined;
+  let retailPrice = formData.retailPrice
+    ? Number(formData.retailPrice) ||
+      accounting.unformat(formData.retailPrice) * 100
+    : undefined;
+  let size = formData.size ? parseInt(formData.size, 10) : undefined;
+
+  let valid = sneakerSchema.safeParse({
+    brand: formData.brand,
+    model: formData.model,
+    colorway: formData.colorway,
+    price,
+    retailPrice,
+    purchaseDate: formData.purchaseDate,
+    size,
+    imagePublicId: formData.image,
   });
 
-const action: ActionFunction = ({ request }) =>
-  withSession(request, async session => {
-    try {
-      const userId = session.get(sessionKey) as string | undefined;
+  if (!valid.success) {
+    return json<ActionData>({
+      errors: valid.error.flatten().fieldErrors,
+    });
+  }
 
-      if (!userId) {
-        throw new AuthorizationError();
-      }
-
-      const formData = await parseStringFormData(request);
-
-      const price = formData.price
-        ? Number(formData.price) || accounting.unformat(formData.price) * 100
-        : undefined;
-      const retailPrice = formData.retailPrice
-        ? Number(formData.retailPrice) ||
-          accounting.unformat(formData.retailPrice) * 100
-        : undefined;
-      const size = formData.size ? parseInt(formData.size, 10) : undefined;
-
-      const valid = await sneakerSchema.validate({
-        brand: formData.brand,
-        model: formData.model,
-        colorway: formData.colorway,
-        price,
-        retailPrice,
-        purchaseDate: formData.purchaseDate,
-        size,
-        imagePublicId: formData.image,
+  let imagePublicId = '';
+  if (valid.data.imagePublicId) {
+    // image was already uploaded to our cloudinary bucket
+    if (valid.data.imagePublicId.startsWith('shoes/')) {
+      imagePublicId = valid.data.imagePublicId;
+    } else if (
+      /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi.test(
+        valid.data.imagePublicId
+      )
+    ) {
+      // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
+      let res = await cloudinary.v2.uploader.upload(valid.data.imagePublicId, {
+        resource_type: 'image',
+        folder: 'shoes',
       });
 
-      let imagePublicId = '';
-      if (valid.imagePublicId) {
-        // image was already uploaded to our cloudinary bucket
-        if (valid.imagePublicId.startsWith('shoes/')) {
-          imagePublicId = valid.imagePublicId;
-        } else if (
-          /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi.test(
-            valid.imagePublicId
-          )
-        ) {
-          // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
-          const res = await cloudinary.v2.uploader.upload(valid.imagePublicId, {
-            resource_type: 'image',
-            folder: 'shoes',
-          });
+      imagePublicId = res.public_id;
+    } else {
+      // no image provided
+    }
+  }
 
-          imagePublicId = res.public_id;
-        } else {
-          // no image provided
-        }
-      }
-
-      const sneaker = await prisma.sneaker.create({
-        data: {
-          user: { connect: { id: userId } },
-          brand: {
-            connectOrCreate: {
-              where: {
-                name: valid.brand,
-              },
-              create: {
-                name: valid.brand,
-                slug: slugify(valid.brand, { lower: true }),
-              },
-            },
+  let sneaker = await prisma.sneaker.create({
+    data: {
+      user: { connect: { id: userId } },
+      brand: {
+        connectOrCreate: {
+          where: {
+            name: valid.data.brand,
           },
-          colorway: valid.colorway,
-          model: valid.model,
-          price: valid.price,
-          purchaseDate: valid.purchaseDate.toISOString(),
-          retailPrice: valid.retailPrice,
-          size: valid.size,
-          imagePublicId,
+          create: {
+            name: valid.data.brand,
+            slug: slugify(valid.data.brand, { lower: true }),
+          },
         },
-        include: { user: { select: { username: true } }, brand: true },
-      });
-
-      return redirect(`/sneakers/${sneaker.id}`);
-    } catch (error: unknown) {
-      console.error(error);
-
-      if (error instanceof AuthorizationError) {
-        session.flash(flashMessageKey, flashMessage(error.message, 'error'));
-
-        return redirect(`/login?${redirectAfterAuthKey}=${request.url}`);
-      }
-
-      if (error instanceof ValidationError) {
-        session.flash(flashMessageKey, flashMessage(error.message, 'error'));
-        return redirect('/sneakers/add');
-      }
-
-      return redirect('/sneakers/add');
-    }
+      },
+      colorway: valid.data.colorway,
+      model: valid.data.model,
+      price: valid.data.price,
+      purchaseDate: valid.data.purchaseDate.toISOString(),
+      retailPrice: valid.data.retailPrice,
+      size: valid.data.size,
+      imagePublicId,
+    },
+    include: { user: { select: { username: true } }, brand: true },
   });
 
-const NewSneakerPage: React.VFC = () => {
-  const transition = useTransition();
-  const pendingForm = transition.submission;
+  return redirect(route('/sneakers/:sneakerId', { sneakerId: sneaker.id }));
+};
+
+let NewSneakerPage: React.VFC = () => {
+  let transition = useTransition();
+  let pendingForm = transition.submission;
 
   return (
     <main className="container h-full p-4 pb-6 mx-auto">

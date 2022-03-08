@@ -1,28 +1,62 @@
-import * as Yup from 'yup';
-import type { User } from '@prisma/client';
+import path from 'path';
+import fs from 'fs';
 
-import { reservedUsernames } from './reserved-usernames.server';
+import { z } from 'zod';
 
-import type { RemoveIndex } from '~/@types/types';
+import reservedUsernames from './reserved-usernames.json';
+import commonPasswords from './common-passwords.json';
 
-export const registerSchema = Yup.object().shape({
-  email: Yup.string().email().required(),
-  givenName: Yup.string().required(),
-  familyName: Yup.string().required(),
-  password: Yup.string().min(12).required(),
-  username: Yup.string()
-    .required()
-    .notOneOf(reservedUsernames, 'A user with this username already exists'),
-});
-
-export const loginSchema = Yup.object().shape({
-  email: Yup.string().email().required(),
-  password: Yup.string().min(12).required(),
-});
-
-export type LoginSchema = RemoveIndex<Yup.InferType<typeof loginSchema>>;
-export type RegisterSchema = RemoveIndex<Yup.InferType<typeof registerSchema>>;
-
-export function isAdmin(user: User): boolean {
-  return user.role === 'ADMIN';
+function isValidPassword(password: string): boolean {
+  return !commonPasswords.includes(password.toLowerCase());
 }
+
+function isAllowedUsername(username: string): boolean {
+  return !reservedUsernames.includes(username.toLowerCase());
+}
+
+export let registerSchema = z.object({
+  givenName: z.string().min(1, 'Required'),
+  familyName: z.string().min(1, 'Required'),
+  email: z.string().email(),
+  password: z
+    .string()
+    .min(12, 'Must be at least 12 characters')
+    .refine(isValidPassword, { message: 'Password is too common' }),
+  username: z
+    .string()
+    .min(1, 'Required')
+    .refine(isAllowedUsername, { message: 'Username is reserved' }),
+});
+
+export let loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(12, 'Must be at least 12 characters'),
+});
+
+export let editProfile = z.object({
+  email: z.string().email(),
+  username: z
+    .string()
+    .refine(isAllowedUsername, { message: 'Username is reserved' }),
+  settings: z.object({
+    showPurchasePrice: z.boolean().optional(),
+    showRetailPrice: z.boolean().optional(),
+    showTotalPrice: z.boolean().optional(),
+  }),
+});
+
+export type RegisterSchema = z.infer<typeof registerSchema>;
+export type LoginSchema = z.infer<typeof loginSchema>;
+export type EditProfileSchema = z.infer<typeof editProfile>;
+
+export type PossibleRegistrationErrors = z.inferFlattenedErrors<
+  typeof registerSchema
+>['fieldErrors'];
+
+export type PossibleLoginErrors = z.inferFlattenedErrors<
+  typeof loginSchema
+>['fieldErrors'];
+
+export type PossibleEditProfileErrors = z.inferFlattenedErrors<
+  typeof editProfile
+>['fieldErrors'];

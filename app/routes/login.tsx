@@ -1,266 +1,221 @@
-import * as React from 'react';
-import { Form, redirect, useTransition, useLoaderData, json } from 'remix';
-import { ValidationError } from 'yup';
+import {
+  redirect,
+  useTransition,
+  json,
+  useActionData,
+  Form,
+  Link,
+} from 'remix';
 import type { MetaFunction } from '@remix-run/react/routeModules';
-import type { ActionFunction, LinksFunction, LoaderFunction } from 'remix';
+import type { ActionFunction, LoaderFunction } from 'remix';
+import Alert from '@reach/alert';
+import { route } from 'routes-gen';
 
-import { flashMessageKey, redirectAfterAuthKey, sessionKey } from '~/constants';
-import { InvalidLoginError } from '~/errors';
-import { flashMessage } from '~/flash-message';
 import { verify } from '~/lib/auth.server';
 import { prisma } from '~/db.server';
-import { withSession } from '~/lib/with-session';
-import { LoadingButton } from '~/components/loading-button';
-import checkIcon from '~/icons/outline/check.svg';
-import refreshIcon from '~/icons/refresh-clockwise.svg';
-import exclamationCircleIcon from '~/icons/outline/exclamation-circle.svg';
-import loginIcon from '~/icons/outline/login.svg';
-import { yupToObject } from '~/lib/yup-to-object';
 import { loginSchema } from '~/lib/schemas/user.server';
-import type { LoginSchema } from '~/lib/schemas/user.server';
-import type { LoadingButtonProps } from '~/components/loading-button';
-import { commitSession, getSession } from '~/session';
+import type { PossibleLoginErrors } from '~/lib/schemas/user.server';
+import {
+  createUserSession,
+  getSession,
+  getUserId,
+  sessionStorage,
+} from '~/session.server';
+import { getSeoMeta } from '~/seo';
+import type { RouteHandle } from '~/@types/types';
 
-interface RouteData {
-  loginError: undefined | (Partial<LoginSchema> & { generic?: string });
-}
+export let loader: LoaderFunction = async ({ request }) => {
+  let userId = await getUserId(request);
+  if (!userId) return json(null);
 
-const links: LinksFunction = () => [
-  {
-    href: LoadingButton.styles,
-    rel: 'stylesheet',
-  },
-];
-
-const loader: LoaderFunction = ({ request }) =>
-  withSession(request, async session => {
-    const userId = session.get(sessionKey);
-
-    if (userId) {
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { username: true },
-      });
-
-      if (user) {
-        return redirect(`/${user.username}`);
-      }
-
-      session.flash(flashMessageKey, flashMessage('User not found', 'error'));
-      session.unset(sessionKey);
-    }
-
-    const loginError = session.get('loginError') as RouteData['loginError'];
-
-    const data: RouteData = { loginError };
-
-    return json(data);
+  // we have a userId in the session, let's validate that it's actually a user
+  // if it is, we'll redirect to their snkrs page
+  // otherwise we'll destroy the session and redirect to the landing page
+  let user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { username: true },
   });
 
-const action: ActionFunction = async ({ request }) => {
-  const session = await getSession(request.headers.get('Cookie'));
-  const requestBody = await request.text();
-  const body = new URLSearchParams(requestBody);
-  const email = body.get('email');
-  const password = body.get('password');
+  if (user) return redirect(`/${user.username}`);
 
-  const url = new URL(request.url);
-  const redirectTo = url.searchParams.get(redirectAfterAuthKey);
-
-  try {
-    const valid = await loginSchema.validate(
-      { email, password },
-      { abortEarly: false }
-    );
-
-    const foundUser = await prisma.user.findUnique({
-      where: { email: valid.email },
-    });
-
-    if (!foundUser) {
-      throw new InvalidLoginError();
-    }
-
-    const validCredentials = await verify(valid.password, foundUser.password);
-
-    if (!validCredentials) {
-      throw new InvalidLoginError();
-    }
-
-    session.set(sessionKey, foundUser.id);
-    session.flash(
-      flashMessageKey,
-      flashMessage(`Welcome back ${foundUser.username}!`, 'success')
-    );
-    return redirect(redirectTo ?? '/', {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
-  } catch (error: unknown) {
-    console.error(error);
-    if (error instanceof ValidationError) {
-      const aggregateErrors = yupToObject<LoginSchema>(error);
-      session.flash('loginError', aggregateErrors);
-      return redirect(request.url, {
-        headers: {
-          'Set-Cookie': await commitSession(session),
-        },
-      });
-    }
-
-    if (error instanceof InvalidLoginError) {
-      session.flash('loginError', { generic: error.message });
-      return redirect(request.url, {
-        headers: {
-          'Set-Cookie': await commitSession(session),
-        },
-      });
-    }
-
-    session.flash('loginError', { generic: 'something went wrong' });
-    return redirect(request.url, {
-      headers: {
-        'Set-Cookie': await commitSession(session),
-      },
-    });
-  }
+  let session = await getSession(request);
+  return redirect('/', {
+    headers: {
+      'Set-Cookie': await sessionStorage.destroySession(session),
+    },
+  });
 };
 
-const meta: MetaFunction = () => ({
-  title: 'Log in',
-  description: 'show off your sneaker collection',
-});
+interface ActionData {
+  errors: PossibleLoginErrors;
+}
 
-const LoginPage: React.VFC = () => {
-  const data = useLoaderData<RouteData>();
-  const transition = useTransition();
-  const pendingForm = transition.submission;
-  const [state, setState] = React.useState<LoadingButtonProps['state']>('idle');
-  const timerRef = React.useRef<NodeJS.Timeout>();
+export let action: ActionFunction = async ({ request }) => {
+  let formData = await request.formData();
+  let email = formData.get('email');
+  let password = formData.get('password');
 
-  const colors = {
-    idle: {
-      bg: 'bg-blue-500',
-      hover: 'hover:bg-blue-700',
-      ring: 'focus:bg-blue-700',
-      disabled: 'focus:bg-blue-200',
-    },
-    loading: {
-      bg: 'bg-indigo-500',
-      hover: 'hover:bg-indigo-700',
-      ring: 'focus:ring-indigo-700',
-      disabled: 'focus:ring-indigo-200',
-    },
-    error: {
-      bg: 'bg-red-500',
-      hover: 'hover:bg-red-700',
-      ring: 'focus:ring-red-700',
-      disabled: 'focus:ring-red-200',
-    },
-    success: {
-      bg: 'bg-green-500',
-      hover: 'hover:bg-green-700',
-      ring: 'focus:ring-green-700',
-      disabled: 'focus:ring-green-200',
-    },
-  };
+  let url = new URL(request.url);
+  let redirectTo = url.searchParams.get('returnTo');
 
-  React.useEffect(() => {
-    if (pendingForm) {
-      setState('loading');
-    } else if (data.loginError) {
-      setState('error');
-      timerRef.current = setTimeout(() => {
-        setState('idle');
-      }, 1500);
-    } else {
-      setState('idle');
-    }
+  let valid = loginSchema.safeParse({ email, password });
+  if (!valid.success) {
+    return json<ActionData>(
+      { errors: valid.error.flatten().fieldErrors },
+      { status: 400 }
+    );
+  }
 
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, [data.loginError, pendingForm]);
+  let foundUser = await prisma.user.findUnique({
+    where: { email: valid.data.email },
+  });
 
-  return (
-    <div className="w-11/12 max-w-lg py-8 mx-auto">
-      {data.loginError?.generic && (
-        <div className="px-4 py-2 mb-2 text-sm text-white bg-red-500 rounded">
-          {data.loginError.generic}
-        </div>
-      )}
+  if (!foundUser) {
+    return json<ActionData>(
+      { errors: { email: ['Invalid email or password'] } },
+      { status: 400 }
+    );
+  }
 
-      <h1 className="pb-2 text-2xl font-medium">Log in</h1>
+  let validCredentials = await verify(valid.data.password, foundUser.password);
 
-      <Form method="post" className="space-y-4">
-        <fieldset disabled={!!pendingForm} className="flex flex-col space-y-4">
-          <label htmlFor="email">
-            <span>Email:</span>
-            <input
-              className="w-full px-2 py-1 border border-gray-400 rounded"
-              type="email"
-              name="email"
-              id="email"
-              autoComplete="email"
-              autoFocus
-            />
-          </label>
-          {data.loginError?.email && (
-            <p className="text-sm text-red-500">{data.loginError.email}</p>
-          )}
-          <label htmlFor="password">
-            <span>Password:</span>
-            <input
-              className="w-full px-2 py-1 border border-gray-400 rounded"
-              type="password"
-              name="password"
-              id="password"
-            />
-          </label>
-          {data.loginError?.password && (
-            <p className="text-sm text-red-500">{data.loginError.password}</p>
-          )}
+  if (!validCredentials) {
+    return json<ActionData>({
+      errors: { email: ['Invalid email or password'] },
+    });
+  }
 
-          <LoadingButton
-            disabled={!!pendingForm}
-            type="submit"
-            state={state}
-            text={<span>Log in</span>}
-            textLoading={<span>Logging in</span>}
-            ariaText="Log in"
-            ariaLoadingAlert="Attempting to log in"
-            ariaSuccessAlert="Successfully logged in, redirecting..."
-            ariaErrorAlert="Error logging in"
-            icon={
-              <svg className="w-6 h-6">
-                <use href={`${loginIcon}#login`} />
-              </svg>
-            }
-            iconError={
-              <svg className="w-6 h-6">
-                <use href={`${exclamationCircleIcon}#exclamation-circle`} />
-              </svg>
-            }
-            iconLoading={
-              <svg className="w-6 h-6 animate-spin">
-                <use href={`${refreshIcon}#refresh-clockwise`} />
-              </svg>
-            }
-            iconSuccess={
-              <svg className="w-6 h-6">
-                <use href={`${checkIcon}#check`} />
-              </svg>
-            }
-            className={`px-4 py-2 disabled:cursor-not-allowed border border-transparent shadow-sm text-base font-medium rounded text-white ${colors[state].bg} ${colors[state].hover} focus:outline-none focus:ring-2 focus:ring-offset-2 ${colors[state].ring}`}
-          />
-        </fieldset>
-      </Form>
-    </div>
+  return createUserSession(
+    request,
+    foundUser.id,
+    redirectTo ?? `/${foundUser.username}`
   );
 };
 
-export default LoginPage;
-export { action, links, loader, meta };
+export let meta: MetaFunction = () => {
+  return getSeoMeta({
+    title: 'Log in',
+    description: 'show off your sneaker collection',
+  });
+};
+
+export let handle: RouteHandle = {
+  bodyClassName: 'bg-gray-50',
+};
+
+export default function LoginPage() {
+  let actionData = useActionData<ActionData>();
+  let transition = useTransition();
+  let pendingForm = transition.submission;
+
+  return (
+    <div className="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          Sign in to your account
+        </h2>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <Form method="post">
+            <fieldset disabled={!!pendingForm} className="space-y-6">
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Email address
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    aria-invalid={actionData?.errors.email ? true : undefined}
+                    aria-errormessage={
+                      actionData?.errors.email ? 'email-error' : undefined
+                    }
+                  />
+                  {actionData?.errors.email && (
+                    <Alert
+                      className="mt-2 text-sm text-red-600"
+                      id="email-error"
+                    >
+                      {actionData.errors.email.map(error => (
+                        <p className="mt-1" key={error}>
+                          {error}
+                        </p>
+                      ))}
+                    </Alert>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Password
+                </label>
+                <div className="mt-1">
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    aria-invalid={
+                      actionData?.errors.password ? true : undefined
+                    }
+                    aria-errormessage={
+                      actionData?.errors.password ? 'password-error' : undefined
+                    }
+                  />
+                  {actionData?.errors.password && (
+                    <Alert
+                      className="mt-2 text-sm text-red-600"
+                      id="password-error"
+                    >
+                      {actionData.errors.password.map(error => (
+                        <p className="mt-1" key={error}>
+                          {error}
+                        </p>
+                      ))}
+                    </Alert>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="text-sm">
+                  <span className="text-gray-900">New here?</span>
+                </div>
+                <div className="text-sm">
+                  <Link
+                    to={route('/join')}
+                    className="font-medium text-indigo-600 hover:text-indigo-500"
+                  >
+                    Join
+                  </Link>
+                </div>
+              </div>
+
+              <div>
+                <button
+                  type="submit"
+                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Sign in
+                </button>
+              </div>
+            </fieldset>
+          </Form>
+        </div>
+      </div>
+    </div>
+  );
+}

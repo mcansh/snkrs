@@ -1,6 +1,6 @@
-const dotenv = require('dotenv');
+let dotenv = require('dotenv');
 
-const result = dotenv.config();
+let result = dotenv.config();
 
 if (result.error) {
   throw result.error;

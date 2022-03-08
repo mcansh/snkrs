@@ -4,17 +4,17 @@ import { json, Link, useLoaderData } from 'remix';
 import type { Except } from 'type-fest';
 import type { LoaderFunction, MetaFunction } from 'remix';
 import invariant from 'tiny-invariant';
+import { route } from 'routes-gen';
 
 import { formatDate } from '~/utils/format-date';
 import { getCloudinaryURL } from '~/utils/get-cloudinary-url';
 import { formatMoney } from '~/utils/format-money';
 import { copy } from '~/utils/copy';
-import { sessionKey } from '~/constants';
 import { prisma } from '~/db.server';
-import { withSession } from '~/lib/with-session';
 import { getSeoMeta } from '~/seo';
+import { getUserId } from '~/session.server';
 
-const sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
+let sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
   include: {
     brand: true,
     user: {
@@ -49,75 +49,76 @@ interface RouteData {
   };
 }
 
-const loader: LoaderFunction = ({ params, request }) =>
-  withSession(request, async session => {
-    invariant(params.sneakerId, 'sneakerID is required');
+let loader: LoaderFunction = async ({ params, request }) => {
+  invariant(params.sneakerId, 'sneakerID is required');
 
-    const sneaker = await prisma.sneaker.findUnique({
-      where: { id: params.sneakerId },
-      include: {
-        brand: true,
-        user: {
-          select: {
-            id: true,
-            username: true,
-            fullName: true,
-          },
+  let userId = await getUserId(request);
+
+  let sneaker = await prisma.sneaker.findUnique({
+    where: { id: params.sneakerId },
+    include: {
+      brand: true,
+      user: {
+        select: {
+          id: true,
+          username: true,
+          fullName: true,
         },
       },
-    });
-
-    if (!sneaker) {
-      throw new Response(`Sneaker not found with id ${params.sneakerId}`, {
-        status: 404,
-      });
-    }
-
-    const userCreatedSneaker = sneaker.user.id === session.get(sessionKey);
-
-    const settings = await prisma.settings.findUnique({
-      where: { userId: sneaker.user.id },
-    });
-
-    return json<RouteData>({
-      id: params.sneakerId,
-      userCreatedSneaker,
-      title: `${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`,
-      purchaseYear: new Date(sneaker.purchaseDate).getFullYear(),
-      settings: {
-        showPurchasePrice: settings?.showPurchasePrice ?? true,
-        showRetailPrice: settings?.showRetailPrice ?? false,
-      },
-      sneaker: {
-        ...sneaker,
-        createdAt:
-          typeof sneaker.createdAt === 'string'
-            ? sneaker.createdAt
-            : sneaker.createdAt.toISOString(),
-        soldDate:
-          typeof sneaker.soldDate === 'string'
-            ? sneaker.soldDate
-            : sneaker.soldDate?.toISOString(),
-        purchaseDate:
-          typeof sneaker.purchaseDate === 'string'
-            ? sneaker.purchaseDate
-            : sneaker.purchaseDate.toISOString(),
-        updatedAt:
-          typeof sneaker.updatedAt === 'string'
-            ? sneaker.updatedAt
-            : sneaker.updatedAt.toISOString(),
-      },
-    });
+    },
   });
 
-const meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
+  if (!sneaker) {
+    throw new Response(`Sneaker not found with id ${params.sneakerId}`, {
+      status: 404,
+    });
+  }
+
+  let userCreatedSneaker = sneaker.user.id === userId;
+
+  let settings = await prisma.settings.findUnique({
+    where: { userId: sneaker.user.id },
+  });
+
+  return json<RouteData>({
+    id: params.sneakerId,
+    userCreatedSneaker,
+    title: `${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`,
+    purchaseYear: new Date(sneaker.purchaseDate).getFullYear(),
+    settings: {
+      showPurchasePrice: settings?.showPurchasePrice ?? true,
+      showRetailPrice: settings?.showRetailPrice ?? false,
+    },
+    sneaker: {
+      ...sneaker,
+      createdAt:
+        typeof sneaker.createdAt === 'string'
+          ? sneaker.createdAt
+          : sneaker.createdAt.toISOString(),
+      soldDate:
+        typeof sneaker.soldDate === 'string'
+          ? sneaker.soldDate
+          : sneaker.soldDate?.toISOString(),
+      purchaseDate:
+        typeof sneaker.purchaseDate === 'string'
+          ? sneaker.purchaseDate
+          : sneaker.purchaseDate.toISOString(),
+      updatedAt:
+        typeof sneaker.updatedAt === 'string'
+          ? sneaker.updatedAt
+          : sneaker.updatedAt.toISOString(),
+    },
+  });
+};
+
+let meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
   if (!data) {
     return getSeoMeta({
       title: 'Sneaker Not Found',
     });
   }
 
-  const date = formatDate(data.sneaker.purchaseDate, {
+  let date = formatDate(data.sneaker.purchaseDate, {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
@@ -129,12 +130,12 @@ const meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
   });
 };
 
-const SneakerPage: React.VFC = () => {
-  const data = useLoaderData<RouteData>();
+let SneakerPage: React.VFC = () => {
+  let data = useLoaderData<RouteData>();
 
-  const sizes = [200, 400, 600];
+  let sizes = [200, 400, 600];
 
-  const srcSet = sizes.map(
+  let srcSet = sizes.map(
     size =>
       `${getCloudinaryURL(data.sneaker.imagePublicId, {
         resize: {
@@ -147,7 +148,10 @@ const SneakerPage: React.VFC = () => {
 
   return (
     <main className="container h-full p-4 pb-6 mx-auto">
-      <Link prefetch="intent" to={`/${data.sneaker.user.username}`}>
+      <Link
+        prefetch="intent"
+        to={route('/:username', { username: data.sneaker.user.username })}
+      >
         Back
       </Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
@@ -205,7 +209,10 @@ const SneakerPage: React.VFC = () => {
             )}
 
             <Link
-              to={`/${data.sneaker.user.username}/yir/${data.purchaseYear}`}
+              to={route('/:username/yir/:year', {
+                username: data.sneaker.user.username,
+                year: data.purchaseYear.toString(),
+              })}
               className="block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
               prefetch="intent"
             >
@@ -219,7 +226,7 @@ const SneakerPage: React.VFC = () => {
               className="text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
               onClick={() => {
                 if ('share' in navigator) {
-                  const date = formatDate(data.sneaker.purchaseDate, {
+                  let date = formatDate(data.sneaker.purchaseDate, {
                     month: 'long',
                     day: 'numeric',
                     year: 'numeric',
@@ -239,7 +246,9 @@ const SneakerPage: React.VFC = () => {
             </button>
             {data.userCreatedSneaker && (
               <Link
-                to={`/sneakers/${data.sneaker.id}/edit`}
+                to={route('/sneakers/:sneakerId/edit', {
+                  sneakerId: data.sneaker.id,
+                })}
                 className="inline-block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
               >
                 Edit Sneaker

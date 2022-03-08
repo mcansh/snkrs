@@ -4,8 +4,19 @@ import sirv from 'sirv';
 import fastifyExpress from 'fastify-express';
 import { createRequestHandler } from '@mcansh/remix-fastify';
 import * as serverBuild from '@remix-run/dev/server-build';
+import * as Sentry from '@sentry/node';
 
 let MODE = process.env.NODE_ENV;
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  enabled: MODE === 'production' && process.env.FLY === '1',
+  environment: MODE,
+  release: process.env.COMMIT_SHA,
+  tracesSampleRate: 0.3,
+});
+
+Sentry.setContext('region', { name: process.env.FLY_REGION ?? 'unknown' });
 
 async function start() {
   try {
