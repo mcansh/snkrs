@@ -63,7 +63,6 @@ COPY --from=deps /remixapp/node_modules /remixapp/node_modules
 # cache the prisma schema
 ADD prisma .
 RUN npx prisma generate
-RUN npx routes-gen -d @routes-gen/remix
 
 # build the app
 ADD . .
