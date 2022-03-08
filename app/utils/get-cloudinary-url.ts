@@ -1,7 +1,24 @@
 import { buildUrl } from 'cloudinary-build-url';
 import type { TransformerOption } from '@cld-apis/types';
 
-function getCloudinaryURL(
+let sizes = [200, 400, 600];
+
+export function getImageURLs(publicId: string) {
+  return sizes
+    .map(
+      size =>
+        `${getCloudinaryURL(publicId, {
+          resize: {
+            type: 'pad',
+            width: size,
+            height: size,
+          },
+        })} ${size}w`
+    )
+    .join(', ');
+}
+
+export function getCloudinaryURL(
   publicId: string,
   transformations: TransformerOption
 ) {
@@ -21,5 +38,3 @@ function getCloudinaryURL(
   });
   return url;
 }
-
-export { getCloudinaryURL };

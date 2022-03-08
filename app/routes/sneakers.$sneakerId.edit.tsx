@@ -19,7 +19,7 @@ import invariant from 'tiny-invariant';
 import { route } from 'routes-gen';
 
 import { formatDate } from '~/utils/format-date';
-import { getCloudinaryURL } from '~/utils/get-cloudinary-url';
+import { getCloudinaryURL, getImageURLs } from '~/utils/get-cloudinary-url';
 import { formatMoney } from '~/utils/format-money';
 import { prisma } from '~/db.server';
 import type { PossibleErrors } from '~/lib/schemas/sneaker.server';
@@ -243,18 +243,7 @@ let EditSneakerPage: React.VFC = () => {
 
   let title = `Editing ${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`;
 
-  let sizes = [200, 400, 600];
-
-  let srcSet = sizes.map(
-    size =>
-      `${getCloudinaryURL(sneaker.imagePublicId, {
-        resize: {
-          type: 'pad',
-          width: size,
-          height: size,
-        },
-      })} ${size}w`
-  );
+  let srcSet = getImageURLs(sneaker.imagePublicId);
 
   return (
     <main className="container h-full p-4 pb-6 mx-auto">
@@ -265,17 +254,13 @@ let EditSneakerPage: React.VFC = () => {
         Back
       </Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
-        <div className="relative" style={{ paddingBottom: '100%' }}>
+        <div className="relative pb-[100%]">
           <img
             src={getCloudinaryURL(sneaker.imagePublicId, {
-              resize: {
-                type: 'pad',
-                width: 200,
-                height: 200,
-              },
+              resize: { width: 200, height: 200, type: 'pad' },
             })}
             sizes="(min-width: 640px) 50vw, 100vw"
-            srcSet={srcSet.join()}
+            srcSet={srcSet}
             alt={title}
             height={1200}
             width={1200}

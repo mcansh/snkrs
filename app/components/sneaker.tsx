@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { Link } from 'remix';
 import { route } from 'routes-gen';
 
-import { getCloudinaryURL } from '~/utils/get-cloudinary-url';
+import { getCloudinaryURL, getImageURLs } from '~/utils/get-cloudinary-url';
 import { formatMoney } from '~/utils/format-money';
 import { formatDate } from '~/utils/format-date';
 
@@ -28,27 +28,15 @@ let SneakerCard: React.VFC<Props> = ({
   sold,
   showPurchasePrice,
 }) => {
-  let sizes = [200, 400, 600];
-
-  let images = sizes.map(size =>
-    getCloudinaryURL(imagePublicId, {
-      resize: {
-        type: 'pad',
-        width: size,
-        height: size,
-      },
-    })
-  );
-
-  let srcSet = images
-    .map((image, index) => `${image} ${sizes[index]}w`)
-    .join(', ');
+  let srcSet = getImageURLs(imagePublicId);
 
   return (
     <li>
       <div className="relative block w-full overflow-hidden bg-gray-100 rounded-lg group aspect-w-1 aspect-h-1 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-gray-100 focus-within:ring-blue-500">
         <img
-          src={images[0]}
+          src={getCloudinaryURL(imagePublicId, {
+            resize: { width: 200, height: 200, type: 'pad' },
+          })}
           sizes="(min-width: 1024px) 25vw, 50vw"
           srcSet={srcSet}
           alt=""
