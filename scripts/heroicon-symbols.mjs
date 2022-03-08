@@ -2,6 +2,7 @@ import path from 'path';
 import { promises as fs } from 'fs';
 
 import { optimize, createContentItem } from 'svgo';
+import prettier from 'prettier';
 
 let HEROCIONS_PATH = path.join(process.cwd(), 'node_modules/heroicons');
 let HEROCIONS_SOLID_PATH = path.join(HEROCIONS_PATH, 'solid');
@@ -64,9 +65,10 @@ async function wrapSymbol(inputPath, outputDir) {
     ],
   });
 
-  let optimizedSvgString = result.data;
-
-  return fs.writeFile(outputPath, optimizedSvgString);
+  return fs.writeFile(
+    outputPath,
+    prettier.format(result.data, { parser: 'html' })
+  );
 }
 
 async function compile() {
