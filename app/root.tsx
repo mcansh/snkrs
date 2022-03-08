@@ -7,13 +7,11 @@ import type {
 } from 'remix';
 import { useLoaderData, useTransition, json, Outlet, useMatches } from 'remix';
 import * as Fathom from 'fathom-client';
-import toast from 'react-hot-toast';
 import clsx from 'clsx';
 
 import globalStylesHref from './styles/global.css';
 import interStylesHref from './styles/inter.css';
 import refreshClockwise from './icons/refresh-clockwise.svg';
-import { sessionStorage } from './session.server';
 import type { Match } from './@types/types';
 import { getSeo } from './seo';
 import { Document } from './components/document';

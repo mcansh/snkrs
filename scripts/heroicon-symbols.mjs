@@ -1,7 +1,6 @@
 import path from 'path';
 import { promises as fs } from 'fs';
 
-import makeDir from 'make-dir';
 import { optimize, createContentItem } from 'svgo';
 
 let HEROCIONS_PATH = path.join(process.cwd(), 'node_modules/heroicons');
@@ -72,7 +71,10 @@ async function wrapSymbol(inputPath, outputDir) {
 
 async function compile() {
   // 1. verify all output directories exist
-  await Promise.all([makeDir(OUTDIR_OUTLINE), makeDir(OUTDIR_SOLID)]);
+  await Promise.all([
+    fs.mkdir(OUTDIR_OUTLINE, { recursive: true }),
+    fs.mkdir(OUTDIR_SOLID, { recursive: true }),
+  ]);
 
   // 2. get all svg icons from heroicons
   let [solid, outline] = await Promise.all([
