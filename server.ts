@@ -36,21 +36,22 @@ async function start() {
     await app.register(fastifyExpress);
 
     app.addHook('preHandler', (request, reply, done) => {
-      console.log(`${request.method} ${request.url}`);
-
-      if (
-        request.method.toLowerCase() === 'post' &&
+      let method = request.method.toLowerCase();
+      console.log(`${method} ${request.url}`);
+      const isMethodReplayable = !['get', 'options', 'head'].includes(method);
+      const isReadOnlyRegion =
         process.env.FLY_REGION &&
-        process.env.FLY_PRIMARY_REGION &&
-        process.env.FLY_REGION !== process.env.FLY_PRIMARY_REGION
-      ) {
-        return reply
-          .status(202)
-          .header('fly-replay', `region=${process.env.FLY_PRIMARY_REGION}`)
-          .send(`rewriting to ${process.env.FLY_PRIMARY_REGION}`);
-      }
+        process.env.PRIMARY_REGION &&
+        process.env.FLY_REGION !== process.env.PRIMARY_REGION;
 
-      return done();
+      const shouldReplay = isMethodReplayable && isReadOnlyRegion;
+
+      if (!shouldReplay) return done();
+
+      return reply
+        .status(409)
+        .header('fly-replay', `region=${process.env.FLY_PRIMARY_REGION}`)
+        .send(`rewriting to ${process.env.FLY_PRIMARY_REGION}`);
     });
 
     app.use(

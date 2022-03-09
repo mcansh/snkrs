@@ -12,4 +12,3 @@
 /app/icons/solid
 /app/icons/outline
 /app/routes.d.ts
-/prisma/db.sqlite*

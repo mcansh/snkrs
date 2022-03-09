@@ -1,7 +1,7 @@
 import Redis from 'ioredis';
 
-if (!process.env.FLY_REDIS_CACHE_URL) {
-  throw new Error('FLY_REDIS_CACHE_URL is not defined');
+if (!process.env.REDIS_URL) {
+  throw new Error('REDIS_URL is not defined');
 }
 
 declare global {
@@ -14,10 +14,10 @@ declare global {
 let redis: Redis.Redis;
 
 if (process.env.NODE_ENV === 'production') {
-  redis = new Redis(process.env.FLY_REDIS_CACHE_URL);
+  redis = new Redis(process.env.REDIS_URL);
 } else {
   if (!global.globalRedisClient) {
-    global.globalRedisClient = new Redis(process.env.FLY_REDIS_CACHE_URL);
+    global.globalRedisClient = new Redis(process.env.REDIS_URL);
   }
   redis = global.globalRedisClient;
 }

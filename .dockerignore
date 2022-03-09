@@ -23,4 +23,3 @@ jest.config.js
 lint-staged.config.js
 pm2.config.js
 prettier.config.js
-/prisma/db.sqlite*

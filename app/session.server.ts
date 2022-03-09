@@ -77,7 +77,3 @@ export async function logout(request: Request): Promise<Response> {
     },
   });
 }
-
-export function isAdmin(user: User): boolean {
-  return user.role === 'ADMIN';
-}
