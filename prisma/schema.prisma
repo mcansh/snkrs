@@ -52,7 +52,7 @@ model User {
   updatedAt  DateTime  @default(now()) @updatedAt
   sneakers   Sneaker[]
   settings   Settings?
-  role       Role      @default(ADMIN)
+  role       Role      @default(USER)
 }
 
 model Settings {
