@@ -8,13 +8,8 @@ processes = []
 
 [env]
   PORT = "8080"
-  DATABASE_URL = "file:/data/db"
   FLY_PRIMARY_REGION = "ord"
   FLY = "1"
-
-[mounts]
-  destination = "/data"
-  source = "data"
 
 [experimental]
   allowed_public_ports = []
@@ -46,10 +41,11 @@ processes = []
     timeout = "2s"
 
   [[services.http_checks]]
-    interval = 600000 # 10 minutes
+    interval = 10000
     grace_period = "5s"
     method = "get"
     path = "/healthcheck"
     protocol = "http"
     timeout = 2000
     tls_skip_verify = false
+    [services.http_checks.headers]

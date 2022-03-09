@@ -1,11 +1,10 @@
 import type { Session } from 'remix';
-import { redirect } from 'remix';
+import { createCookieSessionStorage, redirect } from 'remix';
 import type { User } from '@prisma/client';
 
-import { createRedisSessionStorage } from './redis-session.server';
 import { prisma } from './db.server';
 
-export let sessionStorage = createRedisSessionStorage({
+export let sessionStorage = createCookieSessionStorage({
   cookie: {
     name: '__session',
     secrets: [process.env.SESSION_PASSWORD],
@@ -76,8 +75,4 @@ export async function logout(request: Request): Promise<Response> {
       'Set-Cookie': await sessionStorage.destroySession(session),
     },
   });
-}
-
-export function isAdmin(user: User): boolean {
-  return user.role === 'ADMIN';
 }
