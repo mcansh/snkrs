@@ -85,7 +85,6 @@ export let unstable_shouldReload: ShouldReloadFunction = () => {
 export default function App() {
   let { ENV } = useLoaderData<RouteData>();
   let transition = useTransition();
-  let pendingLocation = transition.location;
   let [showPendingSpinner, setShowPendingSpinner] = React.useState(false);
 
   let matches = useMatches() as unknown as Array<Match>;
@@ -99,17 +98,8 @@ export default function App() {
   }, [ENV]);
 
   React.useEffect(() => {
-    let timerId: number;
-    if (pendingLocation) {
-      timerId = window.setTimeout(() => {
-        setShowPendingSpinner(true);
-      }, 500);
-    }
-
-    return () => {
-      window.clearTimeout(timerId);
-    };
-  }, [pendingLocation]);
+    setShowPendingSpinner(transition.state !== 'idle');
+  }, [transition.state]);
 
   return (
     <Document

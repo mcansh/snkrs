@@ -31,10 +31,13 @@ function getClient() {
 
   const isLocalHost = databaseUrl.hostname === 'localhost';
 
-  const PRIMARY_REGION = isLocalHost ? null : process.env.PRIMARY_REGION;
+  const FLY_PRIMARY_REGION = isLocalHost
+    ? null
+    : process.env.FLY_PRIMARY_REGION;
   const FLY_REGION = isLocalHost ? null : process.env.FLY_REGION;
 
-  const isReadReplicaRegion = !PRIMARY_REGION || PRIMARY_REGION === FLY_REGION;
+  const isReadReplicaRegion =
+    !FLY_PRIMARY_REGION || FLY_PRIMARY_REGION === FLY_REGION;
 
   if (!isLocalHost) {
     databaseUrl.host = `${FLY_REGION}.${databaseUrl.host}`;

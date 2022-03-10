@@ -1,6 +1,8 @@
+let fs = require('fs');
+
 let dotenv = require('dotenv');
 
-let result = dotenv.config();
+let result = dotenv.parse(fs.readFileSync('.env'));
 
 if (result.error) {
   throw result.error;
@@ -22,7 +24,7 @@ module.exports = {
       ignore_watch: ['.'],
     },
     {
-      name: 'Fastify',
+      name: 'Server',
       script: 'node ./build/index.js',
       env: {
         NODE_ENV: 'development',

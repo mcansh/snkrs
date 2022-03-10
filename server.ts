@@ -1,8 +1,6 @@
 /* eslint-disable no-console */
-import fastify from 'fastify';
-import sirv from 'sirv';
-import fastifyExpress from 'fastify-express';
-import { createRequestHandler } from '@mcansh/remix-fastify';
+import express from 'express';
+import { createRequestHandler } from '@remix-run/express';
 import * as serverBuild from '@remix-run/dev/server-build';
 import * as Sentry from '@sentry/node';
 
@@ -18,73 +16,71 @@ Sentry.init({
 
 Sentry.setContext('region', { name: process.env.FLY_REGION ?? 'unknown' });
 
-async function start() {
-  try {
-    let app = fastify();
+let app = express();
 
-    app.addContentTypeParser('*', (_request, payload, done) => {
-      let data = '';
-      payload.on('data', chunk => {
-        data += chunk;
-      });
-      payload.on('end', () => {
-        done(null, data);
-      });
-    });
+app.use((req, res, next) => {
+  res.set('x-fly-region', process.env.FLY_REGION ?? 'unknown');
+  res.set('Strict-Transport-Security', `max-age=${60 * 60 * 24 * 365 * 100}`);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    await app.register(fastifyExpress);
+  let proto = req.get('X-Forwarded-Proto');
+  let host = req.get('X-Forwarded-Host') ?? req.get('host');
 
-    app.addHook('preHandler', (request, reply, done) => {
-      let method = request.method.toLowerCase();
-      console.log(`${method} ${request.url}`);
-      const isMethodReplayable = !['get', 'options', 'head'].includes(method);
-      const isReadOnlyRegion =
-        process.env.FLY_REGION &&
-        process.env.PRIMARY_REGION &&
-        process.env.FLY_REGION !== process.env.PRIMARY_REGION;
-
-      const shouldReplay = isMethodReplayable && isReadOnlyRegion;
-
-      if (!shouldReplay) return done();
-
-      return reply
-        .status(409)
-        .header('fly-replay', `region=${process.env.FLY_PRIMARY_REGION}`)
-        .send(`rewriting to ${process.env.FLY_PRIMARY_REGION}`);
-    });
-
-    app.use(
-      '/build',
-      sirv('public/build', {
-        dev: MODE !== 'production',
-        etag: true,
-        dotfiles: true,
-        maxAge: 31536000,
-        immutable: true,
-      })
-    );
-
-    app.use(
-      sirv('public', {
-        dev: MODE !== 'production',
-        etag: true,
-        dotfiles: true,
-        maxAge: 3600,
-      })
-    );
-
-    app.all('*', createRequestHandler({ build: serverBuild }));
-
-    let port = process.env.PORT ?? 3000;
-
-    app.listen(port, '0.0.0.0', () => {
-      console.log(`Fastify server listening on port ${port}`);
-    });
-  } catch (error: unknown) {
-    console.error(error);
-    process.exit(1);
+  // HTTPS-upgrade
+  if (proto === 'http') {
+    res.set('X-Forwarded-Proto', 'https');
+    res.redirect(`https://${host}${req.originalUrl}`);
+    return;
   }
-}
 
-void start();
+  next();
+});
+
+// if we're not in the primary region, then we need to make sure all
+// non-GET/HEAD/OPTIONS requests hit the primary region rather than read-only
+// Postgres DBs.
+// learn more: https://fly.io/docs/getting-started/multi-region-databases/#replay-the-request
+app.all('*', function getReplayResponse(req, res, next) {
+  let method = req.method.toLowerCase();
+  let isMethodReplayable = !['get', 'options', 'head'].includes(method);
+  let isReadOnlyRegion =
+    process.env.FLY_REGION &&
+    process.env.FLY_PRIMARY_REGION &&
+    process.env.FLY_REGION !== process.env.FLY_PRIMARY_REGION;
+
+  let shouldReplay = isMethodReplayable && isReadOnlyRegion;
+
+  if (!shouldReplay) return next();
+
+  let logInfo = {
+    pathname: req.path,
+    method,
+    FLY_PRIMARY_REGION: process.env.FLY_PRIMARY_REGION,
+    FLY_REGION: process.env.FLY_REGION,
+  };
+  console.info(`Replaying:`, logInfo);
+  res.set('fly-replay', `region=${process.env.FLY_PRIMARY_REGION}`);
+  return res
+    .status(409)
+    .send(`Replaying request to ${process.env.FLY_PRIMARY_REGION}`);
+});
+
+// http://expressjs.com/en/advanced/best-practice-security.html#at-a-minimum-disable-x-powered-by-header
+app.disable('x-powered-by');
+
+// Remix fingerprints its assets so we can cache forever.
+app.use(
+  '/build',
+  express.static('public/build', { immutable: true, maxAge: '1y' })
+);
+
+// Everything else (like favicon.ico) is cached for an hour. You may want to be
+// more aggressive with this caching.
+app.use(express.static('public', { maxAge: '1h' }));
+
+app.all('*', createRequestHandler({ build: serverBuild }));
+
+let port = process.env.PORT ?? 3000;
+
+app.listen(port, () => {
+  console.log(`✅ app ready: http://localhost:${port}`);
+});
