@@ -92,7 +92,10 @@ export let loader: LoaderFunction = async ({ params, request }) => {
     'name'
   ).sort((a, b) => a.name.localeCompare(b.name));
 
-  if (uniqueBrands.every(brand => selectedBrands.includes(brand.slug))) {
+  if (
+    uniqueBrands.length > 0 &&
+    uniqueBrands.every(brand => selectedBrands.includes(brand.slug))
+  ) {
     url.searchParams.delete('brand');
     return redirect(url.toString());
   }
