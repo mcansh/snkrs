@@ -1,8 +1,9 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
-import { json, useLoaderData } from 'remix';
+import type { LoaderFunction, MetaFunction } from '@remix-run/node';
+import { json } from '@remix-run/node';
+import { useLoaderData } from '@remix-run/react';
 import { endOfYear, startOfYear } from 'date-fns';
-import type { MetaFunction, LoaderFunction } from 'remix';
 import invariant from 'tiny-invariant';
 
 import { SneakerCard } from '~/components/sneaker';

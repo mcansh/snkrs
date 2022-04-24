@@ -1,9 +1,10 @@
 import React from 'react';
-import { Form, json, redirect, useTransition } from 'remix';
+import type { ActionFunction, LoaderFunction } from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
+import { Form, useTransition } from '@remix-run/react';
 import slugify from 'slugify';
 import NumberFormat from 'react-number-format';
 import accounting from 'accounting';
-import type { ActionFunction, LoaderFunction } from 'remix';
 import { route } from 'routes-gen';
 
 import { prisma } from '~/db.server';

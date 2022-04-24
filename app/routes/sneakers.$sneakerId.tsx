@@ -1,8 +1,9 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
-import { json, Link, useLoaderData } from 'remix';
+import type { LoaderFunction, MetaFunction } from '@remix-run/node';
+import { json } from '@remix-run/node';
+import { Link, useLoaderData } from '@remix-run/react';
 import type { Except } from 'type-fest';
-import type { LoaderFunction, MetaFunction } from 'remix';
 import invariant from 'tiny-invariant';
 import { route } from 'routes-gen';
 

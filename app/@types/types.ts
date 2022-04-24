@@ -1,4 +1,4 @@
-import type { useMatches } from 'remix';
+import type { useMatches } from '@remix-run/react';
 import type { TypeOf, ZodType } from 'zod';
 
 export type Maybe<T> = T | null | undefined;

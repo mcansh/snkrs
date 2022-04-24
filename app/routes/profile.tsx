@@ -1,12 +1,15 @@
+import type {
+  ActionFunction,
+  LoaderFunction,
+  MetaFunction,
+} from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
 import {
   Form,
-  redirect,
-  useTransition,
-  useLoaderData,
-  json,
   useActionData,
-} from 'remix';
-import type { ActionFunction, LoaderFunction, MetaFunction } from 'remix';
+  useLoaderData,
+  useTransition,
+} from '@remix-run/react';
 
 import { requireUser, requireUserId } from '~/session.server';
 import { prisma } from '~/db.server';

@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { Popover, Transition } from '@headlessui/react';
-import { json, Link, redirect, useLoaderData } from 'remix';
-import type { LoaderFunction } from 'remix';
+import type { LoaderFunction } from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
+import { Link, useLoaderData } from '@remix-run/react';
 import { route } from 'routes-gen';
 
 import { prisma } from '~/db.server';

@@ -1,9 +1,14 @@
-import { Form, json, Link, redirect, useLoaderData, useSubmit } from 'remix';
+import type {
+  HeadersFunction,
+  LoaderFunction,
+  MetaFunction,
+} from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
+import { Form, Link, useLoaderData, useSubmit } from '@remix-run/react';
 import { Prisma } from '@prisma/client';
 import uniqBy from 'lodash.uniqby';
 import { Disclosure } from '@headlessui/react';
 import type { Brand, User } from '@prisma/client';
-import type { LoaderFunction, MetaFunction, HeadersFunction } from 'remix';
 import clsx from 'clsx';
 import { route } from 'routes-gen';
 

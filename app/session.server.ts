@@ -1,5 +1,5 @@
-import type { Session } from 'remix';
-import { createCookieSessionStorage, redirect } from 'remix';
+import type { Session } from '@remix-run/node';
+import { createCookieSessionStorage, redirect } from '@remix-run/node';
 import type { User } from '@prisma/client';
 
 import { prisma } from './db.server';

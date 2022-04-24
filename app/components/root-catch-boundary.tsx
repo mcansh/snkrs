@@ -1,4 +1,4 @@
-import { useCatch } from 'remix';
+import { useCatch } from '@remix-run/react';
 
 import { Document } from './document';
 

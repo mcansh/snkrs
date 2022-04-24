@@ -1,19 +1,17 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
-import {
-  Form,
-  Link,
-  useLoaderData,
-  redirect,
-  useTransition,
-  json,
-} from 'remix';
+import type {
+  ActionFunction,
+  LoaderFunction,
+  MetaFunction,
+} from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
+import { Form, Link, useLoaderData, useTransition } from '@remix-run/react';
 import { format, parseISO } from 'date-fns';
 import slugify from 'slugify';
 import clsx from 'clsx';
 import accounting from 'accounting';
 import NumberFormat from 'react-number-format';
-import type { MetaFunction, LoaderFunction, ActionFunction } from 'remix';
 import type { Except } from 'type-fest';
 import invariant from 'tiny-invariant';
 import { route } from 'routes-gen';

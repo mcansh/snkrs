@@ -3,9 +3,15 @@ import type {
   LinksFunction,
   LoaderFunction,
   MetaFunction,
-  ShouldReloadFunction,
-} from 'remix';
-import { useLoaderData, useTransition, json, Outlet, useMatches } from 'remix';
+} from '@remix-run/node';
+import { json } from '@remix-run/node';
+import type { ShouldReloadFunction } from '@remix-run/react';
+import {
+  Outlet,
+  useLoaderData,
+  useMatches,
+  useTransition,
+} from '@remix-run/react';
 import * as Fathom from 'fathom-client';
 import clsx from 'clsx';
 

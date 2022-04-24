@@ -1,5 +1,5 @@
-import { redirect } from 'remix';
-import type { LoaderFunction } from 'remix';
+import type { LoaderFunction } from '@remix-run/node';
+import { redirect } from '@remix-run/node';
 import { route } from 'routes-gen';
 import invariant from 'tiny-invariant';
 

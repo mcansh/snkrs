@@ -1,5 +1,10 @@
-import type { RouteComponent, LoaderFunction, MetaFunction } from 'remix';
-import { useLoaderData, json } from 'remix';
+import type {
+  LoaderFunction,
+  MetaFunction,
+  RouteComponent,
+} from '@remix-run/node';
+import { json } from '@remix-run/node';
+import { useLoaderData } from '@remix-run/react';
 
 import { prisma } from '~/db.server';
 

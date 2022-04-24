@@ -1,13 +1,7 @@
-import {
-  redirect,
-  useTransition,
-  json,
-  useActionData,
-  Form,
-  Link,
-} from 'remix';
+import type { ActionFunction, LoaderFunction } from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
+import { Form, Link, useActionData, useTransition } from '@remix-run/react';
 import type { MetaFunction } from '@remix-run/react/routeModules';
-import type { ActionFunction, LoaderFunction } from 'remix';
 import Alert from '@reach/alert';
 import { route } from 'routes-gen';
 

@@ -1,5 +1,11 @@
 import clsx from 'clsx';
-import { Links, LiveReload, Meta, Scripts, ScrollRestoration } from 'remix';
+import {
+  Links,
+  LiveReload,
+  Meta,
+  Scripts,
+  ScrollRestoration,
+} from '@remix-run/react';
 
 export function Document({
   children,

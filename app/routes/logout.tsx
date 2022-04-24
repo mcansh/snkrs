@@ -1,5 +1,6 @@
-import { Form, json, redirect } from 'remix';
-import type { ActionFunction, LoaderFunction } from 'remix';
+import type { ActionFunction, LoaderFunction } from '@remix-run/node';
+import { json, redirect } from '@remix-run/node';
+import { Form } from '@remix-run/react';
 
 import { getUserId, logout } from '~/session.server';
 

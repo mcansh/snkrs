@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Prisma } from '@prisma/client';
-import { Link } from 'remix';
+import { Link } from '@remix-run/react';
 import { route } from 'routes-gen';
 
 import { getCloudinaryURL, getImageURLs } from '~/utils/get-cloudinary-url';

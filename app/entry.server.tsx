@@ -1,7 +1,8 @@
 import { renderToString } from 'react-dom/server';
-import { RemixServer, redirect } from 'remix';
+import type { EntryContext, HandleDataRequestFunction } from '@remix-run/node';
+import { redirect } from '@remix-run/node';
+import { RemixServer } from '@remix-run/react';
 import etag from 'etag';
-import type { EntryContext, HandleDataRequestFunction } from 'remix';
 
 // https://securityheaders.com
 let cspSettings = {
