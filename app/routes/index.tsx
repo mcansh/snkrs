@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Popover, Transition } from '@headlessui/react';
-import { json, Link, redirect } from 'remix';
+import { json, Link, redirect, useLoaderData } from 'remix';
 import type { LoaderFunction } from 'remix';
 import { route } from 'routes-gen';
 
@@ -8,6 +8,10 @@ import { prisma } from '~/db.server';
 import { getUserId } from '~/session.server';
 import menuIconUrl from '~/icons/outline/menu.svg';
 import xIconUrl from '~/icons/outline/x.svg';
+
+interface LoaderData {
+  demo: string;
+}
 
 export let loader: LoaderFunction = async ({ request }) => {
   let userId = await getUserId(request);
@@ -20,10 +24,12 @@ export let loader: LoaderFunction = async ({ request }) => {
     }
   }
 
-  return json(null);
+  return json<LoaderData>({ demo: process.env.DEFAULT_USER });
 };
 
 export default function IndexPage() {
+  let data = useLoaderData<LoaderData>();
+
   return (
     <div className="relative bg-gray-50 overflow-hidden">
       <div
@@ -194,7 +200,7 @@ export default function IndexPage() {
               </div>
               <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
                 <Link
-                  to={route('/:username', { username: 'loganmcansh' })}
+                  to={route('/:username', { username: data.demo })}
                   prefetch="intent"
                   className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
                 >

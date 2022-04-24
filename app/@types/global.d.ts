@@ -9,5 +9,6 @@ declare namespace NodeJS {
     FATHOM_SITE_ID: string;
     FATHOM_SCRIPT_URL: string;
     NODE_ENV: 'development' | 'production' | 'test';
+    DEFAULT_USER: string;
   }
 }
