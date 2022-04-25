@@ -5,11 +5,10 @@ import invariant from 'tiny-invariant';
 
 export let loader: LoaderFunction = ({ params }) => {
   invariant(params.username, 'username is required');
-  let currentYear = new Date().getFullYear();
   return redirect(
     route('/:username/yir/:year', {
       username: params.username,
-      year: currentYear.toString(),
+      year: new Date().getFullYear().toString(),
     })
   );
 };

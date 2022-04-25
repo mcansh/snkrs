@@ -104,7 +104,13 @@ export default function App() {
   }, [ENV]);
 
   React.useEffect(() => {
-    setShowPendingSpinner(transition.state !== 'idle');
+    let timer = setTimeout(() => {
+      setShowPendingSpinner(transition.state !== 'idle');
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, [transition.state]);
 
   return (
