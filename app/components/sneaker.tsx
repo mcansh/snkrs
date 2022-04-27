@@ -11,10 +11,6 @@ let sneakerWithBrand = Prisma.validator<Prisma.SneakerArgs>()({
 
 type SneakerWithBrand = Prisma.SneakerGetPayload<typeof sneakerWithBrand>;
 
-interface Props extends SneakerWithBrand {
-  showPurchasePrice: boolean;
-}
-
 export function SneakerCard({
   id,
   model,
@@ -22,7 +18,7 @@ export function SneakerCard({
   brand,
   imagePublicId,
   price,
-}: Props) {
+}: SneakerWithBrand) {
   let srcSet = getImageURLs(imagePublicId);
 
   return (

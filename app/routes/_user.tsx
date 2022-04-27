@@ -8,6 +8,7 @@ import { json, redirect } from '@remix-run/node';
 import {
   Form,
   Link,
+  Outlet,
   useLoaderData,
   useLocation,
   useSubmit,
@@ -16,13 +17,11 @@ import { Prisma } from '@prisma/client';
 import uniqBy from 'lodash.uniqby';
 import { Dialog, Transition } from '@headlessui/react';
 import type { User } from '@prisma/client';
-import clsx from 'clsx';
 import { route } from 'routes-gen';
 
 import { prisma } from '~/db.server';
 import x from '~/icons/outline/x.svg';
 import plusSm from '~/icons/solid/plus-sm.svg';
-import { SneakerCard } from '~/components/sneaker';
 import { getUserId, sessionStorage } from '~/session.server';
 import type { Maybe } from '~/@types/types';
 import { getSeoMeta } from '~/seo';
@@ -51,9 +50,6 @@ export interface RouteData {
   user: UserWithSneakers;
   sort: 'asc' | 'desc';
   sessionUser?: Maybe<Pick<User, 'givenName' | 'id'>> | null;
-  settings: {
-    showPurchasePrice: boolean;
-  };
 }
 
 export let loader: LoaderFunction = async ({ params, request }) => {
@@ -83,10 +79,6 @@ export let loader: LoaderFunction = async ({ params, request }) => {
   if (!user) {
     throw new Response("This user doesn't exist", { status: 404 });
   }
-
-  let settings = await prisma.settings.findUnique({
-    where: { userId: user.id },
-  });
 
   let sessionUser = userId
     ? await prisma.user.findUnique({
@@ -135,9 +127,6 @@ export let loader: LoaderFunction = async ({ params, request }) => {
       ],
       sort: sortQuery === 'asc' ? 'asc' : 'desc',
       sessionUser,
-      settings: {
-        showPurchasePrice: settings?.showPurchasePrice ?? false,
-      },
     },
     {
       headers: {
@@ -186,7 +175,7 @@ export let meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
 export default function UserSneakersPage() {
   let data = useLoaderData<RouteData>();
   let submit = useSubmit();
-  let { key: locationKey } = useLocation();
+  let location = useLocation();
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
 
   if (
@@ -255,9 +244,10 @@ export default function UserSneakersPage() {
               </div>
 
               <Form
-                key={locationKey}
-                replace
+                key={location.key}
+                action={location.pathname}
                 className="mt-4"
+                replace
                 onChange={event => {
                   submit(event.currentTarget, { replace: true });
                 }}
@@ -368,7 +358,8 @@ export default function UserSneakersPage() {
 
             <div className="hidden lg:block">
               <Form
-                key={locationKey}
+                key={location.key}
+                action={location.pathname}
                 className="divide-y divide-gray-200 space-y-10"
                 replace
                 onChange={event => {
@@ -432,47 +423,10 @@ export default function UserSneakersPage() {
           </aside>
 
           <div className="mt-6 lg:mt-0 lg:col-span-2 xl:col-span-3">
-            {data.user.sneakers.length === 0 ? (
-              <EmptyState fullName={data.user.fullName} />
-            ) : (
-              <SneakerGrid
-                showPurchasePrice={data.settings.showPurchasePrice}
-                sneakers={data.user.sneakers}
-              />
-            )}
+            <Outlet />
           </div>
         </div>
       </main>
     </div>
-  );
-}
-
-function EmptyState({ fullName }: { fullName: string }) {
-  return (
-    <div className="px-6">
-      <h1 className="text-2xl font-medium">
-        {fullName} has no sneakers in their collection
-      </h1>
-    </div>
-  );
-}
-
-function SneakerGrid({
-  sneakers,
-  showPurchasePrice,
-}: {
-  sneakers: RouteData['user']['sneakers'];
-  showPurchasePrice: boolean;
-}) {
-  return (
-    <ul className="grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-4">
-      {sneakers.map(sneaker => (
-        <SneakerCard
-          key={sneaker.id}
-          {...sneaker}
-          showPurchasePrice={showPurchasePrice}
-        />
-      ))}
-    </ul>
   );
 }

@@ -91,22 +91,13 @@ let SneakersYearInReview: React.VFC = () => {
   }
 
   return (
-    <main className="container h-full p-4 pb-6 mx-auto">
-      <h1 className="pb-2 text-xl xs:text-2xl sm:text-4xl">
-        Sneakers bought in {year} – {user.sneakers.length}
-        {new Date().getFullYear() === year && ` and counting`}
-      </h1>
-
-      <ul className="grid grid-cols-2 gap-2 sm:gap-x-6 gap-y-8 lg:grid-cols-4 xl:gap-x-8">
+    <div className="mt-6 lg:mt-0 lg:col-span-2 xl:col-span-3">
+      <ul className="grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-4">
         {user.sneakers.map(sneaker => (
-          <SneakerCard
-            key={sneaker.id}
-            {...sneaker}
-            showPurchasePrice={user.settings?.showPurchasePrice ?? true}
-          />
+          <SneakerCard key={sneaker.id} {...sneaker} />
         ))}
       </ul>
-    </main>
+    </div>
   );
 };
 
