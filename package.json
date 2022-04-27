@@ -19,7 +19,7 @@
     "generate:global": "gen-env-types .env -o app/@types/global.d.ts -e .",
     "generate": "run-p generate:*",
     "lint": "eslint --cache --ext .js,.jsx,.ts,.tsx,.mjs,.cjs,.cts,.mts .",
-    "test": "jest --passWithNoTests",
+    "test": "jest",
     "type-check": "tsc",
     "validate": "run-p lint type-check test",
     "db:migrate": "prisma migrate dev --preview-feature",

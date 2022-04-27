@@ -1,7 +1,10 @@
+/** @type {import('@jest/types').Config.InitialOptions} */
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  testURL: 'http://localhost:3000/',
+  testEnvironmentOptions: {
+    url: 'http://localhost:3000/',
+  },
   coverageDirectory: './coverage/',
   collectCoverage: true,
   setupFilesAfterEnv: ['@testing-library/jest-dom/extend-expect'],
@@ -9,4 +12,5 @@ module.exports = {
   moduleNameMapper: {
     '^~/(.*)$': '<rootDir>/app/$1',
   },
+  passWithNoTests: true,
 };
