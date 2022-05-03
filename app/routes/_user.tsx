@@ -338,7 +338,7 @@ export default function UserSneakersPage() {
           </h1>
         </div>
 
-        <div className="pt-12 lg:grid lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4">
+        <div className="pt-12 lg:grid lg:grid-cols-4 lg:gap-x-8">
           <aside>
             <h2 className="sr-only">Filters</h2>
 
@@ -422,7 +422,7 @@ export default function UserSneakersPage() {
             </div>
           </aside>
 
-          <div className="mt-6 lg:mt-0 lg:col-span-2 xl:col-span-3">
+          <div className="mt-6 lg:mt-0 lg:col-span-3">
             <Outlet />
           </div>
         </div>
