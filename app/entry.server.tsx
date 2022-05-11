@@ -86,16 +86,11 @@ export default function handleDocumentRequest(
     responseHeaders.set('Cache-Control', 'no-cache');
   }
 
-  // eslint-disable-next-line testing-library/render-result-naming-convention
   let markup = renderToString(
     <RemixServer url={request.url} context={remixContext} />
   );
 
   let markupETag = etag(markup);
-
-  if (markupETag === request.headers.get('If-None-Match')) {
-    return new Response('', { status: 304 });
-  }
 
   responseHeaders.set('Content-Type', 'text/html');
   responseHeaders.set('ETag', markupETag);
@@ -107,17 +102,31 @@ export default function handleDocumentRequest(
     responseHeaders.set('X-Fly-Region', process.env.FLY_REGION);
   }
 
+  if (markupETag === request.headers.get('If-None-Match')) {
+    return new Response('', { status: 304 });
+  }
+
   return new Response(`<!DOCTYPE html>${markup}`, {
     status: responseStatusCode,
     headers: responseHeaders,
   });
 }
 
-export let handleDataRequest: HandleDataRequestFunction = (
+export let handleDataRequest: HandleDataRequestFunction = async (
   response,
   { request }
 ) => {
   let method = request.method.toLowerCase();
+
+  if (method === 'get') {
+    let body = await response.text();
+    let bodyETag = etag(body);
+    response.headers.set('etag', bodyETag);
+    if (bodyETag === request.headers.get('If-None-Match')) {
+      return new Response('', { status: 304 });
+    }
+  }
+
   if (method === 'get' && !response.headers.has('Cache-Control')) {
     let purpose =
       request.headers.get('Purpose') ??
