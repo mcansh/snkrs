@@ -91,6 +91,13 @@ export default function handleDocumentRequest(
   );
 
   let markupETag = etag(markup);
+  let ifNoneMatch = request.headers.get('If-None-Match');
+  // eslint-disable-next-line no-console
+  console.log({
+    url: request.url,
+    etag: markupETag,
+    ifNoneMatch,
+  });
 
   responseHeaders.set('Content-Type', 'text/html');
   responseHeaders.set('ETag', markupETag);
@@ -102,7 +109,7 @@ export default function handleDocumentRequest(
     responseHeaders.set('X-Fly-Region', process.env.FLY_REGION);
   }
 
-  if (markupETag === request.headers.get('If-None-Match')) {
+  if (markupETag === ifNoneMatch) {
     return new Response('', { status: 304 });
   }
 
@@ -121,8 +128,15 @@ export let handleDataRequest: HandleDataRequestFunction = async (
   if (method === 'get') {
     let body = await response.text();
     let bodyETag = etag(body);
+    let ifNoneMatch = request.headers.get('If-None-Match');
+    // eslint-disable-next-line no-console
+    console.log({
+      url: request.url,
+      etag: bodyETag,
+      ifNoneMatch,
+    });
     response.headers.set('etag', bodyETag);
-    if (bodyETag === request.headers.get('If-None-Match')) {
+    if (bodyETag === ifNoneMatch) {
       return new Response('', { status: 304 });
     }
   }
