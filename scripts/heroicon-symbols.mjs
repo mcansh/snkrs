@@ -8,7 +8,7 @@ let HEROCIONS_PATH = path.join(process.cwd(), 'node_modules/heroicons');
 let HEROCIONS_SOLID_PATH = path.join(HEROCIONS_PATH, 'solid');
 let HEROCIONS_OUTLINE_PATH = path.join(HEROCIONS_PATH, 'outline');
 
-let OUTDIR = path.join(process.cwd(), 'app/icons');
+let OUTDIR = path.join(process.cwd(), 'app/assets/icons');
 let OUTDIR_SOLID = path.join(OUTDIR, 'solid');
 let OUTDIR_OUTLINE = path.join(OUTDIR, 'outline');
 

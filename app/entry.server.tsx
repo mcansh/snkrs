@@ -23,7 +23,11 @@ let securityHeaders = createSecureHeaders({
     'connect-src':
       process.env.NODE_ENV === 'production'
         ? ["'self'"]
-        : ["'self'", `ws://localhost:${process.env.REMIX_DEV_SERVER_WS_PORT}`],
+        : [
+            "'self'",
+            `ws://localhost:${process.env.REMIX_DEV_SERVER_WS_PORT}/socket`,
+            `ws://localhost:8002/socket`,
+          ],
   },
   'Permissions-Policy': {
     accelerometer: [],
@@ -92,12 +96,6 @@ export default function handleDocumentRequest(
 
   let markupETag = etag(markup);
   let ifNoneMatch = request.headers.get('If-None-Match');
-  // eslint-disable-next-line no-console
-  console.log({
-    url: request.url,
-    etag: markupETag,
-    ifNoneMatch,
-  });
 
   responseHeaders.set('Content-Type', 'text/html');
   responseHeaders.set('ETag', markupETag);
@@ -129,12 +127,6 @@ export let handleDataRequest: HandleDataRequestFunction = async (
     let body = await response.text();
     let bodyETag = etag(body);
     let ifNoneMatch = request.headers.get('If-None-Match');
-    // eslint-disable-next-line no-console
-    console.log({
-      url: request.url,
-      etag: bodyETag,
-      ifNoneMatch,
-    });
     response.headers.set('etag', bodyETag);
     if (bodyETag === ifNoneMatch) {
       return new Response('', { status: 304 });

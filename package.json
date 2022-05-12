@@ -24,7 +24,7 @@
     "validate": "run-p lint type-check test",
     "db:migrate": "prisma migrate dev --preview-feature",
     "prepare": "husky install",
-    "clean": "del .cache build public/build app/styles app/icons/{solid,outline}",
+    "clean": "del .cache build public/build app/styles app/assets/icons/{solid,outline}",
     "start": "cross-env NODE_ENV=production node ./build",
     "deploy": "flyctl deploy"
   },

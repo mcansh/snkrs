@@ -20,8 +20,8 @@ import type { User } from '@prisma/client';
 import { route } from 'routes-gen';
 
 import { prisma } from '~/db.server';
-import x from '~/icons/outline/x.svg';
-import plusSm from '~/icons/solid/plus-sm.svg';
+import x from '~/assets/icons/outline/x.svg';
+import plusSm from '~/assets/icons/solid/plus-sm.svg';
 import { getUserId, sessionStorage } from '~/session.server';
 import type { Maybe } from '~/@types/types';
 import { getSeoMeta } from '~/seo';

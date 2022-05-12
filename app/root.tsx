@@ -15,12 +15,12 @@ import {
 import * as Fathom from 'fathom-client';
 import clsx from 'clsx';
 
-import globalStylesHref from './styles/global.css';
-import interStylesHref from './styles/inter.css';
-import refreshClockwise from './icons/refresh-clockwise.svg';
-import type { Match } from './@types/types';
-import { getSeo } from './seo';
-import { Document } from './components/document';
+import globalStylesHref from '~/styles/global.css';
+import interStylesHref from '~/styles/inter.css';
+import refreshClockwise from '~/assets/icons/refresh-clockwise.svg';
+import type { Match } from '~/@types/types';
+import { getSeo } from '~/seo';
+import { Document } from '~/components/document';
 
 export { CatchBoundary } from '~/components/root-catch-boundary';
 export { ErrorBoundary } from '~/components/root-error-boundary';
@@ -39,7 +39,6 @@ export let meta: MetaFunction = () => ({
   'apple-mobile-web-app-title': 'Sneakers',
   'application-name': 'Sneakers',
   'msapplication-TileColor': '#000000',
-  'theme-color': '#fff',
   'apple-mobile-web-app-capable': 'yes',
   'apple-mobile-web-app-status-bar-style': 'black-translucent',
   viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
