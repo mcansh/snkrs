@@ -43,23 +43,19 @@ export default function IndexPage() {
                 <p className="mt-6 text-xl text-gray-500">
                   Showcase your collection
                 </p>
-                <div className="mt-12 sm:max-w-lg sm:w-full sm:flex sm:space-x-4 sm:space-y-0 space-y-4">
-                  <div>
-                    <Link
-                      to={route('/join')}
-                      className="rounded-md border border-transparent px-5 py-3 bg-indigo-500 text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
-                    >
-                      Get started
-                    </Link>
-                  </div>
-                  <div>
-                    <Link
-                      to={route('/:username', { username: data.demo })}
-                      className="rounded-md border border-transparent px-5 py-3 bg-rose-500 text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10"
-                    >
-                      View live demo
-                    </Link>
-                  </div>
+                <div className="mt-12 sm:max-w-lg sm:w-full flex sm:flex-row sm:space-x-4 sm:space-y-0 space-y-4 flex-col">
+                  <Link
+                    to={route('/join')}
+                    className="rounded-md border border-transparent px-5 py-3 bg-indigo-500 text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10 text-center"
+                  >
+                    Get started
+                  </Link>
+                  <Link
+                    to={route('/:username', { username: data.demo })}
+                    className="rounded-md border border-transparent px-5 py-3 bg-rose-500 text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10 text-center"
+                  >
+                    View live demo
+                  </Link>
                 </div>
               </div>
             </div>

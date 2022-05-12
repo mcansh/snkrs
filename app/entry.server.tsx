@@ -26,7 +26,6 @@ let securityHeaders = createSecureHeaders({
         : [
             "'self'",
             `ws://localhost:${process.env.REMIX_DEV_SERVER_WS_PORT}/socket`,
-            `ws://localhost:8002/socket`,
           ],
   },
   'Permissions-Policy': {
