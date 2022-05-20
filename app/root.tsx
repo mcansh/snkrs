@@ -6,19 +6,15 @@ import type {
 } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import type { ShouldReloadFunction } from '@remix-run/react';
-import {
-  Outlet,
-  useLoaderData,
-  useMatches,
-  useTransition,
-} from '@remix-run/react';
+import { Outlet, useLoaderData, useTransition } from '@remix-run/react';
 import * as Fathom from 'fathom-client';
 import clsx from 'clsx';
+
+import { useMatches } from './lib/use-matches';
 
 import globalStylesHref from '~/styles/global.css';
 import interStylesHref from '~/styles/inter.css';
 import refreshClockwise from '~/assets/icons/refresh-clockwise.svg';
-import type { Match } from '~/@types/types';
 import { getSeo } from '~/seo';
 import { Document } from '~/components/document';
 
@@ -92,7 +88,7 @@ export default function App() {
   let transition = useTransition();
   let [showPendingSpinner, setShowPendingSpinner] = React.useState(false);
 
-  let matches = useMatches() as unknown as Array<Match>;
+  let matches = useMatches();
   let handleBodyClassName = matches.map(match => match.handle?.bodyClassName);
 
   React.useEffect(() => {
