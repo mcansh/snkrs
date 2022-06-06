@@ -25,7 +25,7 @@ interface RouteData {
   year: number;
 }
 
-let loader: LoaderFunction = async ({ params }) => {
+export let loader: LoaderFunction = async ({ params }) => {
   invariant(params.year, 'year is required');
   invariant(params.username, 'username is required');
   let year = parseInt(params.year, 10);
@@ -63,7 +63,7 @@ let loader: LoaderFunction = async ({ params }) => {
   return json<RouteData>({ user, year });
 };
 
-let meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
+export let meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
   if (!data?.user) {
     return getSeoMeta({
       title: "Ain't nothing here",
@@ -77,7 +77,7 @@ let meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
   });
 };
 
-let SneakersYearInReview: React.VFC = () => {
+export default function SneakersYearInReview() {
   let { user, year } = useLoaderData<RouteData>();
 
   if (!user.sneakers.length) {
@@ -99,7 +99,4 @@ let SneakersYearInReview: React.VFC = () => {
       </ul>
     </div>
   );
-};
-
-export default SneakersYearInReview;
-export { meta, loader };
+}
