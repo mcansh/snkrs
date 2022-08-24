@@ -1,6 +1,6 @@
 import React from 'react';
 import { Prisma } from '@prisma/client';
-import type { LoaderFunction, MetaFunction } from '@remix-run/node';
+import type { LoaderArgs, LoaderFunction, MetaFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import { endOfYear, startOfYear } from 'date-fns';
@@ -10,22 +10,7 @@ import { SneakerCard } from '~/components/sneaker';
 import { prisma } from '~/db.server';
 import { getSeoMeta } from '~/seo';
 
-let userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
-  select: {
-    username: true,
-    sneakers: { include: { brand: true } },
-    settings: true,
-  },
-});
-
-type UserWithSneakers = Prisma.UserGetPayload<typeof userWithSneakers>;
-
-interface RouteData {
-  user: UserWithSneakers;
-  year: number;
-}
-
-export let loader: LoaderFunction = async ({ params }) => {
+export let loader = async ({ params }: LoaderArgs) => {
   invariant(params.year, 'year is required');
   invariant(params.username, 'username is required');
   let year = parseInt(params.year, 10);
@@ -60,16 +45,10 @@ export let loader: LoaderFunction = async ({ params }) => {
     throw new Response('', { status: 404 });
   }
 
-  return json<RouteData>({ user, year });
+  return json({ user, year });
 };
 
-export let meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
-  if (!data?.user) {
-    return getSeoMeta({
-      title: "Ain't nothing here",
-    });
-  }
-
+export let meta: MetaFunction<typeof loader> = ({ data }) => {
   let sneakers = data.user.sneakers.length === 1 ? 'sneaker' : 'sneakers';
   return getSeoMeta({
     title: `${data.year} • ${data.user.username}`,
@@ -78,7 +57,7 @@ export let meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
 };
 
 export default function SneakersYearInReview() {
-  let { user, year } = useLoaderData<RouteData>();
+  let { user, year } = useLoaderData<typeof loader>();
 
   if (!user.sneakers.length) {
     return (

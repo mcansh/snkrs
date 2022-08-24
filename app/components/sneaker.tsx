@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { Link } from '@remix-run/react';
 import { route } from 'routes-gen';
+import type { SerializeFrom } from '@remix-run/node';
 
 import { getCloudinaryURL, getImageURLs } from '~/utils/get-cloudinary-url';
 import { formatMoney } from '~/utils/format-money';
@@ -9,7 +10,9 @@ let sneakerWithBrand = Prisma.validator<Prisma.SneakerArgs>()({
   include: { brand: true },
 });
 
-type SneakerWithBrand = Prisma.SneakerGetPayload<typeof sneakerWithBrand>;
+type SneakerWithBrand = SerializeFrom<
+  Prisma.SneakerGetPayload<typeof sneakerWithBrand>
+>;
 
 export function SneakerCard({
   id,

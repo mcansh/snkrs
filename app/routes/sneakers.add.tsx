@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ActionFunction, LoaderFunction } from '@remix-run/node';
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { Form, useTransition } from '@remix-run/react';
 import slugify from 'slugify';
@@ -9,28 +9,23 @@ import { route } from 'routes-gen';
 
 import { prisma } from '~/db.server';
 import { cloudinary } from '~/lib/cloudinary.server';
-import type { PossibleErrors } from '~/lib/schemas/sneaker.server';
 import { sneakerSchema } from '~/lib/schemas/sneaker.server';
 import { parseStringFormData } from '~/utils/parse-string-formdata';
 import { requireUserId } from '~/session.server';
 import { getSeoMeta } from '~/seo';
 
-let meta = () => {
+export const meta: MetaFunction = () => {
   return getSeoMeta({
     title: 'Add a sneaker to your collection',
   });
 };
 
-let loader: LoaderFunction = async ({ request }) => {
+export async function loader({ request }: LoaderArgs) {
   await requireUserId(request);
   return json(null);
-};
-
-interface ActionData {
-  errors: PossibleErrors;
 }
 
-let action: ActionFunction = async ({ request }) => {
+export async function action({ request }: ActionArgs) {
   let userId = await requireUserId(request);
   let formData = await parseStringFormData(request);
 
@@ -55,9 +50,7 @@ let action: ActionFunction = async ({ request }) => {
   });
 
   if (!valid.success) {
-    return json<ActionData>({
-      errors: valid.error.flatten().fieldErrors,
-    });
+    return json({ errors: valid.error.flatten().fieldErrors });
   }
 
   let imagePublicId = '';
@@ -108,9 +101,9 @@ let action: ActionFunction = async ({ request }) => {
   });
 
   return redirect(route('/sneakers/:sneakerId', { sneakerId: sneaker.id }));
-};
+}
 
-let NewSneakerPage: React.VFC = () => {
+export default function NewSneakerPage() {
   let transition = useTransition();
   let pendingForm = transition.submission;
 
@@ -222,7 +215,4 @@ let NewSneakerPage: React.VFC = () => {
       </Form>
     </main>
   );
-};
-
-export default NewSneakerPage;
-export { meta, loader, action };
+}
