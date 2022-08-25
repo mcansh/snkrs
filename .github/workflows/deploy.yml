@@ -5,7 +5,78 @@ on:
       - main
   pull_request: {}
 
+permissions:
+  actions: write
+  contents: read
+
 jobs:
+  lint:
+    name: ⬣ ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛑 Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: 📥 Download deps
+        uses: bahmutov/npm-install@v1
+        with:
+          useLockFile: false
+
+      - name: 🔬 Lint
+        run: npm run lint
+
+  typecheck:
+    name: ʦ TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛑 Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: 📥 Download deps
+        uses: bahmutov/npm-install@v1
+        with:
+          useLockFile: false
+
+      - name: 🔎 Type check
+        run: npm run typecheck --if-present
+
+  jest:
+    name: ⚡ jest
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛑 Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v3
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: 📥 Download deps
+        uses: bahmutov/npm-install@v1
+
+      - name: ⚡ Run vitest
+        run: npm run test -- --coverage
+
   build:
     name: 🐳 Build
     # only build/deploy main branch on pushes
@@ -16,7 +87,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.10.0
 
       - name: ⬇️ Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: 📖 Read Fly.toml name
         uses: SebRollen/toml-action@v1.0.0
@@ -41,8 +112,8 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: registry.fly.io
-          username: ${{ secrets.FLY_API_TOKEN }}
-          password: x
+          username: x
+          password: ${{ secrets.FLY_API_TOKEN }}
 
       - name: 🐳 Docker build
         uses: docker/build-push-action@v3
@@ -50,8 +121,8 @@ jobs:
           context: .
           push: true
           tags:
-            registry.fly.io/${{ steps.app_name.outputs.value }}:${{ github.sha
-            }}
+            registry.fly.io/${{ steps.app_name.outputs.value }}:${{
+            github.ref_name }}-${{ github.sha }}
           build-args: |
             COMMIT_SHA=${{ github.sha }}
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -62,7 +133,7 @@ jobs:
       # Temp fix
       # https://github.com/docker/build-push-action/issues/252
       # https://github.com/moby/buildkit/issues/1896
-      - name: 🚜 Move cache
+      - name: 🚚 Move cache
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
@@ -70,7 +141,7 @@ jobs:
   deploy:
     name: 🚀 Deploy
     runs-on: ubuntu-latest
-    needs: [build]
+    needs: [lint, typecheck, jest, build]
     # only build/deploy main branch on pushes
     if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' }}
 
@@ -79,7 +150,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.10.0
 
       - name: ⬇️ Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: 📖 Read Fly.toml name
         uses: SebRollen/toml-action@v1.0.0
@@ -88,11 +159,12 @@ jobs:
           file: 'fly.toml'
           field: 'app'
 
-      - name: 🚀 Deploy
+      - name: 🚀 Deploy Production
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: superfly/flyctl-actions@1.3
         with:
           args:
-            'deploy --config ./fly.toml --image registry.fly.io/${{
-            steps.app_name.outputs.value }}:${{ github.sha }}'
+            'deploy --image registry.fly.io/${{ steps.app_name.outputs.value
+            }}:${{ github.ref_name }}-${{ github.sha }}'
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

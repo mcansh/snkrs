@@ -21,7 +21,7 @@
     "generate": "run-p generate:*",
     "lint": "eslint --cache --ext .js,.jsx,.ts,.tsx,.mjs,.cjs,.cts,.mts .",
     "test": "jest",
-    "type-check": "tsc",
+    "typecheck": "tsc",
     "validate": "run-p lint type-check test",
     "db:migrate": "prisma migrate dev --preview-feature",
     "prepare": "husky install",
