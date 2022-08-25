@@ -122,10 +122,12 @@ export let handleDataRequest: HandleDataRequestFunction = async (
 ) => {
   let method = request.method.toLowerCase();
 
+  let cloned = response.clone();
+
   if (method === 'get') {
     let body = await response.text();
     let bodyETag = etag(body);
-    let ifNoneMatch = request.headers.get('If-None-Match');
+    let ifNoneMatch = cloned.headers.get('If-None-Match');
     response.headers.set('etag', bodyETag);
     if (bodyETag === ifNoneMatch) {
       return new Response('', { status: 304 });
@@ -140,15 +142,15 @@ export let handleDataRequest: HandleDataRequestFunction = async (
       request.headers.get('Sec-Fetch-Purpose') ??
       request.headers.get('Moz-Purpose');
 
-    response.headers.set(
+    cloned.headers.set(
       'Cache-Control',
       purpose === 'prefetch' ? 'private max-age=3' : ''
     );
   }
 
   if (process.env.FLY_REGION) {
-    response.headers.set('X-Fly-Region', process.env.FLY_REGION);
+    cloned.headers.set('X-Fly-Region', process.env.FLY_REGION);
   }
 
-  return response;
+  return cloned;
 };
