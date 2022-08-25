@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y openssl
 FROM base as deps
 WORKDIR /remixapp/
 ADD package.json package-lock.json ./
-RUN npm install --production=false
+RUN npm ci --production=false
 
 ###############################################################################
 
