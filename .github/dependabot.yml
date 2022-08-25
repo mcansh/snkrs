@@ -4,3 +4,14 @@ updates:
     directory: /
     schedule:
       interval: daily
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: 'monday'
+      time: '10:00'
+      timezone: 'America/Detroit'
+    labels:
+      - 'dependencies'
+    open-pull-requests-limit: 1
