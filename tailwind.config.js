@@ -1,3 +1,5 @@
+/* eslint global-require: "off" */
+
 let defaultTheme = require('tailwindcss/defaultTheme');
 
 module.exports = {

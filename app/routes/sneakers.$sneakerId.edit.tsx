@@ -1,10 +1,5 @@
 import React from 'react';
-import { Prisma } from '@prisma/client';
-import type {
-  ActionFunction,
-  LoaderFunction,
-  MetaFunction,
-} from '@remix-run/node';
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { Form, Link, useLoaderData, useTransition } from '@remix-run/react';
 import { format, parseISO } from 'date-fns';
@@ -12,7 +7,6 @@ import slugify from 'slugify';
 import clsx from 'clsx';
 import accounting from 'accounting';
 import NumberFormat from 'react-number-format';
-import type { Except } from 'type-fest';
 import invariant from 'tiny-invariant';
 import { route } from 'routes-gen';
 
@@ -20,46 +14,11 @@ import { formatDate } from '~/utils/format-date';
 import { getCloudinaryURL, getImageURLs } from '~/utils/get-cloudinary-url';
 import { formatMoney } from '~/utils/format-money';
 import { prisma } from '~/db.server';
-import type { PossibleErrors } from '~/lib/schemas/sneaker.server';
 import { sneakerSchema } from '~/lib/schemas/sneaker.server';
 import { cloudinary } from '~/lib/cloudinary.server';
 import { requireUserId } from '~/session.server';
 
-let sneakerWithBrandAndUser = Prisma.validator<Prisma.SneakerArgs>()({
-  include: {
-    brand: true,
-    user: {
-      select: {
-        familyName: true,
-        givenName: true,
-        id: true,
-      },
-    },
-  },
-});
-
-type SneakerWithBrandAndUser = Except<
-  Prisma.SneakerGetPayload<typeof sneakerWithBrandAndUser>,
-  'createdAt' | 'purchaseDate' | 'soldDate'
-> & {
-  createdAt: string;
-  purchaseDate: string;
-  soldDate: string | undefined;
-};
-
-type RouteData =
-  | {
-      id: string;
-      sneaker: SneakerWithBrandAndUser;
-      userCreatedSneaker: boolean;
-    }
-  | {
-      id: string;
-      sneaker?: never;
-      userCreatedSneaker?: never;
-    };
-
-let loader: LoaderFunction = async ({ params, request }) => {
+export let loader = async ({ params, request }: LoaderArgs) => {
   invariant(params.sneakerId);
   let userId = await requireUserId(request);
 
@@ -85,7 +44,7 @@ let loader: LoaderFunction = async ({ params, request }) => {
     });
   }
 
-  return json<RouteData>({
+  return json({
     id: params.sneakerId,
     userCreatedSneaker,
     sneaker: {
@@ -106,11 +65,7 @@ let loader: LoaderFunction = async ({ params, request }) => {
   });
 };
 
-interface ActionData {
-  errors: PossibleErrors;
-}
-
-let action: ActionFunction = async ({ request, params }) => {
+export let action = async ({ request, params }: ActionArgs) => {
   let userId = await requireUserId(request);
   let { sneakerId } = params;
   invariant(sneakerId);
@@ -157,9 +112,7 @@ let action: ActionFunction = async ({ request, params }) => {
   });
 
   if (!valid.success) {
-    return json<ActionData>({
-      errors: valid.error.flatten().fieldErrors,
-    });
+    return json({ errors: valid.error.flatten().fieldErrors });
   }
 
   let imagePublicId = '';
@@ -217,27 +170,17 @@ let action: ActionFunction = async ({ request, params }) => {
   return redirect(request.url);
 };
 
-let meta: MetaFunction = ({ data }: { data: RouteData | null }) => ({
-  title: data?.sneaker
-    ? `Editing ${data.sneaker.brand.name} ${data.sneaker.model} – ${data.sneaker.colorway}`
-    : 'Not Found',
+export let meta: MetaFunction<typeof loader> = ({ data }) => ({
+  title: `Editing ${data.sneaker.brand.name} ${data.sneaker.model} – ${data.sneaker.colorway}`,
 });
 
 let formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
-let EditSneakerPage: React.VFC = () => {
-  let { sneaker, id } = useLoaderData<RouteData>();
+export default function EditSneakerPage() {
+  let { sneaker } = useLoaderData<typeof loader>();
   let transition = useTransition();
   let pendingForm = transition.submission;
-  let [sold, setSold] = React.useState(sneaker?.sold ?? false);
-
-  if (!sneaker) {
-    return (
-      <div className="flex items-center justify-center w-full h-full text-lg text-center">
-        <p>No sneaker with id &quot;{id}&quot;</p>
-      </div>
-    );
-  }
+  let [sold, setSold] = React.useState(sneaker.sold);
 
   let title = `Editing ${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`;
 
@@ -396,7 +339,4 @@ let EditSneakerPage: React.VFC = () => {
       </div>
     </main>
   );
-};
-
-export default EditSneakerPage;
-export { action, loader, meta };
+}

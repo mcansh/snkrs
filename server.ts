@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 import express from 'express';
 import { createRequestHandler } from '@remix-run/express';
+// this is a virtual module so it's fine
+// eslint-disable-next-line import/no-extraneous-dependencies
 import * as serverBuild from '@remix-run/dev/server-build';
 import * as Sentry from '@sentry/node';
 

@@ -1,9 +1,5 @@
 import * as React from 'react';
-import type {
-  LinksFunction,
-  LoaderFunction,
-  MetaFunction,
-} from '@remix-run/node';
+import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import type { ShouldReloadFunction } from '@remix-run/react';
 import { Outlet, useLoaderData, useTransition } from '@remix-run/react';
@@ -20,13 +16,6 @@ import { Document } from '~/components/document';
 
 export { CatchBoundary } from '~/components/root-catch-boundary';
 export { ErrorBoundary } from '~/components/root-error-boundary';
-
-interface RouteData {
-  ENV: {
-    FATHOM_SITE_ID: string;
-    FATHOM_SCRIPT_URL: string;
-  };
-}
 
 let [seoMeta, seoLinks] = getSeo();
 
@@ -69,8 +58,8 @@ export let links: LinksFunction = () => [
   { rel: 'mask-icon', href: '/safari-pinned-tab.svg', color: '#000000' },
 ];
 
-export let loader: LoaderFunction = async () => {
-  return json<RouteData>({
+export let loader = async (_args: LoaderArgs) => {
+  return json({
     ENV: {
       FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
       FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
@@ -84,7 +73,7 @@ export let unstable_shouldReload: ShouldReloadFunction = () => {
 };
 
 export default function App() {
-  let { ENV } = useLoaderData<RouteData>();
+  let { ENV } = useLoaderData<typeof loader>();
   let transition = useTransition();
   let [showPendingSpinner, setShowPendingSpinner] = React.useState(false);
 

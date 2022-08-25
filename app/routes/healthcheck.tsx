@@ -1,8 +1,4 @@
-import type {
-  LoaderFunction,
-  MetaFunction,
-  RouteComponent,
-} from '@remix-run/node';
+import type { LoaderArgs, MetaFunction, RouteComponent } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 
@@ -12,7 +8,7 @@ interface RouteData {
   ok: boolean;
 }
 
-let loader: LoaderFunction = async () => {
+let loader = async (_args: LoaderArgs) => {
   try {
     await prisma.user.count();
     return json({ ok: true });

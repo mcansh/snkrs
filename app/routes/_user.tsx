@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type {
   HeadersFunction,
-  LoaderFunction,
+  LoaderArgs,
   MetaFunction,
 } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
@@ -13,46 +13,18 @@ import {
   useLocation,
   useSubmit,
 } from '@remix-run/react';
-import { Prisma } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import uniqBy from 'lodash.uniqby';
 import { Dialog, Transition } from '@headlessui/react';
-import type { User } from '@prisma/client';
 import { route } from 'routes-gen';
 
 import { prisma } from '~/db.server';
 import x from '~/assets/icons/outline/x.svg';
 import plusSm from '~/assets/icons/solid/plus-sm.svg';
 import { getUserId, sessionStorage } from '~/session.server';
-import type { Maybe } from '~/@types/types';
 import { getSeoMeta } from '~/seo';
 
-let userWithSneakers = Prisma.validator<Prisma.UserArgs>()({
-  select: {
-    username: true,
-    id: true,
-    fullName: true,
-    sneakers: {
-      include: { brand: true },
-    },
-  },
-});
-
-type UserWithSneakers = Prisma.UserGetPayload<typeof userWithSneakers>;
-
-type Filter = {
-  id: string;
-  name: string;
-  options: Array<{ value: string; label: string; checked: boolean }>;
-};
-
-export interface RouteData {
-  filters: Array<Filter>;
-  user: UserWithSneakers;
-  sort: 'asc' | 'desc';
-  sessionUser?: Maybe<Pick<User, 'givenName' | 'id'>> | null;
-}
-
-export let loader: LoaderFunction = async ({ params, request }) => {
+export let loader = async ({ params, request }: LoaderArgs) => {
   let session = await sessionStorage.getSession(request.headers.get('Cookie'));
   let url = new URL(request.url);
   let userId = await getUserId(request);
@@ -109,7 +81,7 @@ export let loader: LoaderFunction = async ({ params, request }) => {
     throw redirect(url.toString());
   }
 
-  return json<RouteData>(
+  return json(
     {
       user: { ...user, sneakers },
       filters: [
@@ -147,13 +119,7 @@ const sortOptions = [
   { value: 'asc', label: 'Oldest first' },
 ];
 
-export let meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
-  if (!data?.user) {
-    return getSeoMeta({
-      title: "Ain't nothing here",
-    });
-  }
-
+export let meta: MetaFunction<typeof loader> = ({ data }) => {
   let name = `${data.user.fullName}${
     data.user.fullName.endsWith('s') ? "'" : "'s"
   }`;
@@ -173,7 +139,7 @@ export let meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
 };
 
 export default function UserSneakersPage() {
-  let data = useLoaderData<RouteData>();
+  let data = useLoaderData<typeof loader>();
   let submit = useSubmit();
   let location = useLocation();
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);

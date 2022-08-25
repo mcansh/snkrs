@@ -58,7 +58,7 @@ export async function createUserSession(
   request: Request,
   userId: string,
   redirectTo: string
-): Promise<Response> {
+) {
   let session = await getSession(request);
   session.set(USER_SESSION_KEY, userId);
   return redirect(redirectTo, {
@@ -68,7 +68,7 @@ export async function createUserSession(
   });
 }
 
-export async function logout(request: Request): Promise<Response> {
+export async function logout(request: Request) {
   let session = await getSession(request);
   return redirect('/', {
     headers: {

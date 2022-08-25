@@ -1,13 +1,13 @@
-import type { LoaderFunction } from '@remix-run/node';
+import type { LoaderArgs } from '@remix-run/node';
 import { route } from 'routes-gen';
 
-import { loader as homeLoader } from './home';
+import Home, { loader as homeLoader } from './home';
 
 import { getUserId, createUserSession } from '~/session.server';
 import { prisma } from '~/db.server';
-export { default, meta } from './home';
+export { meta } from './home';
 
-export const loader: LoaderFunction = async ({ request, ...args }) => {
+export const loader = async ({ request, ...args }: LoaderArgs) => {
   let userId = await getUserId(request);
   if (userId) {
     let user = await prisma.user.findUnique({ where: { id: userId } });
@@ -22,3 +22,5 @@ export const loader: LoaderFunction = async ({ request, ...args }) => {
 
   return homeLoader({ request, ...args });
 };
+
+export default Home;

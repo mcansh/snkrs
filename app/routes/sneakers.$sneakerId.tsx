@@ -1,9 +1,6 @@
-import React from 'react';
-import { Prisma } from '@prisma/client';
-import type { LoaderFunction, MetaFunction } from '@remix-run/node';
+import type { LoaderArgs, MetaFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { Link, useLoaderData } from '@remix-run/react';
-import type { Except } from 'type-fest';
 import invariant from 'tiny-invariant';
 import { route } from 'routes-gen';
 
@@ -15,42 +12,7 @@ import { prisma } from '~/db.server';
 import { getSeoMeta } from '~/seo';
 import { getUserId } from '~/session.server';
 
-let sneakerWithUser = Prisma.validator<Prisma.SneakerArgs>()({
-  include: {
-    brand: true,
-    user: {
-      select: {
-        id: true,
-        fullName: true,
-        username: true,
-      },
-    },
-  },
-});
-
-type SneakerWithUser = Except<
-  Prisma.SneakerGetPayload<typeof sneakerWithUser>,
-  'createdAt' | 'purchaseDate' | 'soldDate' | 'updatedAt'
-> & {
-  soldDate: string | undefined;
-  purchaseDate: string;
-  updatedAt: string;
-  createdAt: string;
-};
-
-interface RouteData {
-  sneaker: SneakerWithUser;
-  id: string;
-  userCreatedSneaker: boolean;
-  purchaseYear: number;
-  title: string;
-  settings: {
-    showPurchasePrice: boolean;
-    showRetailPrice: boolean;
-  };
-}
-
-let loader: LoaderFunction = async ({ params, request }) => {
+export let loader = async ({ params, request }: LoaderArgs) => {
   invariant(params.sneakerId, 'sneakerID is required');
 
   let userId = await getUserId(request);
@@ -81,7 +43,7 @@ let loader: LoaderFunction = async ({ params, request }) => {
     where: { userId: sneaker.user.id },
   });
 
-  return json<RouteData>({
+  return json({
     id: params.sneakerId,
     userCreatedSneaker,
     title: `${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`,
@@ -112,13 +74,7 @@ let loader: LoaderFunction = async ({ params, request }) => {
   });
 };
 
-let meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
-  if (!data) {
-    return getSeoMeta({
-      title: 'Sneaker Not Found',
-    });
-  }
-
+export let meta: MetaFunction<typeof loader> = ({ data }) => {
   let date = formatDate(data.sneaker.purchaseDate, {
     month: 'long',
     day: 'numeric',
@@ -131,8 +87,8 @@ let meta: MetaFunction = ({ data }: { data: RouteData | null }) => {
   });
 };
 
-let SneakerPage: React.VFC = () => {
-  let data = useLoaderData<RouteData>();
+export default function SneakerPage() {
+  let data = useLoaderData<typeof loader>();
 
   let sizes = [200, 400, 600];
 
@@ -260,7 +216,4 @@ let SneakerPage: React.VFC = () => {
       </div>
     </main>
   );
-};
-
-export default SneakerPage;
-export { meta, loader };
+}

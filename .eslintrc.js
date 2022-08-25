@@ -14,5 +14,20 @@ module.exports = {
     '@typescript-eslint/no-unsafe-member-access': 'off',
     '@typescript-eslint/no-unsafe-call': 'off',
     '@typescript-eslint/no-unsafe-assignment': 'off',
+
+    'import/no-extraneous-dependencies': [
+      'error',
+      {
+        devDependencies: [
+          'lint-staged.config.js',
+          'pm2.config.js',
+          'postcss.config.js',
+          'prettier.config.js',
+          'remix.config.js',
+          'tailwind.config.js',
+          'scripts/heroicon-symbols.mjs',
+        ],
+      },
+    ],
   },
 };

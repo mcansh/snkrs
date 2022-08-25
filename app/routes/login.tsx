@@ -1,14 +1,12 @@
-import type { ActionFunction, LoaderFunction } from '@remix-run/node';
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { Form, Link, useActionData, useTransition } from '@remix-run/react';
-import type { MetaFunction } from '@remix-run/react/routeModules';
 import Alert from '@reach/alert';
 import { route } from 'routes-gen';
 
 import { verify } from '~/lib/auth.server';
 import { prisma } from '~/db.server';
 import { loginSchema } from '~/lib/schemas/user.server';
-import type { PossibleLoginErrors } from '~/lib/schemas/user.server';
 import {
   createUserSession,
   getSession,
@@ -16,9 +14,9 @@ import {
   sessionStorage,
 } from '~/session.server';
 import { getSeoMeta } from '~/seo';
-import type { RouteHandle } from '~/@types/types';
+import type { RouteHandle } from '~/lib/use-matches';
 
-export let loader: LoaderFunction = async ({ request }) => {
+export let loader = async ({ request }: LoaderArgs) => {
   let userId = await getUserId(request);
   if (!userId) return json(null);
 
@@ -40,11 +38,7 @@ export let loader: LoaderFunction = async ({ request }) => {
   });
 };
 
-interface ActionData {
-  errors: PossibleLoginErrors;
-}
-
-export let action: ActionFunction = async ({ request }) => {
+export let action = async ({ request }: ActionArgs) => {
   let formData = await request.formData();
   let email = formData.get('email');
   let password = formData.get('password');
@@ -54,10 +48,7 @@ export let action: ActionFunction = async ({ request }) => {
 
   let valid = loginSchema.safeParse({ email, password });
   if (!valid.success) {
-    return json<ActionData>(
-      { errors: valid.error.flatten().fieldErrors },
-      { status: 400 }
-    );
+    return json({ errors: valid.error.flatten().fieldErrors }, { status: 400 });
   }
 
   let foundUser = await prisma.user.findUnique({
@@ -65,7 +56,7 @@ export let action: ActionFunction = async ({ request }) => {
   });
 
   if (!foundUser) {
-    return json<ActionData>(
+    return json(
       { errors: { email: ['Invalid email or password'] } },
       { status: 400 }
     );
@@ -74,7 +65,7 @@ export let action: ActionFunction = async ({ request }) => {
   let validCredentials = await verify(valid.data.password, foundUser.password);
 
   if (!validCredentials) {
-    return json<ActionData>({
+    return json({
       errors: { email: ['Invalid email or password'] },
     });
   }
@@ -98,7 +89,7 @@ export let handle: RouteHandle = {
 };
 
 export default function LoginPage() {
-  let actionData = useActionData<ActionData>();
+  let actionData = useActionData<typeof action>();
   let transition = useTransition();
   let pendingForm = transition.submission;
 
@@ -163,18 +154,22 @@ export default function LoginPage() {
                     autoComplete="current-password"
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     aria-invalid={
-                      actionData?.errors.password ? true : undefined
+                      actionData && 'password' in actionData.errors
+                        ? true
+                        : undefined
                     }
                     aria-errormessage={
-                      actionData?.errors.password ? 'password-error' : undefined
+                      actionData && 'password' in actionData.errors
+                        ? 'password-error'
+                        : undefined
                     }
                   />
-                  {actionData?.errors.password && (
+                  {actionData && 'password' in actionData.errors && (
                     <Alert
                       className="mt-2 text-sm text-red-600"
                       id="password-error"
                     >
-                      {actionData.errors.password.map(error => (
+                      {actionData.errors.password!.map(error => (
                         <p className="mt-1" key={error}>
                           {error}
                         </p>

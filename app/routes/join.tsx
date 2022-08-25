@@ -1,8 +1,4 @@
-import type {
-  ActionFunction,
-  LoaderFunction,
-  MetaFunction,
-} from '@remix-run/node';
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { Form, Link, useActionData, useTransition } from '@remix-run/react';
 import Alert from '@reach/alert';
@@ -12,21 +8,16 @@ import { route } from 'routes-gen';
 import { prisma } from '~/db.server';
 import { registerSchema } from '~/lib/schemas/user.server';
 import { hash } from '~/lib/auth.server';
-import type { PossibleRegistrationErrors } from '~/lib/schemas/user.server';
 import { createUserSession, getUserId } from '~/session.server';
-import type { RouteHandle } from '~/@types/types';
+import type { RouteHandle } from '~/lib/use-matches';
 
-export let loader: LoaderFunction = async ({ request }) => {
+export let loader = async ({ request }: LoaderArgs) => {
   let userId = await getUserId(request);
   if (userId) return redirect('/');
   return json(null);
 };
 
-interface ActionData {
-  errors: PossibleRegistrationErrors;
-}
-
-export let action: ActionFunction = async ({ request }) => {
+export let action = async ({ request }: ActionArgs) => {
   let body = await request.formData();
   let email = body.get('email');
   let givenName = body.get('givenName');
@@ -43,10 +34,7 @@ export let action: ActionFunction = async ({ request }) => {
   });
 
   if (!valid.success) {
-    return json<ActionData>(
-      { errors: valid.error.flatten().fieldErrors },
-      { status: 400 }
-    );
+    return json({ errors: valid.error.flatten().fieldErrors }, { status: 400 });
   }
 
   let foundUser = await prisma.user.findFirst({
@@ -56,14 +44,14 @@ export let action: ActionFunction = async ({ request }) => {
   });
 
   if (foundUser && foundUser.email === email) {
-    return json<ActionData>(
+    return json(
       { errors: { email: ['A user with this email already exists'] } },
       { status: 400 }
     );
   }
 
   if (foundUser && foundUser.username === username) {
-    return json<ActionData>(
+    return json(
       { errors: { username: ['A user with this username already exists'] } },
       { status: 400 }
     );
@@ -101,7 +89,7 @@ export let handle: RouteHandle = {
 };
 
 export default function JoinPage() {
-  let actionData = useActionData<ActionData>();
+  let actionData = useActionData<typeof action>();
   let transition = useTransition();
   let pendingForm = transition.submission;
 
@@ -117,42 +105,12 @@ export default function JoinPage() {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <Form method="post">
             <fieldset disabled={!!pendingForm} className="space-y-6">
-              {[
-                {
-                  name: 'givenName',
-                  label: 'First Name',
-                  type: 'text',
-                  autoComplete: 'givenName',
-                },
-                {
-                  name: 'familyName',
-                  label: 'Last Name',
-                  type: 'text',
-                  autoComplete: 'familyName',
-                },
-                {
-                  name: 'email',
-                  label: 'Email Address',
-                  type: 'email',
-                  autoComplete: 'email',
-                },
-                {
-                  name: 'username',
-                  label: 'Username',
-                  type: 'text',
-                  autoComplete: 'username',
-                },
-                {
-                  name: 'password',
-                  label: 'Password',
-                  type: 'password',
-                  autoComplete: 'new-password',
-                },
-              ].map(input => {
+              {inputs.map(input => {
                 let error =
-                  actionData?.errors[
-                    input.name as keyof PossibleRegistrationErrors
-                  ];
+                  actionData && input.name in actionData.errors
+                    ? // @ts-expect-error types!
+                      actionData.errors[input.name]
+                    : null;
                 return (
                   <div key={input.name}>
                     <label
@@ -183,7 +141,7 @@ export default function JoinPage() {
                           className="mt-2 text-sm text-red-600"
                           id={`${input.name}-error`}
                         >
-                          {error.map(errorMessage => (
+                          {error.map((errorMessage: string) => (
                             <p className="mt-1" key={errorMessage}>
                               {errorMessage}
                             </p>
@@ -256,3 +214,36 @@ export default function JoinPage() {
     </div>
   );
 }
+
+let inputs = [
+  {
+    name: 'givenName',
+    label: 'First Name',
+    type: 'text',
+    autoComplete: 'givenName',
+  },
+  {
+    name: 'familyName',
+    label: 'Last Name',
+    type: 'text',
+    autoComplete: 'familyName',
+  },
+  {
+    name: 'email',
+    label: 'Email Address',
+    type: 'email',
+    autoComplete: 'email',
+  },
+  {
+    name: 'username',
+    label: 'Username',
+    type: 'text',
+    autoComplete: 'username',
+  },
+  {
+    name: 'password',
+    label: 'Password',
+    type: 'password',
+    autoComplete: 'new-password',
+  },
+] as const;

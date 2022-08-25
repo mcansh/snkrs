@@ -1,6 +1,3 @@
-import path from 'path';
-import fs from 'fs';
-
 import { z } from 'zod';
 
 import reservedUsernames from './reserved-usernames.json';

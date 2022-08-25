@@ -1,6 +1,4 @@
-import React from 'react';
-import { Prisma } from '@prisma/client';
-import type { LoaderArgs, LoaderFunction, MetaFunction } from '@remix-run/node';
+import type { LoaderArgs, MetaFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import { endOfYear, startOfYear } from 'date-fns';

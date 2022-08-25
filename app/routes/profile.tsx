@@ -1,8 +1,4 @@
-import type {
-  ActionFunction,
-  LoaderFunction,
-  MetaFunction,
-} from '@remix-run/node';
+import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import {
   Form,
@@ -14,28 +10,15 @@ import {
 import { requireUser, requireUserId } from '~/session.server';
 import { prisma } from '~/db.server';
 import { editProfile } from '~/lib/schemas/user.server';
-import type { PossibleEditProfileErrors } from '~/lib/schemas/user.server';
 import { getSeoMeta } from '~/seo';
 
-interface RouteData {
-  user: {
-    email: string;
-    username: string;
-    settings: {
-      showPurchasePrice: boolean;
-      showRetailPrice: boolean;
-      showTotalPrice: boolean;
-    } | null;
-  };
-}
-
-export let loader: LoaderFunction = async ({ request }) => {
+export let loader = async ({ request }: LoaderArgs) => {
   let user = await requireUser(request);
   let userSettings = await prisma.settings.findUnique({
     where: { userId: user.id },
   });
 
-  return json<RouteData>({
+  return json({
     user: {
       email: user.email,
       username: user.username,
@@ -50,11 +33,7 @@ export let loader: LoaderFunction = async ({ request }) => {
   });
 };
 
-interface ActionData {
-  errors: PossibleEditProfileErrors;
-}
-
-export let action: ActionFunction = async ({ request }) => {
+export let action = async ({ request }: ActionArgs) => {
   let userId = await requireUserId(request);
 
   let formData = await request.formData();
@@ -76,7 +55,7 @@ export let action: ActionFunction = async ({ request }) => {
   });
 
   if (!valid.success) {
-    return json<ActionData>({
+    return json({
       errors: valid.error.flatten().fieldErrors,
     });
   }
@@ -111,8 +90,8 @@ export let meta: MetaFunction = () => {
 };
 
 export default function ProfilePage() {
-  let data = useLoaderData<RouteData>();
-  let actionData = useActionData<ActionData>();
+  let data = useLoaderData<typeof loader>();
+  let actionData = useActionData<typeof action>();
   let transition = useTransition();
   let pendingForm = transition.submission;
 

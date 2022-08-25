@@ -1,4 +1,4 @@
-import type { LoaderFunction, MetaFunction } from '@remix-run/node';
+import type { LoaderArgs, MetaFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { Link, useLoaderData } from '@remix-run/react';
 import { route } from 'routes-gen';
@@ -6,12 +6,8 @@ import { route } from 'routes-gen';
 import screenshotUrl from '~/assets/screenshot.jpg';
 import { getSeoMeta } from '~/seo';
 
-export interface LoaderData {
-  demo: string;
-}
-
-export let loader: LoaderFunction = async () => {
-  return json<LoaderData>({
+export let loader = async (_args: LoaderArgs) => {
+  return json({
     demo: process.env.DEFAULT_USER,
   });
 };
@@ -23,7 +19,7 @@ export let meta: MetaFunction = () => {
 };
 
 export default function IndexPage() {
-  let data = useLoaderData<LoaderData>();
+  let data = useLoaderData<typeof loader>();
 
   return (
     <main>
