@@ -64,7 +64,7 @@
   "devDependencies": {
     "@cld-apis/types": "0.1.6",
     "@commitlint/cli": "17.1.2",
-    "@commitlint/config-conventional": "17.0.3",
+    "@commitlint/config-conventional": "17.1.0",
     "@mcansh/eslint-config": "5.0.0",
     "@remix-run/dev": "1.7.0",
     "@remix-run/eslint-config": "1.7.0",
