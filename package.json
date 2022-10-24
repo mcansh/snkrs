@@ -32,7 +32,7 @@
   "dependencies": {
     "@headlessui/react": "1.6.6",
     "@mcansh/remix-secure-headers": "0.6.2",
-    "@prisma/client": "4.2.1",
+    "@prisma/client": "4.5.0",
     "@reach/alert": "0.17.0",
     "@remix-run/express": "1.7.0",
     "@remix-run/node": "1.7.0",
