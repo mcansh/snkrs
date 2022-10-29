@@ -6,7 +6,7 @@ import { format, parseISO } from 'date-fns';
 import slugify from 'slugify';
 import clsx from 'clsx';
 import accounting from 'accounting';
-import NumberFormat from 'react-number-format';
+import { NumericFormat } from 'react-number-format';
 import invariant from 'tiny-invariant';
 import { route } from 'routes-gen';
 
@@ -265,14 +265,14 @@ export default function EditSneakerPage() {
               placeholder="shoes/..."
               name="image"
             />
-            <NumberFormat
+            <NumericFormat
               name="price"
               placeholder="Price (in cents)"
               className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
               prefix="$"
               defaultValue={sneaker.price}
             />
-            <NumberFormat
+            <NumericFormat
               name="retailPrice"
               placeholder="Retail Price (in cents)"
               className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
