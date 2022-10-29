@@ -3,7 +3,7 @@ import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { Form, useTransition } from '@remix-run/react';
 import slugify from 'slugify';
-import NumberFormat from 'react-number-format';
+import { NumericFormat } from 'react-number-format';
 import accounting from 'accounting';
 import { route } from 'routes-gen';
 
@@ -152,7 +152,7 @@ export default function NewSneakerPage() {
             <span className="block text-sm font-medium text-gray-700">
               Price (in cents)
             </span>
-            <NumberFormat
+            <NumericFormat
               id="price"
               name="price"
               placeholder="12000"
@@ -164,7 +164,7 @@ export default function NewSneakerPage() {
             <span className="block text-sm font-medium text-gray-700">
               Retail Price
             </span>
-            <NumberFormat
+            <NumericFormat
               id="retailPrice"
               name="retailPrice"
               placeholder="12000"

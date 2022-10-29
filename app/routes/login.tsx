@@ -1,7 +1,7 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { Form, Link, useActionData, useTransition } from '@remix-run/react';
-import Alert from '@reach/alert';
+import { Alert } from '@reach/alert';
 import { route } from 'routes-gen';
 
 import { verify } from '~/lib/auth.server';
