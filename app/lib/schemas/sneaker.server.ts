@@ -11,18 +11,18 @@ export let sneakerSchema = z
     retailPrice: z.number().positive(),
     price: z.number().positive(),
     purchaseDate: z
-      .preprocess(data => {
-        if (data instanceof Date) return data;
-        if (typeof data === 'string') return new Date(data);
+      .preprocess(date => {
+        if (date instanceof Date) return date;
+        if (typeof date === 'string') return new Date(date);
       }, z.date())
       .refine(date => {
-        isBefore(date, new Date());
+        return isBefore(date, new Date());
       }),
     sold: z.boolean().optional().default(false),
     soldDate: z
-      .preprocess(data => {
-        if (data instanceof Date) return data;
-        if (typeof data === 'string') return new Date(data);
+      .preprocess(date => {
+        if (date instanceof Date) return date;
+        if (typeof date === 'string') return new Date(date);
       }, z.date())
       .optional(),
     soldPrice: z.number().min(1).optional(),
