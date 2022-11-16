@@ -3,6 +3,7 @@ import type {
   HeadersFunction,
   LoaderArgs,
   MetaFunction,
+  SerializeFrom,
 } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import {
@@ -23,6 +24,7 @@ import x from '~/assets/icons/outline/x.svg';
 import plusSm from '~/assets/icons/solid/plus-sm.svg';
 import { getUserId, sessionStorage } from '~/session.server';
 import { getSeoMeta } from '~/seo';
+import { possessive } from '~/utils/possessive';
 
 export let loader = async ({ params, request }: LoaderArgs) => {
   let session = await sessionStorage.getSession(request.headers.get('Cookie'));
@@ -122,14 +124,16 @@ const sortOptions = [
   { value: 'asc', label: 'Oldest first' },
 ];
 
-export let meta: MetaFunction<Partial<typeof loader>> = ({ data }) => {
+export let meta: MetaFunction = ({
+  data,
+}: {
+  data?: Partial<SerializeFrom<typeof loader>>;
+}) => {
   if (!data || !data.user) {
     return getSeoMeta();
   }
 
-  let name = `${data.user.fullName}${
-    data.user.fullName.endsWith('s') ? "'" : "'s"
-  }`;
+  let name = possessive(data.user.fullName);
 
   return getSeoMeta({
     title: `${name} Sneaker Collection`,

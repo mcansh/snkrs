@@ -7,6 +7,7 @@ import { prisma } from '~/db.server';
 import { SneakerCard } from '~/components/sneaker';
 import { getUserId, sessionStorage } from '~/session.server';
 import { getSeoMeta } from '~/seo';
+import { possessive } from '~/utils/possessive';
 
 export let loader = async ({ params, request }: LoaderArgs) => {
   let session = await sessionStorage.getSession(request.headers.get('Cookie'));
@@ -63,14 +64,16 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   );
 };
 
-export let meta: MetaFunction<Partial<typeof loader>> = ({ data }) => {
+export let meta: MetaFunction = ({
+  data,
+}: {
+  data?: Partial<SerializeFrom<typeof loader>>;
+}) => {
   if (!data || !data.user) {
     return getSeoMeta();
   }
 
-  let name = `${data.user.fullName}${
-    data.user.fullName.endsWith('s') ? "'" : "'s"
-  }`;
+  let name = possessive(data.user.fullName);
 
   return getSeoMeta({
     title: `${name} Sneaker Collection`,
