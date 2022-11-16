@@ -34,6 +34,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   if (!sneaker) {
     throw new Response(`Sneaker not found with id ${params.sneakerId}`, {
       status: 404,
+      statusText: 'Not Found',
     });
   }
 

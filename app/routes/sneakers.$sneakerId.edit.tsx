@@ -33,6 +33,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   if (!sneaker) {
     throw new Response(`No sneaker found with id ${params.sneakerId}`, {
       status: 404,
+      statusText: 'Not Found',
     });
   }
 
@@ -41,6 +42,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   if (!userCreatedSneaker) {
     throw new Response("You don't have permission to edit this sneaker", {
       status: 403,
+      statusText: 'Forbidden',
     });
   }
 
@@ -77,12 +79,14 @@ export let action = async ({ request, params }: ActionArgs) => {
   if (!originalSneaker) {
     throw new Response(`No sneaker found with id ${sneakerId}`, {
       status: 404,
+      statusText: 'Not Found',
     });
   }
 
   if (originalSneaker.userId !== userId) {
     throw new Response("You don't have permission to edit this sneaker", {
       status: 403,
+      statusText: 'Forbidden',
     });
   }
 

@@ -18,7 +18,10 @@ export let loader = async ({ params }: LoaderArgs) => {
   let end = endOfYear(date);
 
   if (year > new Date().getFullYear()) {
-    throw new Response('Requested year is in the future', { status: 404 });
+    throw new Response('Requested year is in the future', {
+      status: 404,
+      statusText: 'Not Found',
+    });
   }
 
   let user = await prisma.user.findUnique({
@@ -40,7 +43,10 @@ export let loader = async ({ params }: LoaderArgs) => {
   });
 
   if (!user) {
-    throw new Response('', { status: 404 });
+    throw new Response('User not found', {
+      status: 404,
+      statusText: 'Not Found',
+    });
   }
 
   return json({ user, year });

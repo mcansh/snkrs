@@ -49,7 +49,10 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   });
 
   if (!user) {
-    throw new Response("This user doesn't exist", { status: 404 });
+    throw new Response("This user doesn't exist", {
+      status: 404,
+      statusText: 'Not Found',
+    });
   }
 
   let sessionUser = userId
