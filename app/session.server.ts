@@ -27,6 +27,14 @@ export async function getUserId(request: Request): Promise<string | undefined> {
   return session.get(USER_SESSION_KEY);
 }
 
+export async function getUser(request: Request): Promise<User | undefined> {
+  let userId = await getUserId(request);
+  if (!userId) return undefined;
+  let user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return undefined;
+  return user;
+}
+
 export async function requireUserId(
   request: Request,
   redirectTo: string = request.url

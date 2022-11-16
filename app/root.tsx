@@ -1,12 +1,18 @@
 import * as React from 'react';
 import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
-import type { ShouldReloadFunction } from '@remix-run/react';
-import { Outlet, useLoaderData, useTransition } from '@remix-run/react';
+import {
+  Form,
+  Link,
+  Outlet,
+  useLoaderData,
+  useTransition,
+} from '@remix-run/react';
 import * as Fathom from 'fathom-client';
 import clsx from 'clsx';
 
 import { useMatches } from './lib/use-matches';
+import { getUser } from './session.server';
 
 import globalStylesHref from '~/styles/global.css';
 import interStylesHref from '~/styles/inter.css';
@@ -58,22 +64,19 @@ export let links: LinksFunction = () => [
   { rel: 'mask-icon', href: '/safari-pinned-tab.svg', color: '#000000' },
 ];
 
-export let loader = async (_args: LoaderArgs) => {
+export async function loader({ request }: LoaderArgs) {
+  let user = await getUser(request);
   return json({
+    user,
     ENV: {
       FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
       FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
     },
   });
-};
-
-// don't reload our root loader
-export let unstable_shouldReload: ShouldReloadFunction = () => {
-  return false;
-};
+}
 
 export default function App() {
-  let { ENV } = useLoaderData<typeof loader>();
+  let data = useLoaderData<typeof loader>();
   let transition = useTransition();
   let [showPendingSpinner, setShowPendingSpinner] = React.useState(false);
 
@@ -81,11 +84,11 @@ export default function App() {
   let handleBodyClassName = matches.map(match => match.handle?.bodyClassName);
 
   React.useEffect(() => {
-    Fathom.load(ENV.FATHOM_SITE_ID, {
+    Fathom.load(data.ENV.FATHOM_SITE_ID, {
       excludedDomains: ['localhost'],
-      url: ENV.FATHOM_SCRIPT_URL,
+      url: data.ENV.FATHOM_SCRIPT_URL,
     });
-  }, [ENV]);
+  }, [data.ENV]);
 
   React.useEffect(() => {
     let timer = setTimeout(() => {
@@ -111,6 +114,22 @@ export default function App() {
           </svg>
         </div>
       )}
+
+      <nav className="flex items-center justify-end px-4 py-2 sm:px-6 lg:px-8">
+        {data.user ? (
+          <div className="flex items-center space-x-4">
+            <Link to="/sneakers/add">Add Sneaker</Link>
+            <Form reloadDocument method="post" action="/logout">
+              <button type="submit">Logout</button>
+            </Form>
+          </div>
+        ) : (
+          <div className="space-x-4">
+            <Link to="/login">Login</Link>
+            <Link to="/join">Join</Link>
+          </div>
+        )}
+      </nav>
 
       <Outlet />
     </Document>
