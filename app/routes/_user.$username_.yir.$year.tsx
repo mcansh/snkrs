@@ -52,7 +52,11 @@ export let loader = async ({ params }: LoaderArgs) => {
   return json({ user, year });
 };
 
-export let meta: MetaFunction<typeof loader> = ({ data }) => {
+export let meta: MetaFunction<Partial<typeof loader>> = ({ data }) => {
+  if (!data || !data.user) {
+    return getSeoMeta();
+  }
+
   let sneakers = data.user.sneakers.length === 1 ? 'sneaker' : 'sneakers';
   return getSeoMeta({
     title: `${data.year} • ${data.user.username}`,

@@ -75,7 +75,11 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   });
 };
 
-export let meta: MetaFunction<typeof loader> = ({ data }) => {
+export let meta: MetaFunction<Partial<typeof loader>> = ({ data }) => {
+  if (!data || !data.sneaker) {
+    return getSeoMeta();
+  }
+
   let date = formatDate(data.sneaker.purchaseDate, {
     month: 'long',
     day: 'numeric',

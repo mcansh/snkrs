@@ -63,7 +63,11 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   );
 };
 
-export let meta: MetaFunction<typeof loader> = ({ data }) => {
+export let meta: MetaFunction<Partial<typeof loader>> = ({ data }) => {
+  if (!data || !data.user) {
+    return getSeoMeta();
+  }
+
   let name = `${data.user.fullName}${
     data.user.fullName.endsWith('s') ? "'" : "'s"
   }`;
