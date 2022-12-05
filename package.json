@@ -37,7 +37,7 @@
     "@remix-run/express": "1.7.4",
     "@remix-run/node": "1.7.4",
     "@remix-run/react": "1.7.4",
-    "@remix-run/serve": "1.7.4",
+    "@remix-run/serve": "1.8.0",
     "@sentry/node": "7.17.2",
     "accounting": "0.4.1",
     "cloudinary": "1.32.0",
