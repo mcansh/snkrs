@@ -1,10 +1,5 @@
 import React from 'react';
-import type {
-  ActionArgs,
-  LoaderArgs,
-  MetaFunction,
-  SerializeFrom,
-} from '@remix-run/node';
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { Form, Link, useLoaderData, useTransition } from '@remix-run/react';
 import { format, parseISO } from 'date-fns';
@@ -22,7 +17,7 @@ import { prisma } from '~/db.server';
 import { sneakerSchema } from '~/lib/schemas/sneaker.server';
 import { cloudinary } from '~/lib/cloudinary.server';
 import { requireUserId } from '~/session.server';
-import { getSeoMeta } from '~/seo';
+import { createTitle } from '~/seo';
 
 export let loader = async ({ params, request }: LoaderArgs) => {
   invariant(params.sneakerId);
@@ -180,18 +175,24 @@ export let action = async ({ request, params }: ActionArgs) => {
   return redirect(request.url);
 };
 
-export let meta: MetaFunction = ({
+export let meta: V2_MetaFunction<typeof loader | undefined> = ({
   data,
-}: {
-  data?: Partial<SerializeFrom<typeof loader>>;
+  matches,
 }) => {
-  if (!data || !data.sneaker) {
-    return getSeoMeta();
+  let matchedMeta = matches
+    .flatMap(match => match.meta)
+    // @ts-expect-error types what can i say
+    .filter(m => !m.title);
+
+  if (!data?.sneaker) {
+    return [...matchedMeta];
   }
 
-  return getSeoMeta({
-    title: `Editing ${data.sneaker.brand.name} ${data.sneaker.model} – ${data.sneaker.colorway}`,
-  });
+  let title = createTitle(
+    `Editing ${data.sneaker.brand.name} ${data.sneaker.model} – ${data.sneaker.colorway}`
+  );
+
+  return [{ title }, ...matchedMeta];
 };
 
 let formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";

@@ -2,8 +2,7 @@ import * as React from 'react';
 import type {
   HeadersFunction,
   LoaderArgs,
-  MetaFunction,
-  SerializeFrom,
+  V2_MetaFunction,
 } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import {
@@ -23,7 +22,7 @@ import { prisma } from '~/db.server';
 import x from '~/assets/icons/outline/x.svg';
 import plusSm from '~/assets/icons/solid/plus-sm.svg';
 import { getUserId, sessionStorage } from '~/session.server';
-import { getSeoMeta } from '~/seo';
+import { createTitle } from '~/seo';
 import { possessive } from '~/utils/possessive';
 
 export let loader = async ({ params, request }: LoaderArgs) => {
@@ -124,29 +123,29 @@ const sortOptions = [
   { value: 'asc', label: 'Oldest first' },
 ];
 
-export let meta: MetaFunction = ({
+export let meta: V2_MetaFunction<typeof loader | undefined> = ({
   data,
-}: {
-  data?: Partial<SerializeFrom<typeof loader>>;
+  matches,
 }) => {
-  if (!data || !data.user) {
-    return getSeoMeta();
+  let matchedMeta = matches
+    .flatMap(match => match.meta)
+    // @ts-expect-error types what can i say
+    .filter(m => !m.title);
+
+  if (!data?.user) {
+    return [...matchedMeta];
   }
 
   let name = possessive(data.user.fullName);
 
-  return getSeoMeta({
-    title: `${name} Sneaker Collection`,
-    description: `${name} sneaker collection`,
-    twitter: {
-      card: 'summary_large_image',
-      site: '@loganmcansh',
-      // TODO: add support for linking your twitter account
-      creator: '@loganmcansh',
-      description: `${name} sneaker collection`,
-      // TODO: add support for user avatar
-    },
-  });
+  let title = createTitle(`${name} Sneaker Collection`);
+  let description = `${name} Sneaker Collection`;
+
+  return [
+    { title },
+    { name: 'description', content: description },
+    ...matchedMeta,
+  ];
 };
 
 export default function UserSneakersPage() {

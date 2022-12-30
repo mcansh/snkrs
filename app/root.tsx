@@ -1,5 +1,9 @@
 import * as React from 'react';
-import type { LinksFunction, LoaderArgs, MetaFunction } from '@remix-run/node';
+import type {
+  LinksFunction,
+  LoaderArgs,
+  V2_MetaFunction,
+} from '@remix-run/node';
 import { json } from '@remix-run/node';
 import {
   Form,
@@ -13,30 +17,43 @@ import clsx from 'clsx';
 
 import { useMatches } from './lib/use-matches';
 import { getUser } from './session.server';
+import { createTitle } from './seo';
 
 import globalStylesHref from '~/styles/global.css';
 import interStylesHref from '~/styles/inter.css';
 import refreshClockwise from '~/assets/icons/refresh-clockwise.svg';
-import { getSeo } from '~/seo';
 import { Document } from '~/components/document';
 
 export { CatchBoundary } from '~/components/root-catch-boundary';
 export { ErrorBoundary } from '~/components/root-error-boundary';
 
-let [seoMeta, seoLinks] = getSeo();
-
-export let meta: MetaFunction = () => ({
-  ...seoMeta,
-  'apple-mobile-web-app-title': 'Sneakers',
-  'application-name': 'Sneakers',
-  'msapplication-TileColor': '#000000',
-  'apple-mobile-web-app-capable': 'yes',
-  'apple-mobile-web-app-status-bar-style': 'black-translucent',
-  viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
-});
+export let meta: V2_MetaFunction = () => {
+  let title = createTitle();
+  return [
+    { name: 'apple-mobile-web-app-title', content: 'Sneakers' },
+    { name: 'application-name', content: 'Sneakers' },
+    { name: 'msapplication-TileColor', content: '#000000' },
+    { name: 'apple-mobile-web-app-capable', content: 'yes' },
+    {
+      name: 'apple-mobile-web-app-status-bar-style',
+      content: 'black-translucent',
+    },
+    {
+      name: 'viewport',
+      content: 'width=device-width, initial-scale=1, viewport-fit=cover',
+    },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:locale', content: 'en_US' },
+    { property: 'og:title', content: title },
+    { property: 'og:site_name', content: title },
+    { property: 'og:url', content: 'https://snkrs.mcan.sh' },
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:site', content: '@loganmcansh' },
+    { name: 'twitter:creator', content: '@loganmcansh' },
+  ];
+};
 
 export let links: LinksFunction = () => [
-  ...seoLinks,
   { rel: 'stylesheet', href: globalStylesHref },
   { rel: 'stylesheet', href: interStylesHref },
   {

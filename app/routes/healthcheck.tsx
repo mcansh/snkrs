@@ -1,4 +1,4 @@
-import type { LoaderArgs, MetaFunction, RouteComponent } from '@remix-run/node';
+import type { V2_MetaFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 
@@ -8,7 +8,7 @@ interface RouteData {
   ok: boolean;
 }
 
-let loader = async (_args: LoaderArgs) => {
+export async function loader() {
   try {
     await prisma.user.count();
     return json({ ok: true });
@@ -16,16 +16,17 @@ let loader = async (_args: LoaderArgs) => {
     console.error(error);
     return json({ ok: false }, 500);
   }
+}
+
+export let meta: V2_MetaFunction = ({ matches }) => {
+  let matchedMeta = matches
+    .flatMap(match => match.meta)
+    // @ts-expect-error types what can i say
+    .filter(m => !m.title);
+  return [{ title: 'Health Check' }, ...matchedMeta];
 };
 
-let meta: MetaFunction = () => ({
-  title: 'Health Check',
-});
-
-let Page: RouteComponent = () => {
+export default function HealthCheckPage() {
   let data = useLoaderData<RouteData>();
   return data.ok ? <h1>Everything is fine</h1> : <h1>Something went wrong</h1>;
-};
-
-export default Page;
-export { loader, meta };
+}

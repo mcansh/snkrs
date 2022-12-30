@@ -1,10 +1,10 @@
-import type { LoaderArgs, MetaFunction } from '@remix-run/node';
+import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { Link, useLoaderData } from '@remix-run/react';
 import { route } from 'routes-gen';
 
 import screenshotUrl from '~/assets/screenshot.jpg';
-import { getSeoMeta } from '~/seo';
+import { createTitle } from '~/seo';
 
 export let loader = async (_args: LoaderArgs) => {
   return json({
@@ -12,10 +12,13 @@ export let loader = async (_args: LoaderArgs) => {
   });
 };
 
-export let meta: MetaFunction = () => {
-  return getSeoMeta({
-    title: 'Home',
-  });
+export let meta: V2_MetaFunction = ({ matches }) => {
+  let matchedMeta = matches
+    .flatMap(match => match.meta)
+    // @ts-expect-error types what can i say
+    .filter(m => !m.title);
+
+  return [{ title: createTitle('Home') }, ...matchedMeta];
 };
 
 export default function IndexPage() {

@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node';
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { Form, Link, useActionData, useTransition } from '@remix-run/react';
 import { Alert } from '@reach/alert';
@@ -13,7 +13,7 @@ import {
   getUserId,
   sessionStorage,
 } from '~/session.server';
-import { getSeoMeta } from '~/seo';
+import { createTitle } from '~/seo';
 import type { RouteHandle } from '~/lib/use-matches';
 
 export let loader = async ({ request }: LoaderArgs) => {
@@ -77,11 +77,19 @@ export let action = async ({ request }: ActionArgs) => {
   );
 };
 
-export let meta: MetaFunction = () => {
-  return getSeoMeta({
-    title: 'Log in',
-    description: 'show off your sneaker collection',
-  });
+export let meta: V2_MetaFunction = ({ matches }) => {
+  let matchedMeta = matches
+    .flatMap(match => match.meta)
+    // @ts-expect-error types what can i say
+    .filter(m => !m.title);
+
+  let title = createTitle('Log in');
+  let description = 'show off your sneaker collection';
+  return [
+    { title },
+    { name: 'description', content: description },
+    ...matchedMeta,
+  ];
 };
 
 export let handle: RouteHandle = {

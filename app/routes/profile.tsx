@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node';
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import {
   Form,
@@ -10,7 +10,7 @@ import {
 import { requireUser, requireUserId } from '~/session.server';
 import { prisma } from '~/db.server';
 import { editProfile } from '~/lib/schemas/user.server';
-import { getSeoMeta } from '~/seo';
+import { createTitle } from '~/seo';
 
 export let loader = async ({ request }: LoaderArgs) => {
   let user = await requireUser(request);
@@ -85,8 +85,14 @@ export let action = async ({ request }: ActionArgs) => {
   return redirect('/profile');
 };
 
-export let meta: MetaFunction = () => {
-  return getSeoMeta({ title: 'Edit Profile' });
+export let meta: V2_MetaFunction = ({ matches }) => {
+  let matchedMeta = matches
+    .flatMap(match => match.meta)
+    // @ts-expect-error types what can i say
+    .filter(m => !m.title);
+
+  let title = createTitle('Edit Profile');
+  return [{ title }, ...matchedMeta];
 };
 
 export default function ProfilePage() {

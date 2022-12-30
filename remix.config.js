@@ -14,4 +14,7 @@ module.exports = {
     return flatRoutes('routes', defineRoutes);
   },
   devServerBroadcastDelay: 1_000,
+  future: {
+    v2_meta: true,
+  },
 };

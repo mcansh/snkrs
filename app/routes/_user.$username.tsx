@@ -1,4 +1,8 @@
-import type { LoaderArgs, MetaFunction, SerializeFrom } from '@remix-run/node';
+import type {
+  LoaderArgs,
+  SerializeFrom,
+  V2_MetaFunction,
+} from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import type { Prisma } from '@prisma/client';
@@ -6,8 +10,8 @@ import type { Prisma } from '@prisma/client';
 import { prisma } from '~/db.server';
 import { SneakerCard } from '~/components/sneaker';
 import { getUserId, sessionStorage } from '~/session.server';
-import { getSeoMeta } from '~/seo';
 import { possessive } from '~/utils/possessive';
+import { createTitle } from '~/seo';
 
 export let loader = async ({ params, request }: LoaderArgs) => {
   let session = await sessionStorage.getSession(request.headers.get('Cookie'));
@@ -64,29 +68,36 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   );
 };
 
-export let meta: MetaFunction = ({
+export let meta: V2_MetaFunction<typeof loader | undefined> = ({
   data,
-}: {
-  data?: Partial<SerializeFrom<typeof loader>>;
+  matches,
 }) => {
-  if (!data || !data.user) {
-    return getSeoMeta();
+  let matchedMeta = matches
+    .flatMap(match => match.meta)
+    .filter(
+      m =>
+        // @ts-expect-error types what can i say
+        !m.title ||
+        // @ts-expect-error types what can i say
+        m.name !== 'twitter:title' ||
+        // @ts-expect-error types what can i say
+        m.name !== 'twitter:description'
+    );
+
+  if (!data?.user) {
+    return [...matchedMeta];
   }
 
   let name = possessive(data.user.fullName);
 
-  return getSeoMeta({
-    title: `${name} Sneaker Collection`,
-    description: `${name} sneaker collection`,
-    twitter: {
-      card: 'summary_large_image',
-      site: '@loganmcansh',
-      // TODO: add support for linking your twitter account
-      creator: '@loganmcansh',
-      description: `${name} sneaker collection`,
-      // TODO: add support for user avatar
-    },
-  });
+  let title = createTitle(`${name} Sneaker Collection`);
+  let description = `${name} sneaker collection`;
+
+  return [
+    { title },
+    { name: 'description', content: description },
+    ...matchedMeta,
+  ];
 };
 
 export default function UserSneakersPage() {

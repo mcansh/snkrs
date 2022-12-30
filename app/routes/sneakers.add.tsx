@@ -1,5 +1,4 @@
-import React from 'react';
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node';
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from '@remix-run/node';
 import { json, redirect } from '@remix-run/node';
 import { Form, useTransition } from '@remix-run/react';
 import slugify from 'slugify';
@@ -12,12 +11,17 @@ import { cloudinary } from '~/lib/cloudinary.server';
 import { sneakerSchema } from '~/lib/schemas/sneaker.server';
 import { parseStringFormData } from '~/utils/parse-string-formdata';
 import { requireUserId } from '~/session.server';
-import { getSeoMeta } from '~/seo';
+import { createTitle } from '~/seo';
 
-export const meta: MetaFunction = () => {
-  return getSeoMeta({
-    title: 'Add a sneaker to your collection',
-  });
+export let meta: V2_MetaFunction = ({ matches }) => {
+  let matchedMeta = matches
+    .flatMap(match => match.meta)
+    // @ts-expect-error types what can i say
+    .filter(m => !m.title);
+
+  let title = createTitle('Add a sneaker to your collection');
+
+  return [{ title }, ...matchedMeta];
 };
 
 export async function loader({ request }: LoaderArgs) {

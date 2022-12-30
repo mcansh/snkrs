@@ -1,4 +1,4 @@
-import type { LoaderArgs, MetaFunction } from '@remix-run/node';
+import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import { endOfYear, startOfYear } from 'date-fns';
@@ -6,7 +6,7 @@ import invariant from 'tiny-invariant';
 
 import { SneakerCard } from '~/components/sneaker';
 import { prisma } from '~/db.server';
-import { getSeoMeta } from '~/seo';
+import { createTitle } from '~/seo';
 
 export let loader = async ({ params }: LoaderArgs) => {
   invariant(params.year, 'year is required');
@@ -52,16 +52,30 @@ export let loader = async ({ params }: LoaderArgs) => {
   return json({ user, year });
 };
 
-export let meta: MetaFunction<Partial<typeof loader>> = ({ data }) => {
-  if (!data || !data.user) {
-    return getSeoMeta();
+export let meta: V2_MetaFunction<typeof loader | undefined> = ({
+  data,
+  matches,
+}) => {
+  let matchedMeta = matches
+    .flatMap(match => match.meta)
+    // @ts-expect-error types what can i say
+    .filter(m => !m.title);
+
+  if (!data?.user) {
+    return [...matchedMeta];
   }
 
+  let title = createTitle(`${data.year} • ${data.user.username}`);
+
   let sneakers = data.user.sneakers.length === 1 ? 'sneaker' : 'sneakers';
-  return getSeoMeta({
-    title: `${data.year} • ${data.user.username}`,
-    description: `${data.user.username} bought ${data.user.sneakers.length} ${sneakers} in ${data.year}`,
-  });
+  return [
+    ...matchedMeta,
+    { title },
+    {
+      name: 'description',
+      content: `${data.user.username} bought ${data.user.sneakers.length} ${sneakers} in ${data.year}`,
+    },
+  ];
 };
 
 export default function SneakersYearInReview() {

@@ -1,4 +1,4 @@
-import type { LoaderArgs, MetaFunction } from '@remix-run/node';
+import type { LoaderArgs, V2_MetaFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { Link, useLoaderData } from '@remix-run/react';
 import invariant from 'tiny-invariant';
@@ -9,7 +9,7 @@ import { getCloudinaryURL } from '~/utils/get-cloudinary-url';
 import { formatMoney } from '~/utils/format-money';
 import { copy } from '~/utils/copy';
 import { prisma } from '~/db.server';
-import { getSeoMeta } from '~/seo';
+import { createTitle } from '~/seo';
 import { getUserId } from '~/session.server';
 
 export let loader = async ({ params, request }: LoaderArgs) => {
@@ -75,9 +75,24 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   });
 };
 
-export let meta: MetaFunction<Partial<typeof loader>> = ({ data }) => {
-  if (!data || !data.sneaker) {
-    return getSeoMeta();
+export let meta: V2_MetaFunction<typeof loader | undefined> = ({
+  data,
+  matches,
+}) => {
+  let matchedMeta = matches
+    .flatMap(match => match.meta)
+    .filter(
+      m =>
+        // @ts-expect-error types what can i say
+        !m.title ||
+        // @ts-expect-error types what can i say
+        m.name !== 'twitter:title' ||
+        // @ts-expect-error types what can i say
+        m.name !== 'twitter:description'
+    );
+
+  if (!data?.sneaker) {
+    return [...matchedMeta];
   }
 
   let date = formatDate(data.sneaker.purchaseDate, {
@@ -86,10 +101,19 @@ export let meta: MetaFunction<Partial<typeof loader>> = ({ data }) => {
     year: 'numeric',
   });
 
-  return getSeoMeta({
-    title: data.title,
-    description: `${data.sneaker.user.fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`,
-  });
+  let title = createTitle(data.title);
+  let description = `${data.sneaker.user.fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`;
+
+  return [
+    { title },
+    {
+      name: 'description',
+      content: description,
+    },
+    { name: 'twitter:title', content: title },
+    { name: 'twitter:description', content: description },
+    ...matchedMeta,
+  ];
 };
 
 export default function SneakerPage() {
