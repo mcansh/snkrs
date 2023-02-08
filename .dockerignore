@@ -8,7 +8,6 @@
 /.cache
 /build
 /public/build
-/app/styles
 /app/assets/icons/solid
 /app/assets/icons/outline
 
