@@ -1,20 +1,20 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node';
-import { json, redirect } from '@remix-run/node';
-import { Form, Link, useActionData, useTransition } from '@remix-run/react';
-import { Alert } from '@reach/alert';
-import { route } from 'routes-gen';
+import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
+import { Form, Link, useActionData, useTransition } from "@remix-run/react";
+import { Alert } from "@reach/alert";
+import { route } from "routes-gen";
 
-import { verify } from '~/lib/auth.server';
-import { prisma } from '~/db.server';
-import { loginSchema } from '~/lib/schemas/user.server';
+import { verify } from "~/lib/auth.server";
+import { prisma } from "~/db.server";
+import { loginSchema } from "~/lib/schemas/user.server";
 import {
   createUserSession,
   getSession,
   getUserId,
   sessionStorage,
-} from '~/session.server';
-import { getSeoMeta } from '~/seo';
-import type { RouteHandle } from '~/lib/use-matches';
+} from "~/session.server";
+import { getSeoMeta } from "~/seo";
+import type { RouteHandle } from "~/lib/use-matches";
 
 export let loader = async ({ request }: LoaderArgs) => {
   let userId = await getUserId(request);
@@ -31,20 +31,20 @@ export let loader = async ({ request }: LoaderArgs) => {
   if (user) return redirect(`/${user.username}`);
 
   let session = await getSession(request);
-  return redirect('/', {
+  return redirect("/", {
     headers: {
-      'Set-Cookie': await sessionStorage.destroySession(session),
+      "Set-Cookie": await sessionStorage.destroySession(session),
     },
   });
 };
 
 export let action = async ({ request }: ActionArgs) => {
   let formData = await request.formData();
-  let email = formData.get('email');
-  let password = formData.get('password');
+  let email = formData.get("email");
+  let password = formData.get("password");
 
   let url = new URL(request.url);
-  let redirectTo = url.searchParams.get('returnTo');
+  let redirectTo = url.searchParams.get("returnTo");
 
   let valid = loginSchema.safeParse({ email, password });
   if (!valid.success) {
@@ -57,7 +57,7 @@ export let action = async ({ request }: ActionArgs) => {
 
   if (!foundUser) {
     return json(
-      { errors: { email: ['Invalid email or password'] } },
+      { errors: { email: ["Invalid email or password"] } },
       { status: 400 }
     );
   }
@@ -66,7 +66,7 @@ export let action = async ({ request }: ActionArgs) => {
 
   if (!validCredentials) {
     return json({
-      errors: { email: ['Invalid email or password'] },
+      errors: { email: ["Invalid email or password"] },
     });
   }
 
@@ -79,13 +79,13 @@ export let action = async ({ request }: ActionArgs) => {
 
 export let meta: MetaFunction = () => {
   return getSeoMeta({
-    title: 'Log in',
-    description: 'show off your sneaker collection',
+    title: "Log in",
+    description: "show off your sneaker collection",
   });
 };
 
 export let handle: RouteHandle = {
-  bodyClassName: 'bg-gray-50',
+  bodyClassName: "bg-gray-50",
 };
 
 export default function LoginPage() {
@@ -119,23 +119,35 @@ export default function LoginPage() {
                     type="email"
                     autoComplete="email"
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    aria-invalid={actionData?.errors.email ? true : undefined}
+                    aria-invalid={
+                      actionData &&
+                      "email" in actionData.errors &&
+                      actionData.errors.email
+                        ? true
+                        : undefined
+                    }
                     aria-errormessage={
-                      actionData?.errors.email ? 'email-error' : undefined
+                      actionData &&
+                      "email" in actionData.errors &&
+                      actionData.errors.email
+                        ? "email-error"
+                        : undefined
                     }
                   />
-                  {actionData?.errors.email && (
-                    <Alert
-                      className="mt-2 text-sm text-red-600"
-                      id="email-error"
-                    >
-                      {actionData.errors.email.map(error => (
-                        <p className="mt-1" key={error}>
-                          {error}
-                        </p>
-                      ))}
-                    </Alert>
-                  )}
+                  {actionData &&
+                    "email" in actionData.errors &&
+                    actionData.errors.email && (
+                      <Alert
+                        className="mt-2 text-sm text-red-600"
+                        id="email-error"
+                      >
+                        {actionData.errors.email.map((error) => (
+                          <p className="mt-1" key={error}>
+                            {error}
+                          </p>
+                        ))}
+                      </Alert>
+                    )}
                 </div>
               </div>
 
@@ -154,28 +166,34 @@ export default function LoginPage() {
                     autoComplete="current-password"
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     aria-invalid={
-                      actionData && 'password' in actionData.errors
+                      actionData &&
+                      "password" in actionData.errors &&
+                      actionData.errors.password
                         ? true
                         : undefined
                     }
                     aria-errormessage={
-                      actionData && 'password' in actionData.errors
-                        ? 'password-error'
+                      actionData &&
+                      "password" in actionData.errors &&
+                      actionData.errors.password
+                        ? "password-error"
                         : undefined
                     }
                   />
-                  {actionData && 'password' in actionData.errors && (
-                    <Alert
-                      className="mt-2 text-sm text-red-600"
-                      id="password-error"
-                    >
-                      {actionData.errors.password!.map(error => (
-                        <p className="mt-1" key={error}>
-                          {error}
-                        </p>
-                      ))}
-                    </Alert>
-                  )}
+                  {actionData &&
+                    "password" in actionData.errors &&
+                    actionData.errors.password && (
+                      <Alert
+                        className="mt-2 text-sm text-red-600"
+                        id="password-error"
+                      >
+                        {actionData.errors.password.map((error) => (
+                          <p className="mt-1" key={error}>
+                            {error}
+                          </p>
+                        ))}
+                      </Alert>
+                    )}
                 </div>
               </div>
 
@@ -185,7 +203,7 @@ export default function LoginPage() {
                 </div>
                 <div className="text-sm">
                   <Link
-                    to={route('/join')}
+                    to={route("/join")}
                     className="font-medium text-indigo-600 hover:text-indigo-500"
                   >
                     Join

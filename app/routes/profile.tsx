@@ -1,16 +1,16 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node';
-import { json, redirect } from '@remix-run/node';
+import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
 import {
   Form,
   useActionData,
   useLoaderData,
   useTransition,
-} from '@remix-run/react';
+} from "@remix-run/react";
 
-import { requireUser, requireUserId } from '~/session.server';
-import { prisma } from '~/db.server';
-import { editProfile } from '~/lib/schemas/user.server';
-import { getSeoMeta } from '~/seo';
+import { requireUser, requireUserId } from "~/session.server";
+import { prisma } from "~/db.server";
+import { editProfile } from "~/lib/schemas/user.server";
+import { getSeoMeta } from "~/seo";
 
 export let loader = async ({ request }: LoaderArgs) => {
   let user = await requireUser(request);
@@ -38,19 +38,19 @@ export let action = async ({ request }: ActionArgs) => {
 
   let formData = await request.formData();
 
-  let email = formData.get('email');
-  let username = formData.get('username');
-  let showPurchasePrice = formData.get('showPurchasePrice');
-  let showRetailPrice = formData.get('showRetailPrice');
-  let showTotalPrice = formData.get('showTotalPrice');
+  let email = formData.get("email");
+  let username = formData.get("username");
+  let showPurchasePrice = formData.get("showPurchasePrice");
+  let showRetailPrice = formData.get("showRetailPrice");
+  let showTotalPrice = formData.get("showTotalPrice");
 
   let valid = editProfile.safeParse({
     email,
     username,
     settings: {
-      showPurchasePrice: showPurchasePrice === 'on',
-      showRetailPrice: showRetailPrice === 'on',
-      showTotalPrice: showTotalPrice === 'on',
+      showPurchasePrice: showPurchasePrice === "on",
+      showRetailPrice: showRetailPrice === "on",
+      showTotalPrice: showTotalPrice === "on",
     },
   });
 
@@ -82,11 +82,11 @@ export let action = async ({ request }: ActionArgs) => {
     where: { id: userId },
   });
 
-  return redirect('/profile');
+  return redirect("/profile");
 };
 
 export let meta: MetaFunction = () => {
-  return getSeoMeta({ title: 'Edit Profile' });
+  return getSeoMeta({ title: "Edit Profile" });
 };
 
 export default function ProfilePage() {

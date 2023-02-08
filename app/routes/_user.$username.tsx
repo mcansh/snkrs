@@ -1,22 +1,22 @@
-import type { LoaderArgs, MetaFunction, SerializeFrom } from '@remix-run/node';
-import { json } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
-import type { Prisma } from '@prisma/client';
+import type { LoaderArgs, MetaFunction, SerializeFrom } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
+import type { Prisma } from "@prisma/client";
 
-import { prisma } from '~/db.server';
-import { SneakerCard } from '~/components/sneaker';
-import { getUserId, sessionStorage } from '~/session.server';
-import { getSeoMeta } from '~/seo';
-import { possessive } from '~/utils/possessive';
+import { prisma } from "~/db.server";
+import { SneakerCard } from "~/components/sneaker";
+import { getUserId, sessionStorage } from "~/session.server";
+import { getSeoMeta } from "~/seo";
+import { possessive } from "~/utils/possessive";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
-  let session = await sessionStorage.getSession(request.headers.get('Cookie'));
+  let session = await sessionStorage.getSession(request.headers.get("Cookie"));
   let url = new URL(request.url);
   let userId = await getUserId(request);
 
-  let selectedBrands = url.searchParams.getAll('brand');
-  let sortQuery = url.searchParams.get('sort');
-  let sort: Prisma.SortOrder = sortQuery === 'asc' ? 'asc' : 'desc';
+  let selectedBrands = url.searchParams.getAll("brand");
+  let sortQuery = url.searchParams.get("sort");
+  let sort: Prisma.SortOrder = sortQuery === "asc" ? "asc" : "desc";
 
   let user = await prisma.user.findUnique({
     where: { username: params.username },
@@ -32,7 +32,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   if (!user) {
     throw new Response("This user doesn't exist", {
       status: 404,
-      statusText: 'Not Found',
+      statusText: "Not Found",
     });
   }
 
@@ -47,7 +47,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
     : null;
 
   let sneakers = selectedBrands.length
-    ? user.sneakers.filter(sneaker =>
+    ? user.sneakers.filter((sneaker) =>
         selectedBrands.includes(sneaker.brand.slug)
       )
     : user.sneakers;
@@ -56,9 +56,9 @@ export let loader = async ({ params, request }: LoaderArgs) => {
     { user: { ...user, sneakers } },
     {
       headers: {
-        'Set-Cookie': sessionUser
+        "Set-Cookie": sessionUser
           ? await sessionStorage.commitSession(session)
-          : '',
+          : "",
       },
     }
   );
@@ -69,7 +69,7 @@ export let meta: MetaFunction = ({
 }: {
   data?: Partial<SerializeFrom<typeof loader>>;
 }) => {
-  if (!data || !data.user) {
+  if (!data?.user) {
     return getSeoMeta();
   }
 
@@ -79,10 +79,10 @@ export let meta: MetaFunction = ({
     title: `${name} Sneaker Collection`,
     description: `${name} sneaker collection`,
     twitter: {
-      card: 'summary_large_image',
-      site: '@loganmcansh',
+      card: "summary_large_image",
+      site: "@loganmcansh",
       // TODO: add support for linking your twitter account
-      creator: '@loganmcansh',
+      creator: "@loganmcansh",
       description: `${name} sneaker collection`,
       // TODO: add support for user avatar
     },
@@ -116,11 +116,11 @@ function EmptyState({ fullName }: { fullName: string }) {
 function SneakerGrid({
   sneakers,
 }: {
-  sneakers: SerializeFrom<typeof loader>['user']['sneakers'];
+  sneakers: SerializeFrom<typeof loader>["user"]["sneakers"];
 }) {
   return (
     <ul className="grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-4">
-      {sneakers.map(sneaker => (
+      {sneakers.map((sneaker) => (
         <SneakerCard key={sneaker.id} {...sneaker} />
       ))}
     </ul>

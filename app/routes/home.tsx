@@ -1,10 +1,10 @@
-import type { LoaderArgs, MetaFunction } from '@remix-run/node';
-import { json } from '@remix-run/node';
-import { Link, useLoaderData } from '@remix-run/react';
-import { route } from 'routes-gen';
+import type { LoaderArgs, MetaFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { Link, useLoaderData } from "@remix-run/react";
+import { route } from "routes-gen";
 
-import screenshotUrl from '~/assets/screenshot.jpg';
-import { getSeoMeta } from '~/seo';
+import screenshotUrl from "~/assets/screenshot.jpg";
+import { getSeoMeta } from "~/seo";
 
 export let loader = async (_args: LoaderArgs) => {
   return json({
@@ -14,7 +14,7 @@ export let loader = async (_args: LoaderArgs) => {
 
 export let meta: MetaFunction = () => {
   return getSeoMeta({
-    title: 'Home',
+    title: "Home",
   });
 };
 
@@ -41,13 +41,13 @@ export default function IndexPage() {
                 </p>
                 <div className="mt-12 sm:max-w-lg sm:w-full flex sm:flex-row sm:space-x-4 sm:space-y-0 space-y-4 flex-col">
                   <Link
-                    to={route('/join')}
+                    to={route("/join")}
                     className="rounded-md border border-transparent px-5 py-3 bg-indigo-500 text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10 text-center"
                   >
                     Get started
                   </Link>
                   <Link
-                    to={route('/:username', { username: data.demo })}
+                    to={route("/:username", { username: data.demo })}
                     className="rounded-md border border-transparent px-5 py-3 bg-rose-500 text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10 text-center"
                   >
                     View live demo

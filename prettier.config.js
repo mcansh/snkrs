@@ -1,9 +1,2 @@
-let {
-  jsxBracketSameLine,
-  ...config
-} = require('@mcansh/eslint-config/prettier.config');
-
-module.exports = {
-  ...config,
-  bracketSameLine: false,
-};
+/** @type {import('prettier').Config} */
+module.exports = {};

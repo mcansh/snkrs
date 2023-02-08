@@ -1,6 +1,6 @@
-import { useCatch } from '@remix-run/react';
+import { useCatch } from "@remix-run/react";
 
-import { Document } from './document';
+import { Document } from "./document";
 
 export function CatchBoundary() {
   let caught = useCatch();

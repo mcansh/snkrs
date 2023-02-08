@@ -1,10 +1,10 @@
-import { Prisma } from '@prisma/client';
-import { Link } from '@remix-run/react';
-import { route } from 'routes-gen';
-import type { SerializeFrom } from '@remix-run/node';
+import { Prisma } from "@prisma/client";
+import { Link } from "@remix-run/react";
+import { route } from "routes-gen";
+import type { SerializeFrom } from "@remix-run/node";
 
-import { getCloudinaryURL, getImageURLs } from '~/utils/get-cloudinary-url';
-import { formatMoney } from '~/utils/format-money';
+import { getCloudinaryURL, getImageURLs } from "~/utils/get-cloudinary-url";
+import { formatMoney } from "~/utils/format-money";
 
 let sneakerWithBrand = Prisma.validator<Prisma.SneakerArgs>()({
   include: { brand: true },
@@ -30,7 +30,7 @@ export function SneakerCard({
         <div className="bg-gray-200 rounded-md overflow-hidden group-hover:opacity-75 aspect-1">
           <img
             src={getCloudinaryURL(imagePublicId, {
-              resize: { width: 200, height: 200, type: 'pad' },
+              resize: { width: 200, height: 200, type: "pad" },
             })}
             sizes="(min-width: 1024px) 25vw, 50vw"
             srcSet={srcSet}
@@ -38,7 +38,7 @@ export function SneakerCard({
           />
         </div>
         <h3 className="mt-4 text-sm text-gray-700">
-          <Link to={route('/sneakers/:sneakerId', { sneakerId: id })}>
+          <Link to={route("/sneakers/:sneakerId", { sneakerId: id })}>
             <span className="absolute inset-0" />
             {brand.name} {model}
           </Link>

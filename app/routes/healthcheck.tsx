@@ -1,8 +1,8 @@
-import type { LoaderArgs, MetaFunction, RouteComponent } from '@remix-run/node';
-import { json } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
+import type { LoaderArgs, MetaFunction, RouteComponent } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 
-import { prisma } from '~/db.server';
+import { prisma } from "~/db.server";
 
 interface RouteData {
   ok: boolean;
@@ -19,7 +19,7 @@ let loader = async (_args: LoaderArgs) => {
 };
 
 let meta: MetaFunction = () => ({
-  title: 'Health Check',
+  title: "Health Check",
 });
 
 let Page: RouteComponent = () => {

@@ -1,26 +1,26 @@
-import * as React from 'react';
+import * as React from "react";
 import type {
   DataFunctionArgs,
   MetaFunction,
   SerializeFrom,
-} from '@remix-run/node';
-import { json, redirect } from '@remix-run/node';
-import { Form, Link, useLoaderData, useTransition } from '@remix-run/react';
-import { format, parseISO } from 'date-fns';
-import slugify from 'slugify';
-import accounting from 'accounting';
-import { NumericFormat } from 'react-number-format';
-import invariant from 'tiny-invariant';
-import { route } from 'routes-gen';
+} from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
+import { Form, Link, useLoaderData, useTransition } from "@remix-run/react";
+import { format, parseISO } from "date-fns";
+import slugify from "slugify";
+import accounting from "accounting";
+import { NumericFormat } from "react-number-format";
+import invariant from "tiny-invariant";
+import { route } from "routes-gen";
 
-import { formatDate } from '~/utils/format-date';
-import { getCloudinaryURL, getImageURLs } from '~/utils/get-cloudinary-url';
-import { formatMoney } from '~/utils/format-money';
-import { prisma } from '~/db.server';
-import { sneakerSchema } from '~/lib/schemas/sneaker.server';
-import { cloudinary } from '~/lib/cloudinary.server';
-import { requireUserId } from '~/session.server';
-import { getSeoMeta } from '~/seo';
+import { formatDate } from "~/utils/format-date";
+import { getCloudinaryURL, getImageURLs } from "~/utils/get-cloudinary-url";
+import { formatMoney } from "~/utils/format-money";
+import { prisma } from "~/db.server";
+import { sneakerSchema } from "~/lib/schemas/sneaker.server";
+import { cloudinary } from "~/lib/cloudinary.server";
+import { requireUserId } from "~/session.server";
+import { getSeoMeta } from "~/seo";
 
 export let loader = async ({ params, request }: DataFunctionArgs) => {
   invariant(params.sneakerId);
@@ -37,7 +37,7 @@ export let loader = async ({ params, request }: DataFunctionArgs) => {
   if (!sneaker) {
     throw new Response(`No sneaker found with id ${params.sneakerId}`, {
       status: 404,
-      statusText: 'Not Found',
+      statusText: "Not Found",
     });
   }
 
@@ -46,7 +46,7 @@ export let loader = async ({ params, request }: DataFunctionArgs) => {
   if (!userCreatedSneaker) {
     throw new Response("You don't have permission to edit this sneaker", {
       status: 403,
-      statusText: 'Forbidden',
+      statusText: "Forbidden",
     });
   }
 
@@ -56,15 +56,15 @@ export let loader = async ({ params, request }: DataFunctionArgs) => {
     sneaker: {
       ...sneaker,
       createdAt:
-        typeof sneaker.createdAt === 'string'
+        typeof sneaker.createdAt === "string"
           ? sneaker.createdAt
           : sneaker.createdAt.toISOString(),
       purchaseDate:
-        typeof sneaker.purchaseDate === 'string'
+        typeof sneaker.purchaseDate === "string"
           ? sneaker.purchaseDate
           : sneaker.purchaseDate.toISOString(),
       soldDate:
-        typeof sneaker.soldDate === 'string'
+        typeof sneaker.soldDate === "string"
           ? sneaker.soldDate
           : sneaker.soldDate?.toISOString(),
     },
@@ -83,14 +83,14 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
   if (!originalSneaker) {
     throw new Response(`No sneaker found with id ${sneakerId}`, {
       status: 404,
-      statusText: 'Not Found',
+      statusText: "Not Found",
     });
   }
 
   if (originalSneaker.userId !== userId) {
     throw new Response("You don't have permission to edit this sneaker", {
       status: 403,
-      statusText: 'Forbidden',
+      statusText: "Forbidden",
     });
   }
 
@@ -98,8 +98,8 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
   let formData = new URLSearchParams(requestBody);
   let data = Object.fromEntries(formData);
 
-  let rawPrice = formData.get('price') as string;
-  let rawRetailPrice = formData.get('retailPrice') as string;
+  let rawPrice = formData.get("price") as string;
+  let rawRetailPrice = formData.get("retailPrice") as string;
 
   let price = Number(rawPrice) || accounting.unformat(rawPrice) * 100;
   let retailPrice =
@@ -123,10 +123,10 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
     return json({ errors: valid.error.flatten().fieldErrors }, { status: 422 });
   }
 
-  let imagePublicId = '';
+  let imagePublicId = "";
   if (originalSneaker.imagePublicId !== valid.data.imagePublicId) {
     // image was already uploaded to our cloudinary bucket
-    if (valid.data.imagePublicId.startsWith('shoes/')) {
+    if (valid.data.imagePublicId.startsWith("shoes/")) {
       imagePublicId = valid.data.imagePublicId;
     } else if (
       /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi.test(
@@ -135,8 +135,8 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
     ) {
       // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
       let res = await cloudinary.v2.uploader.upload(valid.data.imagePublicId, {
-        resource_type: 'image',
-        folder: 'shoes',
+        resource_type: "image",
+        folder: "shoes",
       });
 
       imagePublicId = res.public_id;
@@ -183,7 +183,7 @@ export let meta: MetaFunction = ({
 }: {
   data?: Partial<SerializeFrom<typeof loader>>;
 }) => {
-  if (!data || !data.sneaker) {
+  if (!data?.sneaker) {
     return getSeoMeta();
   }
 
@@ -207,7 +207,7 @@ export default function EditSneakerPage() {
     <main className="container h-full p-4 pb-6 mx-auto">
       <Link
         prefetch="intent"
-        to={route('/sneakers/:sneakerId', { sneakerId: sneaker.id })}
+        to={route("/sneakers/:sneakerId", { sneakerId: sneaker.id })}
       >
         Back
       </Link>
@@ -215,7 +215,7 @@ export default function EditSneakerPage() {
         <div className="relative pb-[100%]">
           <img
             src={getCloudinaryURL(sneaker.imagePublicId, {
-              resize: { width: 200, height: 200, type: 'pad' },
+              resize: { width: 200, height: 200, type: "pad" },
             })}
             sizes="(min-width: 640px) 50vw, 100vw"
             srcSet={srcSet}
@@ -307,7 +307,7 @@ export default function EditSneakerPage() {
               type="submit"
               className="self-start w-auto px-4 py-2 text-center text-white bg-blue-500 rounded disabled:bg-blue-200 disabled:cursor-not-allowed sm:col-span-2"
             >
-              Sav{pendingForm ? 'ing' : 'e'} Changes
+              Sav{pendingForm ? "ing" : "e"} Changes
             </button>
           </fieldset>
         </Form>

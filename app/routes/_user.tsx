@@ -1,11 +1,11 @@
-import * as React from 'react';
+import * as React from "react";
 import type {
   HeadersFunction,
   LoaderArgs,
   MetaFunction,
   SerializeFrom,
-} from '@remix-run/node';
-import { json, redirect } from '@remix-run/node';
+} from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
 import {
   Form,
   Link,
@@ -13,27 +13,27 @@ import {
   useLoaderData,
   useLocation,
   useSubmit,
-} from '@remix-run/react';
-import type { Prisma } from '@prisma/client';
-import uniqBy from 'lodash.uniqby';
-import { Dialog, Transition } from '@headlessui/react';
-import { route } from 'routes-gen';
+} from "@remix-run/react";
+import type { Prisma } from "@prisma/client";
+import uniqBy from "lodash.uniqby";
+import { Dialog, Transition } from "@headlessui/react";
+import { route } from "routes-gen";
 
-import { prisma } from '~/db.server';
-import x from '~/assets/icons/outline/x.svg';
-import plusSm from '~/assets/icons/solid/plus-sm.svg';
-import { getUserId, sessionStorage } from '~/session.server';
-import { getSeoMeta } from '~/seo';
-import { possessive } from '~/utils/possessive';
+import { prisma } from "~/db.server";
+import x from "~/assets/icons/outline/x.svg";
+import plusSm from "~/assets/icons/solid/plus-sm.svg";
+import { getUserId, sessionStorage } from "~/session.server";
+import { getSeoMeta } from "~/seo";
+import { possessive } from "~/utils/possessive";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
-  let session = await sessionStorage.getSession(request.headers.get('Cookie'));
+  let session = await sessionStorage.getSession(request.headers.get("Cookie"));
   let url = new URL(request.url);
   let userId = await getUserId(request);
 
-  let selectedBrands = url.searchParams.getAll('brand');
-  let sortQuery = url.searchParams.get('sort');
-  let sort: Prisma.SortOrder = sortQuery === 'asc' ? 'asc' : 'desc';
+  let selectedBrands = url.searchParams.getAll("brand");
+  let sortQuery = url.searchParams.get("sort");
+  let sort: Prisma.SortOrder = sortQuery === "asc" ? "asc" : "desc";
 
   let user = await prisma.user.findUnique({
     where: {
@@ -53,7 +53,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   if (!user) {
     throw new Response("This user doesn't exist", {
       status: 404,
-      statusText: 'Not Found',
+      statusText: "Not Found",
     });
   }
 
@@ -68,21 +68,21 @@ export let loader = async ({ params, request }: LoaderArgs) => {
     : null;
 
   let sneakers = selectedBrands.length
-    ? user.sneakers.filter(sneaker =>
+    ? user.sneakers.filter((sneaker) =>
         selectedBrands.includes(sneaker.brand.slug)
       )
     : user.sneakers;
 
   let uniqueBrands = uniqBy(
-    user.sneakers.map(sneaker => sneaker.brand),
-    'name'
+    user.sneakers.map((sneaker) => sneaker.brand),
+    "name"
   ).sort((a, b) => a.name.localeCompare(b.name));
 
   if (
     uniqueBrands.length > 0 &&
-    uniqueBrands.every(brand => selectedBrands.includes(brand.slug))
+    uniqueBrands.every((brand) => selectedBrands.includes(brand.slug))
   ) {
-    url.searchParams.delete('brand');
+    url.searchParams.delete("brand");
     throw redirect(url.toString());
   }
 
@@ -91,9 +91,9 @@ export let loader = async ({ params, request }: LoaderArgs) => {
       user: { ...user, sneakers },
       filters: [
         {
-          id: 'brand',
-          name: 'Brand',
-          options: uniqueBrands.map(brand => {
+          id: "brand",
+          name: "Brand",
+          options: uniqueBrands.map((brand) => {
             return {
               value: brand.slug,
               label: brand.name,
@@ -102,26 +102,26 @@ export let loader = async ({ params, request }: LoaderArgs) => {
           }),
         },
       ],
-      sort: sortQuery === 'asc' ? 'asc' : 'desc',
+      sort: sortQuery === "asc" ? "asc" : "desc",
       sessionUser,
     },
     {
       headers: {
-        'Set-Cookie': sessionUser
+        "Set-Cookie": sessionUser
           ? await sessionStorage.commitSession(session)
-          : '',
+          : "",
       },
     }
   );
 };
 
 export let headers: HeadersFunction = ({ loaderHeaders }) => ({
-  'Server-Timing': loaderHeaders.get('Server-Timing') ?? '',
+  "Server-Timing": loaderHeaders.get("Server-Timing") ?? "",
 });
 
 const sortOptions = [
-  { value: 'desc', label: 'Recent first' },
-  { value: 'asc', label: 'Oldest first' },
+  { value: "desc", label: "Recent first" },
+  { value: "asc", label: "Oldest first" },
 ];
 
 export let meta: MetaFunction = ({
@@ -129,7 +129,7 @@ export let meta: MetaFunction = ({
 }: {
   data?: Partial<SerializeFrom<typeof loader>>;
 }) => {
-  if (!data || !data.user) {
+  if (!data?.user) {
     return getSeoMeta();
   }
 
@@ -139,10 +139,10 @@ export let meta: MetaFunction = ({
     title: `${name} Sneaker Collection`,
     description: `${name} sneaker collection`,
     twitter: {
-      card: 'summary_large_image',
-      site: '@loganmcansh',
+      card: "summary_large_image",
+      site: "@loganmcansh",
       // TODO: add support for linking your twitter account
-      creator: '@loganmcansh',
+      creator: "@loganmcansh",
       description: `${name} sneaker collection`,
       // TODO: add support for user avatar
     },
@@ -168,7 +168,7 @@ export default function UserSneakersPage() {
         <h2 className="mb-2 text-2xl font-bold">Let&apos;s Get Started</h2>
         <Link
           className="text-purple-600 transition-colors duration-150 ease-in-out hover:text-purple-300"
-          to={route('/sneakers/add')}
+          to={route("/sneakers/add")}
         >
           Add a sneaker to your collection
         </Link>
@@ -225,7 +225,7 @@ export default function UserSneakersPage() {
                 action={location.pathname}
                 className="mt-4"
                 replace
-                onChange={event => {
+                onChange={(event) => {
                   submit(event.currentTarget, { replace: true });
                 }}
               >
@@ -247,7 +247,7 @@ export default function UserSneakersPage() {
                             className="w-full border-gray-300 rounded text-indigo-600 focus:ring-indigo-500"
                             defaultValue={data.sort}
                           >
-                            {sortOptions.map(option => (
+                            {sortOptions.map((option) => (
                               <option
                                 key={`${option.label}-${option.value}`}
                                 value={option.value}
@@ -261,7 +261,7 @@ export default function UserSneakersPage() {
                     </legend>
                   </fieldset>
                 </div>
-                {data.filters.map(section => (
+                {data.filters.map((section) => (
                   <div
                     key={section.name}
                     className="border-t border-gray-200 py-4"
@@ -276,7 +276,7 @@ export default function UserSneakersPage() {
                       </legend>
                       <div className="pt-4 pb-2 px-4">
                         <div className="space-y-6">
-                          {section.options.map(option => (
+                          {section.options.map((option) => (
                             <div
                               key={option.value}
                               className="flex items-center"
@@ -339,7 +339,7 @@ export default function UserSneakersPage() {
                 action={location.pathname}
                 className="divide-y divide-gray-200 space-y-10"
                 replace
-                onChange={event => {
+                onChange={(event) => {
                   submit(event.currentTarget, { replace: true });
                 }}
               >
@@ -354,7 +354,7 @@ export default function UserSneakersPage() {
                         name="sort"
                         className="border-gray-300 rounded text-indigo-600 focus:ring-indigo-500"
                       >
-                        {sortOptions.map(option => (
+                        {sortOptions.map((option) => (
                           <option
                             key={`${option.label}-${option.value}`}
                             value={option.value}
@@ -366,7 +366,7 @@ export default function UserSneakersPage() {
                     </div>
                   </fieldset>
                 </div>
-                {data.filters.map(section => (
+                {data.filters.map((section) => (
                   <div key={section.name} className="pt-10">
                     <fieldset>
                       <legend className="block text-sm font-medium text-gray-900">
