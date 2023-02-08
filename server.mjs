@@ -1,10 +1,8 @@
-/* eslint-disable no-console */
 import express from 'express';
 import { createRequestHandler } from '@remix-run/express';
-// this is a virtual module so it's fine
-// eslint-disable-next-line import/no-extraneous-dependencies
-import * as serverBuild from '@remix-run/dev/server-build';
 import * as Sentry from '@sentry/node';
+
+import * as serverBuild from './build/index.js';
 
 let MODE = process.env.NODE_ENV;
 
@@ -59,6 +57,7 @@ app.all('*', function getReplayResponse(req, res, next) {
     FLY_PRIMARY_REGION: process.env.FLY_PRIMARY_REGION,
     FLY_REGION: process.env.FLY_REGION,
   };
+  // eslint-disable-next-line no-console
   console.info(`Replaying:`, logInfo);
   res.set('fly-replay', `region=${process.env.FLY_PRIMARY_REGION}`);
   return res
@@ -81,8 +80,9 @@ app.use(express.static('public', { maxAge: '1h' }));
 
 app.all('*', createRequestHandler({ build: serverBuild }));
 
-let port = process.env.PORT ?? 3000;
+let port = Number(process.env.PORT) || 3000;
 
 app.listen(port, () => {
+  // eslint-disable-next-line no-console
   console.log(`✅ app ready: http://localhost:${port}`);
 });

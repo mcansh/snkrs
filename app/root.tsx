@@ -10,18 +10,18 @@ import {
 } from '@remix-run/react';
 import * as Fathom from 'fathom-client';
 import clsx from 'clsx';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import appStylesHref from 'tailwindcss/tailwind.css';
 
 import { useMatches } from './lib/use-matches';
 import { getUser } from './session.server';
+import interStylesHref from './styles/inter.css';
+import refreshClockwise from './assets/icons/refresh-clockwise.svg';
+import { getSeo } from './seo';
+import { Document } from './components/document';
 
-import globalStylesHref from '~/styles/global.css';
-import interStylesHref from '~/styles/inter.css';
-import refreshClockwise from '~/assets/icons/refresh-clockwise.svg';
-import { getSeo } from '~/seo';
-import { Document } from '~/components/document';
-
-export { CatchBoundary } from '~/components/root-catch-boundary';
-export { ErrorBoundary } from '~/components/root-error-boundary';
+export { CatchBoundary } from './components/root-catch-boundary';
+export { ErrorBoundary } from './components/root-error-boundary';
 
 let [seoMeta, seoLinks] = getSeo();
 
@@ -37,7 +37,9 @@ export let meta: MetaFunction = () => ({
 
 export let links: LinksFunction = () => [
   ...seoLinks,
-  { rel: 'stylesheet', href: globalStylesHref },
+  { rel: 'preload', href: appStylesHref, as: 'style' },
+  { rel: 'preload', href: interStylesHref, as: 'style' },
+  { rel: 'stylesheet', href: appStylesHref },
   { rel: 'stylesheet', href: interStylesHref },
   {
     rel: 'icon',

@@ -23,10 +23,7 @@ let securityHeaders = createSecureHeaders({
     'connect-src':
       process.env.NODE_ENV === 'production'
         ? ["'self'"]
-        : [
-            "'self'",
-            `ws://localhost:${process.env.REMIX_DEV_SERVER_WS_PORT}/socket`,
-          ],
+        : ["'self'", `ws://localhost:3001/socket`],
   },
   'Permissions-Policy': {
     accelerometer: [],
