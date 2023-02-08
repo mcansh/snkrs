@@ -28,7 +28,9 @@ export let loader = async ({ request }: LoaderArgs) => {
     select: { username: true },
   });
 
-  if (user) return redirect(`/${user.username}`);
+  if (user) {
+    return redirect(`/${user.username}`);
+  }
 
   let session = await getSession(request);
   return redirect("/", {
@@ -40,13 +42,11 @@ export let loader = async ({ request }: LoaderArgs) => {
 
 export let action = async ({ request }: ActionArgs) => {
   let formData = await request.formData();
-  let email = formData.get("email");
-  let password = formData.get("password");
 
   let url = new URL(request.url);
   let redirectTo = url.searchParams.get("returnTo");
 
-  let valid = loginSchema.safeParse({ email, password });
+  let valid = loginSchema.safeParse(formData);
   if (!valid.success) {
     return json({ errors: valid.error.flatten().fieldErrors }, { status: 400 });
   }
@@ -93,6 +93,11 @@ export default function LoginPage() {
   let transition = useTransition();
   let pendingForm = transition.submission;
 
+  let emailErrors =
+    actionData && "email" in actionData.errors && actionData.errors.email;
+  let passwordErrors =
+    actionData && "password" in actionData.errors && actionData.errors.password;
+
   return (
     <div className="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -119,35 +124,21 @@ export default function LoginPage() {
                     type="email"
                     autoComplete="email"
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    aria-invalid={
-                      actionData &&
-                      "email" in actionData.errors &&
-                      actionData.errors.email
-                        ? true
-                        : undefined
-                    }
-                    aria-errormessage={
-                      actionData &&
-                      "email" in actionData.errors &&
-                      actionData.errors.email
-                        ? "email-error"
-                        : undefined
-                    }
+                    aria-invalid={emailErrors ? true : undefined}
+                    aria-errormessage={emailErrors ? "email-error" : undefined}
                   />
-                  {actionData &&
-                    "email" in actionData.errors &&
-                    actionData.errors.email && (
-                      <Alert
-                        className="mt-2 text-sm text-red-600"
-                        id="email-error"
-                      >
-                        {actionData.errors.email.map((error) => (
-                          <p className="mt-1" key={error}>
-                            {error}
-                          </p>
-                        ))}
-                      </Alert>
-                    )}
+                  {emailErrors && (
+                    <Alert
+                      className="mt-2 text-sm text-red-600"
+                      id="email-error"
+                    >
+                      {emailErrors.map((error) => (
+                        <p className="mt-1" key={error}>
+                          {error}
+                        </p>
+                      ))}
+                    </Alert>
+                  )}
                 </div>
               </div>
 
@@ -165,35 +156,23 @@ export default function LoginPage() {
                     type="password"
                     autoComplete="current-password"
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    aria-invalid={
-                      actionData &&
-                      "password" in actionData.errors &&
-                      actionData.errors.password
-                        ? true
-                        : undefined
-                    }
+                    aria-invalid={passwordErrors ? true : undefined}
                     aria-errormessage={
-                      actionData &&
-                      "password" in actionData.errors &&
-                      actionData.errors.password
-                        ? "password-error"
-                        : undefined
+                      passwordErrors ? "password-error" : undefined
                     }
                   />
-                  {actionData &&
-                    "password" in actionData.errors &&
-                    actionData.errors.password && (
-                      <Alert
-                        className="mt-2 text-sm text-red-600"
-                        id="password-error"
-                      >
-                        {actionData.errors.password.map((error) => (
-                          <p className="mt-1" key={error}>
-                            {error}
-                          </p>
-                        ))}
-                      </Alert>
-                    )}
+                  {passwordErrors && (
+                    <Alert
+                      className="mt-2 text-sm text-red-600"
+                      id="password-error"
+                    >
+                      {passwordErrors.map((error) => (
+                        <p className="mt-1" key={error}>
+                          {error}
+                        </p>
+                      ))}
+                    </Alert>
+                  )}
                 </div>
               </div>
 

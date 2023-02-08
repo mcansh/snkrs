@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { zfd } from "zod-form-data";
 
 import reservedUsernames from "./reserved-usernames.json";
 import commonPasswords from "./common-passwords.json";
@@ -11,23 +12,21 @@ function isAllowedUsername(username: string): boolean {
   return !reservedUsernames.includes(username.toLowerCase());
 }
 
-export let registerSchema = z.object({
-  givenName: z.string().min(1, "Required"),
-  familyName: z.string().min(1, "Required"),
-  email: z.string().email(),
-  password: z
-    .string()
-    .min(12, "Must be at least 12 characters")
+export let registerSchema = zfd.formData({
+  givenName: zfd.text(z.string().min(1, "Required")),
+  familyName: zfd.text(z.string().min(1, "Required")),
+  email: zfd.text(z.string().email()),
+  password: zfd
+    .text(z.string().min(12, "Must be at least 12 characters"))
     .refine(isValidPassword, { message: "Password is too common" }),
-  username: z
-    .string()
-    .min(1, "Required")
+  username: zfd
+    .text(z.string().min(1, "Required"))
     .refine(isAllowedUsername, { message: "Username is reserved" }),
 });
 
-export let loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(12, "Must be at least 12 characters"),
+export let loginSchema = zfd.formData({
+  email: zfd.text(z.string().email()),
+  password: zfd.text(z.string().min(12, "Must be at least 12 characters")),
 });
 
 export let editProfile = z.object({

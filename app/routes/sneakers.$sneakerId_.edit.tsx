@@ -5,10 +5,16 @@ import type {
   SerializeFrom,
 } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, Link, useLoaderData, useTransition } from "@remix-run/react";
+import {
+  Form,
+  Link,
+  useActionData,
+  useLoaderData,
+  useLocation,
+  useNavigation,
+} from "@remix-run/react";
 import { format, parseISO } from "date-fns";
 import slugify from "slugify";
-import accounting from "accounting";
 import { NumericFormat } from "react-number-format";
 import invariant from "tiny-invariant";
 import { route } from "routes-gen";
@@ -94,36 +100,15 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
     });
   }
 
-  let requestBody = await request.text();
-  let formData = new URLSearchParams(requestBody);
-  let data = Object.fromEntries(formData);
+  let formData = await request.formData();
 
-  let rawPrice = formData.get("price") as string;
-  let rawRetailPrice = formData.get("retailPrice") as string;
-
-  let price = Number(rawPrice) || accounting.unformat(rawPrice) * 100;
-  let retailPrice =
-    Number(rawRetailPrice) || accounting.unformat(rawRetailPrice) * 100;
-
-  let valid = sneakerSchema.safeParse({
-    brand: data.brand,
-    colorway: data.colorway,
-    imagePublicId: data.image,
-    model: data.model,
-    price,
-    purchaseDate: new Date(data.purchaseDate).toISOString(),
-    retailPrice,
-    size: Number(data.size),
-    sold: data.sold,
-    soldDate: data.soldDate,
-    soldPrice: data.sold && data.soldPrice ? Number(data.soldPrice) : undefined,
-  });
+  let valid = sneakerSchema.safeParse(formData);
 
   if (!valid.success) {
     return json({ errors: valid.error.flatten().fieldErrors }, { status: 422 });
   }
 
-  let imagePublicId = "";
+  let imagePublicId = originalSneaker.imagePublicId;
   if (originalSneaker.imagePublicId !== valid.data.imagePublicId) {
     // image was already uploaded to our cloudinary bucket
     if (valid.data.imagePublicId.startsWith("shoes/")) {
@@ -140,8 +125,6 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
       });
 
       imagePublicId = res.public_id;
-    } else {
-      // no image provided
     }
   }
 
@@ -195,9 +178,13 @@ export let meta: MetaFunction = ({
 let formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
 export default function EditSneakerPage() {
+  let location = useLocation();
   let { sneaker } = useLoaderData<typeof loader>();
-  let transition = useTransition();
-  let pendingForm = transition.submission;
+  let navigation = useNavigation();
+  let actionData = useActionData<typeof action>();
+  let pendingForm =
+    navigation.formAction === location.pathname &&
+    navigation.state === "submitting";
 
   let title = `Editing ${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`;
 
@@ -241,6 +228,19 @@ export default function EditSneakerPage() {
       </div>
       <div>
         <h2 className="py-4 text-lg">Edit Sneaker:</h2>
+        {actionData?.errors ? (
+          <div className="p-4 mb-4 text-white bg-red-500 rounded">
+            <ul className="list-disc list-inside">
+              {Object.entries(actionData.errors).map(
+                ([errorKey, errorValue]) => (
+                  <li key={`${errorKey}-${errorValue}`}>
+                    {errorKey}: {errorValue}
+                  </li>
+                )
+              )}
+            </ul>
+          </div>
+        ) : null}
         <Form method="post">
           <fieldset
             disabled={!!pendingForm}
@@ -280,21 +280,21 @@ export default function EditSneakerPage() {
               type="text"
               defaultValue={sneaker.imagePublicId}
               placeholder="shoes/..."
-              name="image"
+              name="imagePublicId"
             />
             <NumericFormat
               name="price"
-              placeholder="Price (in cents)"
+              placeholder="Price"
               className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
               prefix="$"
-              defaultValue={sneaker.price}
+              defaultValue={sneaker.price / 100}
             />
             <NumericFormat
               name="retailPrice"
-              placeholder="Retail Price (in cents)"
+              placeholder="Retail Price"
               className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
               prefix="$"
-              defaultValue={sneaker.retailPrice}
+              defaultValue={sneaker.retailPrice / 100}
             />
             <input
               className="w-full p-1 border-2 border-gray-200 rounded appearance-none"

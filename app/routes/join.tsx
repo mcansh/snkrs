@@ -18,20 +18,9 @@ export let loader = async ({ request }: LoaderArgs) => {
 };
 
 export let action = async ({ request }: ActionArgs) => {
-  let body = await request.formData();
-  let email = body.get("email");
-  let givenName = body.get("givenName");
-  let familyName = body.get("familyName");
-  let username = body.get("username");
-  let password = body.get("password");
+  let formData = await request.formData();
 
-  let valid = registerSchema.safeParse({
-    email,
-    givenName,
-    familyName,
-    username,
-    password,
-  });
+  let valid = registerSchema.safeParse(formData);
 
   if (!valid.success) {
     return json({ errors: valid.error.flatten().fieldErrors }, { status: 400 });
@@ -43,14 +32,14 @@ export let action = async ({ request }: ActionArgs) => {
     },
   });
 
-  if (foundUser && foundUser.email === email) {
+  if (foundUser && foundUser.email === valid.data.email) {
     return json(
       { errors: { email: ["A user with this email already exists"] } },
       { status: 400 }
     );
   }
 
-  if (foundUser && foundUser.username === username) {
+  if (foundUser && foundUser.username === valid.data.username) {
     return json(
       { errors: { username: ["A user with this username already exists"] } },
       { status: 400 }
@@ -108,8 +97,7 @@ export default function JoinPage() {
               {inputs.map((input) => {
                 let error =
                   actionData && input.name in actionData.errors
-                    ? // @ts-expect-error types!
-                      actionData.errors[input.name]
+                    ? actionData.errors[input.name]
                     : null;
                 return (
                   <div key={input.name}>
@@ -153,37 +141,6 @@ export default function JoinPage() {
                 );
               })}
 
-              {/* <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Password
-                </label>
-                <div className="mt-1">
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    aria-invalid={
-                      actionData?.errors.password ? true : undefined
-                    }
-                    aria-errormessage={
-                      actionData?.errors.password ? 'password-error' : undefined
-                    }
-                  />
-                  {actionData?.errors.password && (
-                    <Alert className="text-red-500 mt-1" id="password-error">
-                      {actionData.errors.password.map(error => (
-                        <p key={error}>{error}</p>
-                      ))}
-                    </Alert>
-                  )}
-                </div>
-              </div> */}
               <div className="flex items-center justify-between">
                 <div className="text-sm">
                   <span className="text-gray-900">
