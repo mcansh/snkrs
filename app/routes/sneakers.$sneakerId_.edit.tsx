@@ -1,7 +1,6 @@
-import React from 'react';
+import * as React from 'react';
 import type {
-  ActionArgs,
-  LoaderArgs,
+  DataFunctionArgs,
   MetaFunction,
   SerializeFrom,
 } from '@remix-run/node';
@@ -9,7 +8,6 @@ import { json, redirect } from '@remix-run/node';
 import { Form, Link, useLoaderData, useTransition } from '@remix-run/react';
 import { format, parseISO } from 'date-fns';
 import slugify from 'slugify';
-import clsx from 'clsx';
 import accounting from 'accounting';
 import { NumericFormat } from 'react-number-format';
 import invariant from 'tiny-invariant';
@@ -24,7 +22,7 @@ import { cloudinary } from '~/lib/cloudinary.server';
 import { requireUserId } from '~/session.server';
 import { getSeoMeta } from '~/seo';
 
-export let loader = async ({ params, request }: LoaderArgs) => {
+export let loader = async ({ params, request }: DataFunctionArgs) => {
   invariant(params.sneakerId);
   let userId = await requireUserId(request);
 
@@ -73,7 +71,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   });
 };
 
-export let action = async ({ request, params }: ActionArgs) => {
+export let action = async ({ request, params }: DataFunctionArgs) => {
   let userId = await requireUserId(request);
   let { sneakerId } = params;
   invariant(sneakerId);
@@ -122,7 +120,7 @@ export let action = async ({ request, params }: ActionArgs) => {
   });
 
   if (!valid.success) {
-    return json({ errors: valid.error.flatten().fieldErrors });
+    return json({ errors: valid.error.flatten().fieldErrors }, { status: 422 });
   }
 
   let imagePublicId = '';
@@ -200,7 +198,6 @@ export default function EditSneakerPage() {
   let { sneaker } = useLoaderData<typeof loader>();
   let transition = useTransition();
   let pendingForm = transition.submission;
-  let [sold, setSold] = React.useState(sneaker.sold);
 
   let title = `Editing ${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`;
 
@@ -306,48 +303,6 @@ export default function EditSneakerPage() {
               placeholder="Purchase Date"
               name="purchaseDate"
             />
-            <div
-              className="grid items-center w-full gap-2 sm:grid-cols-2 grid-col"
-              style={{
-                gridColumn: '1/3',
-                paddingTop: sold ? '' : 6,
-              }}
-            >
-              <label className="flex items-center justify-between">
-                <span>Sold?</span>
-                <input
-                  type="checkbox"
-                  checked={sold}
-                  name="sold"
-                  onChange={event => setSold(event.currentTarget.checked)}
-                />
-              </label>
-              <input
-                className={clsx(
-                  'p-1 border-2 border-gray-200 rounded appearance-none',
-                  sold ? '' : 'hidden'
-                )}
-                type="datetime-local"
-                defaultValue={
-                  sneaker.soldDate
-                    ? format(parseISO(sneaker.soldDate), formatter)
-                    : ''
-                }
-                placeholder="Sold Date"
-                name="soldDate"
-                min={format(parseISO(sneaker.purchaseDate), formatter)}
-              />
-              <input
-                className={clsx(
-                  'p-1 border-2 border-gray-200 rounded appearance-none',
-                  sold ? '' : 'hidden'
-                )}
-                type="number"
-                defaultValue={sneaker.soldPrice ?? ''}
-                placeholder="Sold Price"
-                name="soldPrice"
-              />
-            </div>
             <button
               type="submit"
               className="self-start w-auto px-4 py-2 text-center text-white bg-blue-500 rounded disabled:bg-blue-200 disabled:cursor-not-allowed sm:col-span-2"
