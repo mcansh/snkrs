@@ -8,7 +8,7 @@
 /.cache
 /build
 /public/build
-/app/styles
+/app/styles/app.css
 /app/assets/icons/solid
 /app/assets/icons/outline
 /app/routes.d.ts

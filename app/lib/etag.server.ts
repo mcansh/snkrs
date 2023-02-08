@@ -1,3 +1,3 @@
-import etag from 'etag';
+import etag from "etag";
 
 export { etag };

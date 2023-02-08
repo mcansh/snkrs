@@ -1,22 +1,22 @@
-import React from 'react';
-import type { ActionArgs, LoaderArgs, MetaFunction } from '@remix-run/node';
-import { json, redirect } from '@remix-run/node';
-import { Form, useTransition } from '@remix-run/react';
-import slugify from 'slugify';
-import { NumericFormat } from 'react-number-format';
-import accounting from 'accounting';
-import { route } from 'routes-gen';
+import React from "react";
+import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
+import { Form, useTransition } from "@remix-run/react";
+import slugify from "slugify";
+import { NumericFormat } from "react-number-format";
+import accounting from "accounting";
+import { route } from "routes-gen";
 
-import { prisma } from '~/db.server';
-import { cloudinary } from '~/lib/cloudinary.server';
-import { sneakerSchema } from '~/lib/schemas/sneaker.server';
-import { parseStringFormData } from '~/utils/parse-string-formdata';
-import { requireUserId } from '~/session.server';
-import { getSeoMeta } from '~/seo';
+import { prisma } from "~/db.server";
+import { cloudinary } from "~/lib/cloudinary.server";
+import { sneakerSchema } from "~/lib/schemas/sneaker.server";
+import { parseStringFormData } from "~/utils/parse-string-formdata";
+import { requireUserId } from "~/session.server";
+import { getSeoMeta } from "~/seo";
 
 export const meta: MetaFunction = () => {
   return getSeoMeta({
-    title: 'Add a sneaker to your collection',
+    title: "Add a sneaker to your collection",
   });
 };
 
@@ -53,10 +53,10 @@ export async function action({ request }: ActionArgs) {
     return json({ errors: valid.error.flatten().fieldErrors });
   }
 
-  let imagePublicId = '';
+  let imagePublicId = "";
   if (valid.data.imagePublicId) {
     // image was already uploaded to our cloudinary bucket
-    if (valid.data.imagePublicId.startsWith('shoes/')) {
+    if (valid.data.imagePublicId.startsWith("shoes/")) {
       imagePublicId = valid.data.imagePublicId;
     } else if (
       /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi.test(
@@ -65,8 +65,8 @@ export async function action({ request }: ActionArgs) {
     ) {
       // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
       let res = await cloudinary.v2.uploader.upload(valid.data.imagePublicId, {
-        resource_type: 'image',
-        folder: 'shoes',
+        resource_type: "image",
+        folder: "shoes",
       });
 
       imagePublicId = res.public_id;
@@ -100,7 +100,7 @@ export async function action({ request }: ActionArgs) {
     include: { user: { select: { username: true } }, brand: true },
   });
 
-  return redirect(route('/sneakers/:sneakerId', { sneakerId: sneaker.id }));
+  return redirect(route("/sneakers/:sneakerId", { sneakerId: sneaker.id }));
 }
 
 export default function NewSneakerPage() {
@@ -209,7 +209,7 @@ export default function NewSneakerPage() {
             type="submit"
             className="self-start w-auto col-span-2 px-4 py-2 text-sm font-medium text-left text-white bg-indigo-600 border border-transparent rounded-md shadow-sm disabled:bg-blue-200 disabled:cursor-not-allowed hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            Add{!!pendingForm && 'ing'} to collection
+            Add{!!pendingForm && "ing"} to collection
           </button>
         </fieldset>
       </Form>

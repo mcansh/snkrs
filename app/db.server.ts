@@ -1,8 +1,8 @@
 /* eslint-disable no-underscore-dangle */
-import { PrismaClient } from '@prisma/client';
-import invariant from 'tiny-invariant';
+import { PrismaClient } from "@prisma/client";
+import invariant from "tiny-invariant";
 
-invariant(process.env.DATABASE_URL, 'DATABASE_URL is not defined');
+invariant(process.env.DATABASE_URL, "DATABASE_URL is not defined");
 
 declare global {
   // This prevents us from making multiple connections to the db when the
@@ -17,7 +17,7 @@ let prisma: PrismaClient;
 // the server with every change, but we want to make sure we don't
 // create a new connection to the DB with every change either.
 // in production we'll have a single connection to the DB.
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === "production") {
   prisma = getClient();
 } else {
   if (!global.__db__) {
@@ -29,7 +29,7 @@ if (process.env.NODE_ENV === 'production') {
 function getClient() {
   const databaseUrl = new URL(process.env.DATABASE_URL);
 
-  const isLocalHost = databaseUrl.hostname === 'localhost';
+  const isLocalHost = databaseUrl.hostname === "localhost";
 
   const FLY_PRIMARY_REGION = isLocalHost
     ? null
@@ -43,7 +43,7 @@ function getClient() {
     databaseUrl.host = `${FLY_REGION}.${databaseUrl.host}`;
     if (!isReadReplicaRegion) {
       // 5433 is the read-replica port
-      databaseUrl.port = '5433';
+      databaseUrl.port = "5433";
     }
   }
 

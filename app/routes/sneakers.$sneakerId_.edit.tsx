@@ -1,30 +1,34 @@
-import React from 'react';
+import * as React from "react";
 import type {
-  ActionArgs,
-  LoaderArgs,
+  DataFunctionArgs,
   MetaFunction,
   SerializeFrom,
-} from '@remix-run/node';
-import { json, redirect } from '@remix-run/node';
-import { Form, Link, useLoaderData, useTransition } from '@remix-run/react';
-import { format, parseISO } from 'date-fns';
-import slugify from 'slugify';
-import clsx from 'clsx';
-import accounting from 'accounting';
-import { NumericFormat } from 'react-number-format';
-import invariant from 'tiny-invariant';
-import { route } from 'routes-gen';
+} from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
+import {
+  Form,
+  Link,
+  useActionData,
+  useLoaderData,
+  useLocation,
+  useNavigation,
+} from "@remix-run/react";
+import { format, parseISO } from "date-fns";
+import slugify from "slugify";
+import { NumericFormat } from "react-number-format";
+import invariant from "tiny-invariant";
+import { route } from "routes-gen";
 
-import { formatDate } from '~/utils/format-date';
-import { getCloudinaryURL, getImageURLs } from '~/utils/get-cloudinary-url';
-import { formatMoney } from '~/utils/format-money';
-import { prisma } from '~/db.server';
-import { sneakerSchema } from '~/lib/schemas/sneaker.server';
-import { cloudinary } from '~/lib/cloudinary.server';
-import { requireUserId } from '~/session.server';
-import { getSeoMeta } from '~/seo';
+import { formatDate } from "~/utils/format-date";
+import { getCloudinaryURL, getImageURLs } from "~/utils/get-cloudinary-url";
+import { formatMoney } from "~/utils/format-money";
+import { prisma } from "~/db.server";
+import { sneakerSchema } from "~/lib/schemas/sneaker.server";
+import { cloudinary } from "~/lib/cloudinary.server";
+import { requireUserId } from "~/session.server";
+import { getSeoMeta } from "~/seo";
 
-export let loader = async ({ params, request }: LoaderArgs) => {
+export let loader = async ({ params, request }: DataFunctionArgs) => {
   invariant(params.sneakerId);
   let userId = await requireUserId(request);
 
@@ -39,7 +43,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   if (!sneaker) {
     throw new Response(`No sneaker found with id ${params.sneakerId}`, {
       status: 404,
-      statusText: 'Not Found',
+      statusText: "Not Found",
     });
   }
 
@@ -48,7 +52,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   if (!userCreatedSneaker) {
     throw new Response("You don't have permission to edit this sneaker", {
       status: 403,
-      statusText: 'Forbidden',
+      statusText: "Forbidden",
     });
   }
 
@@ -58,22 +62,22 @@ export let loader = async ({ params, request }: LoaderArgs) => {
     sneaker: {
       ...sneaker,
       createdAt:
-        typeof sneaker.createdAt === 'string'
+        typeof sneaker.createdAt === "string"
           ? sneaker.createdAt
           : sneaker.createdAt.toISOString(),
       purchaseDate:
-        typeof sneaker.purchaseDate === 'string'
+        typeof sneaker.purchaseDate === "string"
           ? sneaker.purchaseDate
           : sneaker.purchaseDate.toISOString(),
       soldDate:
-        typeof sneaker.soldDate === 'string'
+        typeof sneaker.soldDate === "string"
           ? sneaker.soldDate
           : sneaker.soldDate?.toISOString(),
     },
   });
 };
 
-export let action = async ({ request, params }: ActionArgs) => {
+export let action = async ({ request, params }: DataFunctionArgs) => {
   let userId = await requireUserId(request);
   let { sneakerId } = params;
   invariant(sneakerId);
@@ -85,50 +89,29 @@ export let action = async ({ request, params }: ActionArgs) => {
   if (!originalSneaker) {
     throw new Response(`No sneaker found with id ${sneakerId}`, {
       status: 404,
-      statusText: 'Not Found',
+      statusText: "Not Found",
     });
   }
 
   if (originalSneaker.userId !== userId) {
     throw new Response("You don't have permission to edit this sneaker", {
       status: 403,
-      statusText: 'Forbidden',
+      statusText: "Forbidden",
     });
   }
 
-  let requestBody = await request.text();
-  let formData = new URLSearchParams(requestBody);
-  let data = Object.fromEntries(formData);
+  let formData = await request.formData();
 
-  let rawPrice = formData.get('price') as string;
-  let rawRetailPrice = formData.get('retailPrice') as string;
-
-  let price = Number(rawPrice) || accounting.unformat(rawPrice) * 100;
-  let retailPrice =
-    Number(rawRetailPrice) || accounting.unformat(rawRetailPrice) * 100;
-
-  let valid = sneakerSchema.safeParse({
-    brand: data.brand,
-    colorway: data.colorway,
-    imagePublicId: data.image,
-    model: data.model,
-    price,
-    purchaseDate: new Date(data.purchaseDate).toISOString(),
-    retailPrice,
-    size: Number(data.size),
-    sold: data.sold,
-    soldDate: data.soldDate,
-    soldPrice: data.sold && data.soldPrice ? Number(data.soldPrice) : undefined,
-  });
+  let valid = sneakerSchema.safeParse(formData);
 
   if (!valid.success) {
-    return json({ errors: valid.error.flatten().fieldErrors });
+    return json({ errors: valid.error.flatten().fieldErrors }, { status: 422 });
   }
 
-  let imagePublicId = '';
+  let imagePublicId = originalSneaker.imagePublicId;
   if (originalSneaker.imagePublicId !== valid.data.imagePublicId) {
     // image was already uploaded to our cloudinary bucket
-    if (valid.data.imagePublicId.startsWith('shoes/')) {
+    if (valid.data.imagePublicId.startsWith("shoes/")) {
       imagePublicId = valid.data.imagePublicId;
     } else if (
       /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi.test(
@@ -137,13 +120,11 @@ export let action = async ({ request, params }: ActionArgs) => {
     ) {
       // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
       let res = await cloudinary.v2.uploader.upload(valid.data.imagePublicId, {
-        resource_type: 'image',
-        folder: 'shoes',
+        resource_type: "image",
+        folder: "shoes",
       });
 
       imagePublicId = res.public_id;
-    } else {
-      // no image provided
     }
   }
 
@@ -185,7 +166,7 @@ export let meta: MetaFunction = ({
 }: {
   data?: Partial<SerializeFrom<typeof loader>>;
 }) => {
-  if (!data || !data.sneaker) {
+  if (!data?.sneaker) {
     return getSeoMeta();
   }
 
@@ -197,10 +178,13 @@ export let meta: MetaFunction = ({
 let formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
 export default function EditSneakerPage() {
+  let location = useLocation();
   let { sneaker } = useLoaderData<typeof loader>();
-  let transition = useTransition();
-  let pendingForm = transition.submission;
-  let [sold, setSold] = React.useState(sneaker.sold);
+  let navigation = useNavigation();
+  let actionData = useActionData<typeof action>();
+  let pendingForm =
+    navigation.formAction === location.pathname &&
+    navigation.state === "submitting";
 
   let title = `Editing ${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`;
 
@@ -210,7 +194,7 @@ export default function EditSneakerPage() {
     <main className="container h-full p-4 pb-6 mx-auto">
       <Link
         prefetch="intent"
-        to={route('/sneakers/:sneakerId', { sneakerId: sneaker.id })}
+        to={route("/sneakers/:sneakerId", { sneakerId: sneaker.id })}
       >
         Back
       </Link>
@@ -218,7 +202,7 @@ export default function EditSneakerPage() {
         <div className="relative pb-[100%]">
           <img
             src={getCloudinaryURL(sneaker.imagePublicId, {
-              resize: { width: 200, height: 200, type: 'pad' },
+              resize: { width: 200, height: 200, type: "pad" },
             })}
             sizes="(min-width: 640px) 50vw, 100vw"
             srcSet={srcSet}
@@ -244,6 +228,19 @@ export default function EditSneakerPage() {
       </div>
       <div>
         <h2 className="py-4 text-lg">Edit Sneaker:</h2>
+        {actionData?.errors ? (
+          <div className="p-4 mb-4 text-white bg-red-500 rounded">
+            <ul className="list-disc list-inside">
+              {Object.entries(actionData.errors).map(
+                ([errorKey, errorValue]) => (
+                  <li key={`${errorKey}-${errorValue}`}>
+                    {errorKey}: {errorValue}
+                  </li>
+                )
+              )}
+            </ul>
+          </div>
+        ) : null}
         <Form method="post">
           <fieldset
             disabled={!!pendingForm}
@@ -283,21 +280,21 @@ export default function EditSneakerPage() {
               type="text"
               defaultValue={sneaker.imagePublicId}
               placeholder="shoes/..."
-              name="image"
+              name="imagePublicId"
             />
             <NumericFormat
               name="price"
-              placeholder="Price (in cents)"
+              placeholder="Price"
               className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
               prefix="$"
-              defaultValue={sneaker.price}
+              defaultValue={sneaker.price / 100}
             />
             <NumericFormat
               name="retailPrice"
-              placeholder="Retail Price (in cents)"
+              placeholder="Retail Price"
               className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
               prefix="$"
-              defaultValue={sneaker.retailPrice}
+              defaultValue={sneaker.retailPrice / 100}
             />
             <input
               className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
@@ -306,53 +303,11 @@ export default function EditSneakerPage() {
               placeholder="Purchase Date"
               name="purchaseDate"
             />
-            <div
-              className="grid items-center w-full gap-2 sm:grid-cols-2 grid-col"
-              style={{
-                gridColumn: '1/3',
-                paddingTop: sold ? '' : 6,
-              }}
-            >
-              <label className="flex items-center justify-between">
-                <span>Sold?</span>
-                <input
-                  type="checkbox"
-                  checked={sold}
-                  name="sold"
-                  onChange={event => setSold(event.currentTarget.checked)}
-                />
-              </label>
-              <input
-                className={clsx(
-                  'p-1 border-2 border-gray-200 rounded appearance-none',
-                  sold ? '' : 'hidden'
-                )}
-                type="datetime-local"
-                defaultValue={
-                  sneaker.soldDate
-                    ? format(parseISO(sneaker.soldDate), formatter)
-                    : ''
-                }
-                placeholder="Sold Date"
-                name="soldDate"
-                min={format(parseISO(sneaker.purchaseDate), formatter)}
-              />
-              <input
-                className={clsx(
-                  'p-1 border-2 border-gray-200 rounded appearance-none',
-                  sold ? '' : 'hidden'
-                )}
-                type="number"
-                defaultValue={sneaker.soldPrice ?? ''}
-                placeholder="Sold Price"
-                name="soldPrice"
-              />
-            </div>
             <button
               type="submit"
               className="self-start w-auto px-4 py-2 text-center text-white bg-blue-500 rounded disabled:bg-blue-200 disabled:cursor-not-allowed sm:col-span-2"
             >
-              Sav{pendingForm ? 'ing' : 'e'} Changes
+              Sav{pendingForm ? "ing" : "e"} Changes
             </button>
           </fieldset>
         </Form>

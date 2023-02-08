@@ -1,7 +1,7 @@
-import { Document } from './document';
+import { Document } from "./document";
 
 export function ErrorBoundary({ error }: { error: Error }) {
-  console.error('Check your server terminal output');
+  console.error("Check your server terminal output");
 
   return (
     <Document

@@ -1,38 +1,38 @@
 /* eslint global-require: "off" */
 
-let defaultTheme = require('tailwindcss/defaultTheme');
+let defaultTheme = require("tailwindcss/defaultTheme");
 
 module.exports = {
-  content: ['./app/**/*.{js,ts,tsx,md,mdx}', './remix.config.js'],
-  darkMode: 'media',
+  content: ["./app/**/*.{js,ts,tsx,md,mdx}", "./remix.config.js"],
+  darkMode: "media",
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter var', ...defaultTheme.fontFamily.sans],
+        sans: ["Inter var", ...defaultTheme.fontFamily.sans],
       },
       inset: {
-        '1/2': '50%',
+        "1/2": "50%",
       },
       screens: {
-        xs: '475px',
+        xs: "475px",
       },
       colors: {
         blue: {
-          bsod: '#0827F5',
+          bsod: "#0827F5",
         },
       },
     },
   },
   variants: {
     extend: {
-      backgroundColor: ['disabled'],
-      borderColor: ['focus-within'],
-      opacity: ['disabled'],
-      cursor: ['disabled'],
+      backgroundColor: ["disabled"],
+      borderColor: ["focus-within"],
+      opacity: ["disabled"],
+      cursor: ["disabled"],
     },
   },
   plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/aspect-ratio'),
+    require("@tailwindcss/forms"),
+    require("@tailwindcss/aspect-ratio"),
   ],
 };

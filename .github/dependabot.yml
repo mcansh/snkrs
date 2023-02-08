@@ -9,8 +9,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
-      day: 'monday'
-      time: '10:00'
-      timezone: 'America/Detroit'
+      day: "monday"
+      time: "10:00"
+      timezone: "America/Detroit"
     labels:
-      - 'dependencies'
+      - "dependencies"

@@ -1,11 +1,11 @@
-import type { LoaderArgs } from '@remix-run/node';
-import { route } from 'routes-gen';
+import type { LoaderArgs } from "@remix-run/node";
+import { route } from "routes-gen";
 
-import Home, { loader as homeLoader } from './home';
+import Home, { loader as homeLoader } from "./home";
 
-import { getUserId, createUserSession } from '~/session.server';
-import { prisma } from '~/db.server';
-export { meta } from './home';
+import { getUserId, createUserSession } from "~/session.server";
+import { prisma } from "~/db.server";
+export { meta } from "./home";
 
 export const loader = async ({ request, ...args }: LoaderArgs) => {
   let userId = await getUserId(request);
@@ -15,7 +15,7 @@ export const loader = async ({ request, ...args }: LoaderArgs) => {
       return createUserSession(
         request,
         user.id,
-        route('/:username', { username: user.username })
+        route("/:username", { username: user.username })
       );
     }
   }

@@ -1,19 +1,19 @@
-import type { LoaderArgs, MetaFunction } from '@remix-run/node';
-import { json } from '@remix-run/node';
-import { Link, useLoaderData } from '@remix-run/react';
-import invariant from 'tiny-invariant';
-import { route } from 'routes-gen';
+import type { LoaderArgs, MetaFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { Link, useLoaderData } from "@remix-run/react";
+import invariant from "tiny-invariant";
+import { route } from "routes-gen";
 
-import { formatDate } from '~/utils/format-date';
-import { getCloudinaryURL } from '~/utils/get-cloudinary-url';
-import { formatMoney } from '~/utils/format-money';
-import { copy } from '~/utils/copy';
-import { prisma } from '~/db.server';
-import { getSeoMeta } from '~/seo';
-import { getUserId } from '~/session.server';
+import { formatDate } from "~/utils/format-date";
+import { getCloudinaryURL } from "~/utils/get-cloudinary-url";
+import { formatMoney } from "~/utils/format-money";
+import { copy } from "~/utils/copy";
+import { prisma } from "~/db.server";
+import { getSeoMeta } from "~/seo";
+import { getUserId } from "~/session.server";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
-  invariant(params.sneakerId, 'sneakerID is required');
+  invariant(params.sneakerId, "sneakerID is required");
 
   let userId = await getUserId(request);
 
@@ -34,7 +34,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   if (!sneaker) {
     throw new Response(`Sneaker not found with id ${params.sneakerId}`, {
       status: 404,
-      statusText: 'Not Found',
+      statusText: "Not Found",
     });
   }
 
@@ -56,19 +56,19 @@ export let loader = async ({ params, request }: LoaderArgs) => {
     sneaker: {
       ...sneaker,
       createdAt:
-        typeof sneaker.createdAt === 'string'
+        typeof sneaker.createdAt === "string"
           ? sneaker.createdAt
           : sneaker.createdAt.toISOString(),
       soldDate:
-        typeof sneaker.soldDate === 'string'
+        typeof sneaker.soldDate === "string"
           ? sneaker.soldDate
           : sneaker.soldDate?.toISOString(),
       purchaseDate:
-        typeof sneaker.purchaseDate === 'string'
+        typeof sneaker.purchaseDate === "string"
           ? sneaker.purchaseDate
           : sneaker.purchaseDate.toISOString(),
       updatedAt:
-        typeof sneaker.updatedAt === 'string'
+        typeof sneaker.updatedAt === "string"
           ? sneaker.updatedAt
           : sneaker.updatedAt.toISOString(),
     },
@@ -76,14 +76,14 @@ export let loader = async ({ params, request }: LoaderArgs) => {
 };
 
 export let meta: MetaFunction<Partial<typeof loader>> = ({ data }) => {
-  if (!data || !data.sneaker) {
+  if (!data?.user) {
     return getSeoMeta();
   }
 
   let date = formatDate(data.sneaker.purchaseDate, {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   });
 
   return getSeoMeta({
@@ -98,12 +98,12 @@ export default function SneakerPage() {
   let sizes = [200, 400, 600];
 
   let srcSet = sizes.map(
-    size =>
+    (size) =>
       `${getCloudinaryURL(data.sneaker.imagePublicId, {
         resize: {
           width: size,
           height: size,
-          type: 'pad',
+          type: "pad",
         },
       })} ${size}w`
   );
@@ -112,7 +112,7 @@ export default function SneakerPage() {
     <main className="container h-full p-4 pb-6 mx-auto">
       <Link
         prefetch="intent"
-        to={route('/:username', { username: data.sneaker.user.username })}
+        to={route("/:username", { username: data.sneaker.user.username })}
       >
         Back
       </Link>
@@ -121,7 +121,7 @@ export default function SneakerPage() {
           <img
             src={getCloudinaryURL(data.sneaker.imagePublicId, {
               resize: {
-                type: 'pad',
+                type: "pad",
                 width: 200,
                 height: 200,
               },
@@ -145,14 +145,14 @@ export default function SneakerPage() {
             )}
 
             <p className="text-md">
-              Purchased on{' '}
+              Purchased on{" "}
               <time dateTime={data.sneaker.purchaseDate}>
                 {formatDate(data.sneaker.purchaseDate)}
               </time>
             </p>
 
             <p>
-              Last Updated{' '}
+              Last Updated{" "}
               <time dateTime={data.sneaker.updatedAt}>
                 {formatDate(data.sneaker.updatedAt)}
               </time>
@@ -160,9 +160,9 @@ export default function SneakerPage() {
 
             {data.sneaker.sold && data.sneaker.soldDate && (
               <p className="text-md">
-                Sold{' '}
+                Sold{" "}
                 <time dateTime={data.sneaker.soldDate}>
-                  {formatDate(data.sneaker.soldDate)}{' '}
+                  {formatDate(data.sneaker.soldDate)}{" "}
                   {data.sneaker.soldPrice && (
                     <>For {formatMoney(data.sneaker.soldPrice)}</>
                   )}
@@ -171,7 +171,7 @@ export default function SneakerPage() {
             )}
 
             <Link
-              to={route('/:username/yir/:year', {
+              to={route("/:username/yir/:year", {
                 username: data.sneaker.user.username,
                 year: data.purchaseYear.toString(),
               })}
@@ -187,11 +187,11 @@ export default function SneakerPage() {
               type="button"
               className="text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
               onClick={() => {
-                if ('share' in navigator) {
+                if ("share" in navigator) {
                   let date = formatDate(data.sneaker.purchaseDate, {
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric',
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
                   });
 
                   return navigator.share({
@@ -208,7 +208,7 @@ export default function SneakerPage() {
             </button>
             {data.userCreatedSneaker && (
               <Link
-                to={route('/sneakers/:sneakerId/edit', {
+                to={route("/sneakers/:sneakerId/edit", {
                   sneakerId: data.sneaker.id,
                 })}
                 className="inline-block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"

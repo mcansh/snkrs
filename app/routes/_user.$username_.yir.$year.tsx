@@ -1,16 +1,16 @@
-import type { LoaderArgs, MetaFunction } from '@remix-run/node';
-import { json } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
-import { endOfYear, startOfYear } from 'date-fns';
-import invariant from 'tiny-invariant';
+import type { LoaderArgs, MetaFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
+import { endOfYear, startOfYear } from "date-fns";
+import invariant from "tiny-invariant";
 
-import { SneakerCard } from '~/components/sneaker';
-import { prisma } from '~/db.server';
-import { getSeoMeta } from '~/seo';
+import { SneakerCard } from "~/components/sneaker";
+import { prisma } from "~/db.server";
+import { getSeoMeta } from "~/seo";
 
 export let loader = async ({ params }: LoaderArgs) => {
-  invariant(params.year, 'year is required');
-  invariant(params.username, 'username is required');
+  invariant(params.year, "year is required");
+  invariant(params.username, "username is required");
   let year = parseInt(params.year, 10);
 
   let date = new Date(year, 0);
@@ -18,9 +18,9 @@ export let loader = async ({ params }: LoaderArgs) => {
   let end = endOfYear(date);
 
   if (year > new Date().getFullYear()) {
-    throw new Response('Requested year is in the future', {
+    throw new Response("Requested year is in the future", {
       status: 404,
-      statusText: 'Not Found',
+      statusText: "Not Found",
     });
   }
 
@@ -30,7 +30,7 @@ export let loader = async ({ params }: LoaderArgs) => {
       username: true,
       settings: true,
       sneakers: {
-        orderBy: { purchaseDate: 'asc' },
+        orderBy: { purchaseDate: "asc" },
         include: { brand: true },
         where: {
           purchaseDate: {
@@ -43,9 +43,9 @@ export let loader = async ({ params }: LoaderArgs) => {
   });
 
   if (!user) {
-    throw new Response('User not found', {
+    throw new Response("User not found", {
       status: 404,
-      statusText: 'Not Found',
+      statusText: "Not Found",
     });
   }
 
@@ -53,11 +53,11 @@ export let loader = async ({ params }: LoaderArgs) => {
 };
 
 export let meta: MetaFunction<Partial<typeof loader>> = ({ data }) => {
-  if (!data || !data.user) {
+  if (!data?.user) {
     return getSeoMeta();
   }
 
-  let sneakers = data.user.sneakers.length === 1 ? 'sneaker' : 'sneakers';
+  let sneakers = data.user.sneakers.length === 1 ? "sneaker" : "sneakers";
   return getSeoMeta({
     title: `${data.year} • ${data.user.username}`,
     description: `${data.user.username} bought ${data.user.sneakers.length} ${sneakers} in ${data.year}`,
@@ -80,7 +80,7 @@ export default function SneakersYearInReview() {
   return (
     <div className="mt-6 lg:mt-0 lg:col-span-2 xl:col-span-3">
       <ul className="grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-4">
-        {user.sneakers.map(sneaker => (
+        {user.sneakers.map((sneaker) => (
           <SneakerCard key={sneaker.id} {...sneaker} />
         ))}
       </ul>

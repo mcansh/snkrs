@@ -1,11 +1,11 @@
-import clsx from 'clsx';
+import clsx from "clsx";
 import {
   Links,
   LiveReload,
   Meta,
   Scripts,
   ScrollRestoration,
-} from '@remix-run/react';
+} from "@remix-run/react";
 
 export function Document({
   children,
@@ -24,7 +24,7 @@ export function Document({
         <Meta />
         <Links />
       </head>
-      <body className={clsx('min-h-screen', bodyClassName)}>
+      <body className={clsx("min-h-screen", bodyClassName)}>
         {children}
         <ScrollRestoration />
         <Scripts />

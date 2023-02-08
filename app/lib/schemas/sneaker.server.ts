@@ -1,56 +1,45 @@
-import { isBefore } from 'date-fns';
-import { z } from 'zod';
+import accounting from "accounting";
+import { isAfter } from "date-fns";
+import { z } from "zod";
+import { zfd } from "zod-form-data";
 
-export let sneakerSchema = z
-  .object({
-    model: z.string(),
-    colorway: z.string(),
-    brand: z.string(),
-    size: z.number().positive(),
-    imagePublicId: z.string(),
-    retailPrice: z.number().positive(),
-    price: z.number().positive(),
-    purchaseDate: z
-      .preprocess(date => {
-        if (date instanceof Date) return date;
-        if (typeof date === 'string') return new Date(date);
-      }, z.date())
-      .refine(date => {
-        return isBefore(date, new Date());
-      }),
-    sold: z.boolean().optional().default(false),
-    soldDate: z
-      .preprocess(date => {
-        if (date instanceof Date) return date;
-        if (typeof date === 'string') return new Date(date);
-      }, z.date())
-      .optional(),
-    soldPrice: z.number().min(1).optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.sold) {
-      if (!data.soldDate) {
-        ctx.addIssue({
-          path: ['soldDate'],
-          message: 'Sold date is required if the sneaker is sold',
-          code: z.ZodIssueCode.custom,
-        });
-      }
+const preprocessDate: z.PreprocessEffect<unknown>["transform"] = (data) => {
+  if (typeof data !== "string") return data;
+  return new Date(data);
+};
 
-      if (!data.soldPrice) {
-        ctx.addIssue({
-          path: ['soldPrice'],
-          message: 'Sold price is required if the sneaker is sold',
-          code: z.ZodIssueCode.custom,
-        });
-      }
+const isReasonableDate: z.RefinementEffect<Date>["refinement"] = (
+  date,
+  ctx
+) => {
+  if (isAfter(date, new Date())) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Date cannot be in the future",
+    });
+  }
+};
 
-      return ctx;
-    }
-  });
+const preprocessPrice: z.PreprocessEffect<unknown>["transform"] = (data) => {
+  if (typeof data !== "string") return data;
+  return accounting.unformat(data) * 100;
+};
+
+export let sneakerSchema = zfd.formData({
+  model: zfd.text(),
+  colorway: zfd.text(),
+  brand: zfd.text(),
+  size: zfd.numeric(z.number().positive()),
+  imagePublicId: zfd.text(),
+  retailPrice: z.preprocess(preprocessPrice, z.number()),
+  price: z.preprocess(preprocessPrice, z.number()),
+  purchaseDate: zfd
+    .text(z.preprocess(preprocessDate, z.date()))
+    .superRefine(isReasonableDate),
+});
 
 export type SneakerSchema = z.infer<typeof sneakerSchema>;
 
 export type PossibleErrors = z.inferFlattenedErrors<
   typeof sneakerSchema
->['fieldErrors'];
+>["fieldErrors"];
