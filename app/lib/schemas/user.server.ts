@@ -29,15 +29,15 @@ export let loginSchema = zfd.formData({
   password: zfd.text(z.string().min(12, "Must be at least 12 characters")),
 });
 
-export let editProfile = z.object({
-  email: z.string().email(),
-  username: z
-    .string()
+export let editProfile = zfd.formData({
+  email: zfd.text(z.string().email()),
+  username: zfd
+    .text(z.string())
     .refine(isAllowedUsername, { message: "Username is reserved" }),
   settings: z.object({
-    showPurchasePrice: z.boolean().optional(),
-    showRetailPrice: z.boolean().optional(),
-    showTotalPrice: z.boolean().optional(),
+    showPurchasePrice: zfd.checkbox(),
+    showRetailPrice: zfd.checkbox(),
+    showTotalPrice: zfd.checkbox(),
   }),
 });
 

@@ -7,6 +7,7 @@ module.exports = {
   publicPath: "/build/",
   devServerBroadcastDelay: 1_000,
   future: {
+    unstable_cssSideEffectImports: true,
     unstable_dev: true,
     v2_routeConvention: true,
     unstable_tailwind: true,

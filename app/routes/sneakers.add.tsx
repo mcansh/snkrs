@@ -203,7 +203,7 @@ export default function NewSneakerPage() {
             type="submit"
             className="self-start w-auto col-span-2 px-4 py-2 text-sm font-medium text-left text-white bg-indigo-600 border border-transparent rounded-md shadow-sm disabled:bg-blue-200 disabled:cursor-not-allowed hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            Add{!!pendingForm && "ing"} to collection
+            Add{pendingForm ? "ing" : ""} to collection
           </button>
         </fieldset>
       </Form>

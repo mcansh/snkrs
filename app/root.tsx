@@ -6,8 +6,10 @@ import {
   Link,
   Outlet,
   useLoaderData,
+  useLocation,
   useNavigation,
 } from "@remix-run/react";
+import { cssBundleHref } from "@remix-run/css-bundle";
 import * as Fathom from "fathom-client";
 import clsx from "clsx";
 // eslint-disable-next-line import/no-extraneous-dependencies
@@ -36,36 +38,45 @@ export let meta: MetaFunction = () => ({
   viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
 });
 
-export let links: LinksFunction = () => [
-  ...seoLinks,
-  { rel: "preload", href: appStylesHref, as: "style" },
-  { rel: "preload", href: interStylesHref, as: "style" },
-  { rel: "stylesheet", href: appStylesHref },
-  { rel: "stylesheet", href: interStylesHref },
-  {
-    rel: "icon",
-    href: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext x='0' y='14'%3E👟%3C/text%3E%3C/svg%3E",
-  },
-  {
-    rel: "apple-touch-icon",
-    sizes: "180x180",
-    href: "/apple-touch-icon.png",
-  },
-  {
-    rel: "alternate icon",
-    type: "image/png",
-    sizes: "32x32",
-    href: "/favicon-32x32.png",
-  },
-  {
-    rel: "alternate icon",
-    type: "image/png",
-    sizes: "16x16",
-    href: "/favicon-16x16.png",
-  },
-  { rel: "manifest", href: "/manifest.webmanifest" },
-  { rel: "mask-icon", href: "/safari-pinned-tab.svg", color: "#000000" },
-];
+export let links: LinksFunction = () => {
+  let result = [
+    ...seoLinks,
+    { rel: "preload", href: appStylesHref, as: "style" },
+    { rel: "preload", href: interStylesHref, as: "style" },
+    { rel: "stylesheet", href: appStylesHref },
+    { rel: "stylesheet", href: interStylesHref },
+    {
+      rel: "icon",
+      href: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext x='0' y='14'%3E👟%3C/text%3E%3C/svg%3E",
+    },
+    {
+      rel: "apple-touch-icon",
+      sizes: "180x180",
+      href: "/apple-touch-icon.png",
+    },
+    {
+      rel: "alternate icon",
+      type: "image/png",
+      sizes: "32x32",
+      href: "/favicon-32x32.png",
+    },
+    {
+      rel: "alternate icon",
+      type: "image/png",
+      sizes: "16x16",
+      href: "/favicon-16x16.png",
+    },
+    { rel: "manifest", href: "/manifest.webmanifest" },
+    { rel: "mask-icon", href: "/safari-pinned-tab.svg", color: "#000000" },
+  ];
+
+  if (cssBundleHref) {
+    result.push({ rel: "preload", href: cssBundleHref, as: "style" });
+    result.push({ rel: "stylesheet", href: cssBundleHref });
+  }
+
+  return result;
+};
 
 export async function loader({ request }: LoaderArgs) {
   let user = await getUser(request);
@@ -81,6 +92,7 @@ export async function loader({ request }: LoaderArgs) {
 export default function App() {
   let data = useLoaderData<typeof loader>();
   let navigation = useNavigation();
+  let location = useLocation();
   let [showPendingSpinner, setShowPendingSpinner] = React.useState(false);
 
   let matches = useMatches();
@@ -95,13 +107,17 @@ export default function App() {
 
   React.useEffect(() => {
     let timer = setTimeout(() => {
-      setShowPendingSpinner(navigation.state !== "idle");
+      setShowPendingSpinner(
+        navigation.state !== "idle" &&
+          navigation.formMethod !== "post" &&
+          location.pathname !== "/profile"
+      );
     }, 500);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [navigation.state]);
+  }, [location.pathname, navigation.formMethod, navigation.state]);
 
   return (
     <Document
