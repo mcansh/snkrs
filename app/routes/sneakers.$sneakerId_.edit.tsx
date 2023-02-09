@@ -23,7 +23,7 @@ import { formatDate } from "~/utils/format-date";
 import { getCloudinaryURL, getImageURLs } from "~/utils/get-cloudinary-url";
 import { formatMoney } from "~/utils/format-money";
 import { prisma } from "~/db.server";
-import { sneakerSchema } from "~/lib/schemas/sneaker.server";
+import { sneakerSchema, url_regex } from "~/lib/schemas/sneaker.server";
 import { cloudinary } from "~/lib/cloudinary.server";
 import { requireUserId } from "~/session.server";
 import { getSeoMeta } from "~/seo";
@@ -113,11 +113,7 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
     // image was already uploaded to our cloudinary bucket
     if (valid.data.imagePublicId.startsWith("shoes/")) {
       imagePublicId = valid.data.imagePublicId;
-    } else if (
-      /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi.test(
-        valid.data.imagePublicId
-      )
-    ) {
+    } else if (url_regex.test(valid.data.imagePublicId)) {
       // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
       let res = await cloudinary.v2.uploader.upload(valid.data.imagePublicId, {
         resource_type: "image",
@@ -243,7 +239,7 @@ export default function EditSneakerPage() {
         ) : null}
         <Form method="post">
           <fieldset
-            disabled={!!pendingForm}
+            disabled={pendingForm}
             className="pb-4 space-y-2 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-2"
           >
             <input
