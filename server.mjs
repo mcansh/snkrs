@@ -19,6 +19,7 @@ let app = fastify();
 await app.register(remixFastifyPlugin, {
   build: path.join(process.cwd(), "build/index.js"),
   mode: MODE,
+  purgeRequireCacheInDevelopment: false,
 });
 
 let port = Number(process.env.PORT) || 3000;
