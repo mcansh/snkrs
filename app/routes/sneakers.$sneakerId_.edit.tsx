@@ -101,7 +101,6 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
   }
 
   let formData = await request.formData();
-
   let valid = sneakerSchema.safeParse(formData);
 
   if (!valid.success) {

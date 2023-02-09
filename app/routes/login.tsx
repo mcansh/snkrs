@@ -54,7 +54,7 @@ export let action = async ({ request }: ActionArgs) => {
 
   let valid = loginSchema.safeParse(formData);
   if (!valid.success) {
-    return json({ errors: valid.error.flatten().fieldErrors }, { status: 400 });
+    return json({ errors: valid.error.flatten().fieldErrors }, { status: 422 });
   }
 
   let foundUser = await prisma.user.findUnique({
@@ -64,16 +64,17 @@ export let action = async ({ request }: ActionArgs) => {
   if (!foundUser) {
     return json(
       { errors: { email: ["Invalid email or password"] } },
-      { status: 400 }
+      { status: 422 }
     );
   }
 
   let validCredentials = await verify(valid.data.password, foundUser.password);
 
   if (!validCredentials) {
-    return json({
-      errors: { email: ["Invalid email or password"] },
-    });
+    return json(
+      { errors: { email: ["Invalid email or password"] } },
+      { status: 422 }
+    );
   }
 
   return createUserSession(

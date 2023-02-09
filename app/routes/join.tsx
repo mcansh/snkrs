@@ -29,7 +29,7 @@ export let action = async ({ request }: ActionArgs) => {
   let valid = registerSchema.safeParse(formData);
 
   if (!valid.success) {
-    return json({ errors: valid.error.flatten().fieldErrors }, { status: 400 });
+    return json({ errors: valid.error.flatten().fieldErrors }, { status: 422 });
   }
 
   let foundUser = await prisma.user.findFirst({
@@ -41,14 +41,14 @@ export let action = async ({ request }: ActionArgs) => {
   if (foundUser && foundUser.email === valid.data.email) {
     return json(
       { errors: { email: ["A user with this email already exists"] } },
-      { status: 400 }
+      { status: 422 }
     );
   }
 
   if (foundUser && foundUser.username === valid.data.username) {
     return json(
       { errors: { username: ["A user with this username already exists"] } },
-      { status: 400 }
+      { status: 422 }
     );
   }
 
