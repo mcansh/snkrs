@@ -4,7 +4,8 @@ import {
   Form,
   useActionData,
   useLoaderData,
-  useTransition,
+  useLocation,
+  useNavigation,
 } from "@remix-run/react";
 
 import { requireUser, requireUserId } from "~/session.server";
@@ -35,7 +36,6 @@ export let loader = async ({ request }: LoaderArgs) => {
 
 export let action = async ({ request }: ActionArgs) => {
   let userId = await requireUserId(request);
-
   let formData = await request.formData();
 
   let email = formData.get("email");
@@ -92,8 +92,11 @@ export let meta: MetaFunction = () => {
 export default function ProfilePage() {
   let data = useLoaderData<typeof loader>();
   let actionData = useActionData<typeof action>();
-  let transition = useTransition();
-  let pendingForm = transition.submission;
+  let navigation = useNavigation();
+  let location = useLocation();
+  let pendingForm =
+    navigation.formAction === location.pathname &&
+    navigation.state === "submitting";
 
   return (
     <div className="max-w-screen-md px-6 mx-auto ">

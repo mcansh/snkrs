@@ -6,7 +6,7 @@ import {
   Link,
   Outlet,
   useLoaderData,
-  useTransition,
+  useNavigation,
 } from "@remix-run/react";
 import * as Fathom from "fathom-client";
 import clsx from "clsx";
@@ -80,7 +80,7 @@ export async function loader({ request }: LoaderArgs) {
 
 export default function App() {
   let data = useLoaderData<typeof loader>();
-  let transition = useTransition();
+  let navigation = useNavigation();
   let [showPendingSpinner, setShowPendingSpinner] = React.useState(false);
 
   let matches = useMatches();
@@ -95,13 +95,13 @@ export default function App() {
 
   React.useEffect(() => {
     let timer = setTimeout(() => {
-      setShowPendingSpinner(transition.state !== "idle");
+      setShowPendingSpinner(navigation.state !== "idle");
     }, 500);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [transition.state]);
+  }, [navigation.state]);
 
   return (
     <Document
