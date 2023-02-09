@@ -5,6 +5,8 @@ import { RemixServer } from "@remix-run/react";
 import etag from "etag";
 import { createSecureHeaders } from "@mcansh/remix-secure-headers";
 
+import { env } from "./env";
+
 let securityHeaders = createSecureHeaders({
   "Content-Security-Policy": {
     "default-src": ["'self'"],
@@ -21,7 +23,7 @@ let securityHeaders = createSecureHeaders({
       "https://kiwi.mcan.sh/script.js",
     ],
     "connect-src":
-      process.env.NODE_ENV === "production"
+      env.NODE_ENV === "production"
         ? ["'self'"]
         : ["'self'", `ws://localhost:3001/socket`],
   },
@@ -82,7 +84,7 @@ export default function handleDocumentRequest(
     return redirect(`https://snkrs.mcan.sh${url.pathname}`);
   }
 
-  if (process.env.NODE_ENV === "development") {
+  if (env.NODE_ENV === "development") {
     responseHeaders.set("Cache-Control", "no-cache");
   }
 
@@ -97,10 +99,6 @@ export default function handleDocumentRequest(
   responseHeaders.set("ETag", markupETag);
   for (let header of securityHeaders) {
     responseHeaders.set(...header);
-  }
-
-  if (process.env.FLY_REGION) {
-    responseHeaders.set("X-Fly-Region", process.env.FLY_REGION);
   }
 
   if (markupETag === ifNoneMatch) {
@@ -143,10 +141,6 @@ export let handleDataRequest: HandleDataRequestFunction = async (
       "Cache-Control",
       purpose === "prefetch" ? "private max-age=3" : ""
     );
-  }
-
-  if (process.env.FLY_REGION) {
-    cloned.headers.set("X-Fly-Region", process.env.FLY_REGION);
   }
 
   return cloned;

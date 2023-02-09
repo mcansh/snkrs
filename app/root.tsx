@@ -19,6 +19,7 @@ import interStylesHref from "./styles/inter.css";
 import refreshClockwise from "./assets/icons/refresh-clockwise.svg";
 import { getSeo } from "./seo";
 import { Document } from "./components/document";
+import { env } from "./env";
 
 export { CatchBoundary } from "./components/root-catch-boundary";
 export { ErrorBoundary } from "./components/root-error-boundary";
@@ -71,8 +72,8 @@ export async function loader({ request }: LoaderArgs) {
   return json({
     user,
     ENV: {
-      FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
-      FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
+      FATHOM_SITE_ID: env.FATHOM_SITE_ID,
+      FATHOM_SCRIPT_URL: env.FATHOM_SCRIPT_URL,
     },
   });
 }
