@@ -1,147 +1,114 @@
-import { renderToString } from "react-dom/server";
-import type { EntryContext, HandleDataRequestFunction } from "@remix-run/node";
-import { redirect } from "@remix-run/node";
+import { PassThrough } from "stream";
+
+import type { EntryContext } from "@remix-run/node";
+import { Response } from "@remix-run/node";
 import { RemixServer } from "@remix-run/react";
-import etag from "etag";
-import { createSecureHeaders } from "@mcansh/remix-secure-headers";
+import isbot from "isbot";
+import { renderToPipeableStream } from "react-dom/server";
 
-import { env } from "./env";
+const ABORT_DELAY = 5_000;
 
-let securityHeaders = createSecureHeaders({
-  "Content-Security-Policy": {
-    "default-src": ["'self'"],
-    "img-src": [
-      "'self'",
-      "data:",
-      "https://dof0zryca-res.cloudinary.com",
-      "https://kiwi.mcan.sh",
-    ],
-    "style-src": ["'self'", "'unsafe-inline'"],
-    "script-src": [
-      "'self'",
-      "'unsafe-inline'",
-      "https://kiwi.mcan.sh/script.js",
-    ],
-    "connect-src":
-      env.NODE_ENV === "production"
-        ? ["'self'"]
-        : ["'self'", `ws://localhost:3001/socket`],
-  },
-  "Permissions-Policy": {
-    accelerometer: [],
-    ambientLightSensor: [],
-    autoplay: [],
-    battery: [],
-    camera: [],
-    displayCapture: [],
-    documentDomain: [],
-    encryptedMedia: [],
-    executionWhileNotRendered: [],
-    executionWhileOutOfViewport: [],
-    fullscreen: [],
-    gamepad: [],
-    geolocation: [],
-    gyroscope: [],
-    layoutAnimations: [],
-    legacyImageFormats: [],
-    magnetometer: [],
-    microphone: [],
-    midi: [],
-    navigationOverride: [],
-    oversizedImages: [],
-    payment: [],
-    pictureInPicture: [],
-    publickeyCredentialsGet: [],
-    speakerSelection: [],
-    syncXhr: [],
-    unoptimizedImages: [],
-    unsizedMedia: [],
-    usb: [],
-    screenWakeLock: [],
-    webShare: [],
-    xrSpatialTracking: [],
-  },
-  "Cross-Origin-Opener-Policy": "same-origin",
-  "Referrer-Policy": "strict-origin-when-cross-origin",
-  "Strict-Transport-Security": {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true,
-  },
-  "X-Frame-Options": "DENY",
-  "X-Content-Type-Options": "nosniff",
-  "X-DNS-Prefetch-Control": "on",
-});
-
-export default function handleDocumentRequest(
+export default function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
   remixContext: EntryContext
 ) {
-  let url = new URL(request.url);
-  if (url.hostname === "sneakers.mcan.sh") {
-    return redirect(`https://snkrs.mcan.sh${url.pathname}`);
-  }
+  return isbot(request.headers.get("user-agent"))
+    ? handleBotRequest(
+        request,
+        responseStatusCode,
+        responseHeaders,
+        remixContext
+      )
+    : handleBrowserRequest(
+        request,
+        responseStatusCode,
+        responseHeaders,
+        remixContext
+      );
+}
 
-  if (env.NODE_ENV === "development") {
-    responseHeaders.set("Cache-Control", "no-cache");
-  }
+function handleBotRequest(
+  request: Request,
+  responseStatusCode: number,
+  responseHeaders: Headers,
+  remixContext: EntryContext
+) {
+  return new Promise((resolve, reject) => {
+    const stream = renderToPipeableStream(
+      <RemixServer
+        context={remixContext}
+        url={request.url}
+        abortDelay={ABORT_DELAY}
+      />,
+      {
+        onAllReady() {
+          const body = new PassThrough();
 
-  let markup = renderToString(
-    <RemixServer url={request.url} context={remixContext} />
-  );
+          responseHeaders.set("Content-Type", "text/html");
 
-  let markupETag = etag(markup);
-  let ifNoneMatch = request.headers.get("If-None-Match");
+          resolve(
+            new Response(body, {
+              headers: responseHeaders,
+              status: responseStatusCode,
+            })
+          );
 
-  responseHeaders.set("Content-Type", "text/html");
-  responseHeaders.set("ETag", markupETag);
-  for (let header of securityHeaders) {
-    responseHeaders.set(...header);
-  }
+          stream.pipe(body);
+        },
+        onShellError(error: unknown) {
+          reject(error);
+        },
+        onError(error: unknown) {
+          console.error(error);
+          responseStatusCode = 500;
+        },
+      }
+    );
 
-  if (markupETag === ifNoneMatch) {
-    return new Response("", { status: 304 });
-  }
-
-  return new Response(`<!DOCTYPE html>${markup}`, {
-    status: responseStatusCode,
-    headers: responseHeaders,
+    setTimeout(() => stream.abort(), ABORT_DELAY);
   });
 }
 
-export let handleDataRequest: HandleDataRequestFunction = async (
-  response,
-  { request }
-) => {
-  let method = request.method.toLowerCase();
+function handleBrowserRequest(
+  request: Request,
+  responseStatusCode: number,
+  responseHeaders: Headers,
+  remixContext: EntryContext
+) {
+  return new Promise((resolve, reject) => {
+    const stream = renderToPipeableStream(
+      <RemixServer
+        context={remixContext}
+        url={request.url}
+        abortDelay={ABORT_DELAY}
+      />,
+      {
+        onShellReady() {
+          const body = new PassThrough();
 
-  let cloned = response.clone();
+          responseHeaders.set("Content-Type", "text/html");
 
-  if (method === "get") {
-    let body = await response.text();
-    let bodyETag = etag(body);
-    let ifNoneMatch = cloned.headers.get("If-None-Match");
-    response.headers.set("etag", bodyETag);
-    if (bodyETag === ifNoneMatch) {
-      return new Response("", { status: 304 });
-    }
-  }
+          resolve(
+            new Response(body, {
+              headers: responseHeaders,
+              status: responseStatusCode,
+            })
+          );
 
-  if (method === "get" && !response.headers.has("Cache-Control")) {
-    let purpose =
-      request.headers.get("Purpose") ??
-      request.headers.get("X-Purpose") ??
-      request.headers.get("Sec-Purpose") ??
-      request.headers.get("Sec-Fetch-Purpose") ??
-      request.headers.get("Moz-Purpose");
-
-    cloned.headers.set(
-      "Cache-Control",
-      purpose === "prefetch" ? "private max-age=3" : ""
+          stream.pipe(body);
+        },
+        onShellError(error: unknown) {
+          reject(error);
+        },
+        onError(error: unknown) {
+          console.error(error);
+          responseStatusCode = 500;
+        },
+      }
     );
-  }
 
-  return cloned;
-};
+    setTimeout(() => stream.abort(), ABORT_DELAY);
+  });
+}
