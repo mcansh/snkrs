@@ -1,88 +1,28 @@
-import express from "express";
-import { createRequestHandler } from "@remix-run/express";
-import * as Sentry from "@sentry/node";
+import path from "node:path";
 
-import * as serverBuild from "./build/index.js";
+import fastify from "fastify";
+import { remixFastifyPlugin } from "@mcansh/remix-fastify";
+import * as Sentry from "@sentry/node";
 
 let MODE = process.env.NODE_ENV;
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
-  enabled: MODE === "production" && process.env.FLY === "1",
-  environment: MODE,
-  release: process.env.COMMIT_SHA,
+  enabled: MODE === "production" && !!process.env.RAILWAY_GIT_COMMIT_SHA,
+  environment: process.env.RAILWAY_ENVIRONMENT || MODE,
+  release: process.env.RAILWAY_GIT_COMMIT_SHA,
   tracesSampleRate: 0.3,
 });
 
-Sentry.setContext("region", { name: process.env.FLY_REGION ?? "unknown" });
+let app = fastify();
 
-let app = express();
-
-app.use((req, res, next) => {
-  res.set("x-fly-region", process.env.FLY_REGION ?? "unknown");
-  res.set("Strict-Transport-Security", `max-age=${60 * 60 * 24 * 365 * 100}`);
-
-  let proto = req.get("X-Forwarded-Proto");
-  let host = req.get("X-Forwarded-Host") ?? req.get("host");
-
-  // HTTPS-upgrade
-  if (proto === "http") {
-    res.set("X-Forwarded-Proto", "https");
-    res.redirect(`https://${host}${req.originalUrl}`);
-    return;
-  }
-
-  next();
+await app.register(remixFastifyPlugin, {
+  build: path.join(process.cwd(), "build/index.js"),
+  mode: MODE,
 });
-
-// if we're not in the primary region, then we need to make sure all
-// non-GET/HEAD/OPTIONS requests hit the primary region rather than read-only
-// Postgres DBs.
-// learn more: https://fly.io/docs/getting-started/multi-region-databases/#replay-the-request
-app.all("*", function getReplayResponse(req, res, next) {
-  let method = req.method.toLowerCase();
-  let isMethodReplayable = !["get", "options", "head"].includes(method);
-  let isReadOnlyRegion =
-    process.env.FLY_REGION &&
-    process.env.FLY_PRIMARY_REGION &&
-    process.env.FLY_REGION !== process.env.FLY_PRIMARY_REGION;
-
-  let shouldReplay = isMethodReplayable && isReadOnlyRegion;
-
-  if (!shouldReplay) return next();
-
-  let logInfo = {
-    pathname: req.path,
-    method,
-    FLY_PRIMARY_REGION: process.env.FLY_PRIMARY_REGION,
-    FLY_REGION: process.env.FLY_REGION,
-  };
-  // eslint-disable-next-line no-console
-  console.info(`Replaying:`, logInfo);
-  res.set("fly-replay", `region=${process.env.FLY_PRIMARY_REGION}`);
-  return res
-    .status(409)
-    .send(`Replaying request to ${process.env.FLY_PRIMARY_REGION}`);
-});
-
-// http://expressjs.com/en/advanced/best-practice-security.html#at-a-minimum-disable-x-powered-by-header
-app.disable("x-powered-by");
-
-// Remix fingerprints its assets so we can cache forever.
-app.use(
-  "/build",
-  express.static("public/build", { immutable: true, maxAge: "1y" })
-);
-
-// Everything else (like favicon.ico) is cached for an hour. You may want to be
-// more aggressive with this caching.
-app.use(express.static("public", { maxAge: "1h" }));
-
-app.all("*", createRequestHandler({ build: serverBuild }));
 
 let port = Number(process.env.PORT) || 3000;
 
-app.listen(port, () => {
-  // eslint-disable-next-line no-console
-  console.log(`✅ app ready: http://localhost:${port}`);
-});
+let address = await app.listen({ port, host: "0.0.0.0" });
+// eslint-disable-next-line no-console
+console.log(`✅ app ready: ${address}`);
