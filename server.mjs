@@ -20,6 +20,16 @@ await app.register(remixFastifyPlugin, {
   build: path.join(process.cwd(), "build/index.js"),
   mode: MODE,
   purgeRequireCacheInDevelopment: false,
+  async adapterMiddleware({ request, context }) {
+    let fetchResponse = await context.next();
+
+    fetchResponse.headers.set(
+      "x-message",
+      "hello from remix middleware on fastify"
+    );
+
+    return fetchResponse;
+  },
 });
 
 let port = Number(process.env.PORT) || 3000;
