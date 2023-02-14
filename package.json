@@ -9,6 +9,7 @@
   "sideEffects": false,
   "scripts": {
     "dev": "run-p dev:*",
+    "dev:routes": "npm run generate:routes -- --watch",
     "dev:remix": "remix dev",
     "dev:server": "cross-env NODE_ENV=development nodemon ./server.mjs",
     "prebuild": "npm run clean",
@@ -18,7 +19,7 @@
     "generate:db": "prisma generate",
     "generate:routes": "routes-gen -d @routes-gen/remix",
     "generate": "run-p generate:*",
-    "lint": "eslint --cache .",
+    "lint": "eslint --cache --ignore-path .gitignore .",
     "test": "jest",
     "typecheck": "tsc",
     "validate": "run-p lint type-check test",
