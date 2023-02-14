@@ -1,4 +1,4 @@
-import type { LoaderArgs, MetaFunction } from "@remix-run/node";
+import type { LoaderArgs, MetaFunction, SerializeFrom } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
@@ -75,8 +75,12 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   });
 };
 
-export let meta: MetaFunction<Partial<typeof loader>> = ({ data }) => {
-  if (!data?.user) {
+export let meta: MetaFunction = ({
+  data,
+}: {
+  data: SerializeFrom<typeof loader> | undefined;
+}) => {
+  if (!data?.sneaker) {
     return getSeoMeta();
   }
 

@@ -159,7 +159,7 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
 export let meta: MetaFunction = ({
   data,
 }: {
-  data?: Partial<SerializeFrom<typeof loader>>;
+  data?: SerializeFrom<typeof loader> | undefined;
 }) => {
   if (!data?.sneaker) {
     return getSeoMeta();

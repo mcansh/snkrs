@@ -1,4 +1,4 @@
-import type { LoaderArgs, MetaFunction } from "@remix-run/node";
+import type { LoaderArgs, MetaFunction, SerializeFrom } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { endOfYear, startOfYear } from "date-fns";
@@ -52,7 +52,11 @@ export let loader = async ({ params }: LoaderArgs) => {
   return json({ user, year });
 };
 
-export let meta: MetaFunction<Partial<typeof loader>> = ({ data }) => {
+export let meta: MetaFunction = ({
+  data,
+}: {
+  data: SerializeFrom<typeof loader> | undefined;
+}) => {
   if (!data?.user) {
     return getSeoMeta();
   }
