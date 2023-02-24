@@ -1,5 +1,4 @@
 import path from "node:path";
-
 import fastify from "fastify";
 import { remixFastifyPlugin } from "@mcansh/remix-fastify";
 import * as Sentry from "@sentry/node";
@@ -17,7 +16,7 @@ Sentry.init({
 let app = fastify();
 
 await app.register(remixFastifyPlugin, {
-  build: path.join(process.cwd(), "build/index.js"),
+  build: path.join(process.cwd(), "build", "index.js"),
   mode: MODE,
   purgeRequireCacheInDevelopment: false,
 });
@@ -25,5 +24,4 @@ await app.register(remixFastifyPlugin, {
 let port = Number(process.env.PORT) || 3000;
 
 let address = await app.listen({ port, host: "0.0.0.0" });
-// eslint-disable-next-line no-console
 console.log(`✅ app ready: ${address}`);

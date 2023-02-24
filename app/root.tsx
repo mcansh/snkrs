@@ -12,7 +12,6 @@ import {
 import { cssBundleHref } from "@remix-run/css-bundle";
 import * as Fathom from "fathom-client";
 import clsx from "clsx";
-// eslint-disable-next-line import/no-extraneous-dependencies
 import appStylesHref from "tailwindcss/tailwind.css";
 
 import { useMatches } from "./lib/use-matches";

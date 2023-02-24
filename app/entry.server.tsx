@@ -1,5 +1,4 @@
 import { PassThrough } from "stream";
-
 import type { EntryContext } from "@remix-run/node";
 import { Response } from "@remix-run/node";
 import { RemixServer } from "@remix-run/react";
@@ -14,37 +13,20 @@ export default function handleRequest(
   responseHeaders: Headers,
   remixContext: EntryContext
 ) {
-  return isbot(request.headers.get("user-agent"))
-    ? handleBotRequest(
-        request,
-        responseStatusCode,
-        responseHeaders,
-        remixContext
-      )
-    : handleBrowserRequest(
-        request,
-        responseStatusCode,
-        responseHeaders,
-        remixContext
-      );
-}
+  let callback = isbot(request.headers.get("user-agent"))
+    ? "onAllReady"
+    : "onShellReady";
 
-function handleBotRequest(
-  request: Request,
-  responseStatusCode: number,
-  responseHeaders: Headers,
-  remixContext: EntryContext
-) {
   return new Promise((resolve, reject) => {
-    const stream = renderToPipeableStream(
+    let { abort, pipe } = renderToPipeableStream(
       <RemixServer
         context={remixContext}
         url={request.url}
         abortDelay={ABORT_DELAY}
       />,
       {
-        onAllReady() {
-          const body = new PassThrough();
+        [callback]() {
+          let body = new PassThrough();
 
           responseHeaders.set("Content-Type", "text/html");
 
@@ -55,7 +37,7 @@ function handleBotRequest(
             })
           );
 
-          stream.pipe(body);
+          pipe(body);
         },
         onShellError(error: unknown) {
           reject(error);
@@ -67,48 +49,6 @@ function handleBotRequest(
       }
     );
 
-    setTimeout(() => stream.abort(), ABORT_DELAY);
-  });
-}
-
-function handleBrowserRequest(
-  request: Request,
-  responseStatusCode: number,
-  responseHeaders: Headers,
-  remixContext: EntryContext
-) {
-  return new Promise((resolve, reject) => {
-    const stream = renderToPipeableStream(
-      <RemixServer
-        context={remixContext}
-        url={request.url}
-        abortDelay={ABORT_DELAY}
-      />,
-      {
-        onShellReady() {
-          const body = new PassThrough();
-
-          responseHeaders.set("Content-Type", "text/html");
-
-          resolve(
-            new Response(body, {
-              headers: responseHeaders,
-              status: responseStatusCode,
-            })
-          );
-
-          stream.pipe(body);
-        },
-        onShellError(error: unknown) {
-          reject(error);
-        },
-        onError(error: unknown) {
-          console.error(error);
-          responseStatusCode = 500;
-        },
-      }
-    );
-
-    setTimeout(() => stream.abort(), ABORT_DELAY);
+    setTimeout(abort, ABORT_DELAY);
   });
 }
