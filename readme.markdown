@@ -2,7 +2,7 @@
 
 My Sneaker Collection
 
-![](public/screenshot.jpg)
+![](app/assets/screenshot.jpg)
 
 ## Getting Started
 
