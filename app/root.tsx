@@ -134,7 +134,9 @@ export default function App() {
       )}
 
       <nav className="flex items-center justify-end px-4 py-2 sm:px-6 lg:px-8">
-        {data.user ? (
+        {["/login", "/join", "/logout"].includes(
+          location.pathname
+        ) ? null : data.user ? (
           <div className="flex items-center space-x-4">
             <Link to="/sneakers/add">Add Sneaker</Link>
             <Form reloadDocument method="post" action="/logout">
@@ -142,9 +144,19 @@ export default function App() {
             </Form>
           </div>
         ) : (
-          <div className="space-x-4">
-            <Link to="/login">Login</Link>
-            <Link to="/join">Join</Link>
+          <div className="space-x-4 mt-5">
+            <Link
+              to="/login"
+              className="rounded-md border border-transparent px-5 py-3 bg-rose-500 text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10 text-center"
+            >
+              Login
+            </Link>
+            <Link
+              to="/join"
+              className="rounded-md border border-transparent px-5 py-3 bg-indigo-500 text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10 text-center"
+            >
+              Join
+            </Link>
           </div>
         )}
       </nav>
