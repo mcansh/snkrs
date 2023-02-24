@@ -1,97 +1,94 @@
-import path from "path";
-import { promises as fs } from "fs";
-import { optimize, createContentItem } from "svgo";
+import path from "node:path";
+import fse from "fs-extra";
+import svgstore from "svgstore";
+import glob from "glob";
 import prettier from "prettier";
 
-let HEROCIONS_PATH = path.join(process.cwd(), "node_modules/heroicons");
-let HEROCIONS_SOLID_PATH = path.join(HEROCIONS_PATH, "solid");
-let HEROCIONS_OUTLINE_PATH = path.join(HEROCIONS_PATH, "outline");
+let HEROICONS_PATH = path.join(process.cwd(), "node_modules/heroicons");
+let CUSTOM_ICON_DIR = path.join(process.cwd(), "app", "assets", "icons");
 
-let OUTDIR = path.join(process.cwd(), "app/assets/icons");
-let OUTDIR_SOLID = path.join(OUTDIR, "solid");
-let OUTDIR_OUTLINE = path.join(OUTDIR, "outline");
+let HEROICONS_OUT_DIR = path.join("app", "components", "heroicons");
 
-async function wrapSymbol(inputPath, outputDir) {
-  let ext = path.extname(inputPath);
-  let base = path.basename(inputPath, ext);
-  let content = await fs.readFile(inputPath, "utf-8");
-  let outputPath = path.join(outputDir, `${base}.svg`);
+let OUTFILE = path.join(process.cwd(), HEROICONS_OUT_DIR, "sprite.svg");
+let COMPONENT_FILE = path.join(process.cwd(), HEROICONS_OUT_DIR, "index.tsx");
 
-  let result = optimize(content, {
-    path: inputPath,
-    plugins: [
-      {
-        name: "preset-default",
-        params: {
-          overrides: {
-            removeViewBox: {
-              active: false,
-            },
-            removeDimensions: {
-              active: true,
-            },
-          },
-        },
-      },
-      {
-        name: "wrapInSymbol",
-        type: "perItem",
-        fn: (item) => {
-          if (item.type === "element") {
-            if (item.name === "svg") {
-              let { xmlns, ...attributes } = item.attributes;
+let RELATIVE_OUTFILE = path.relative(process.cwd(), OUTFILE);
+let RELATIVE_COMPONENT_FILE = path.relative(process.cwd(), COMPONENT_FILE);
 
-              for (let attribute in attributes) {
-                if (Object.hasOwn(attributes, attribute)) {
-                  delete item.attributes[attribute];
-                }
-              }
+let js = String.raw;
 
-              let children = item.children;
-
-              item.children = [
-                createContentItem({
-                  type: "element",
-                  name: "symbol",
-                  attributes: { ...attributes, id: base },
-                  children,
-                }),
-              ];
-            }
-          }
-        },
-      },
-    ],
+async function createSprite(inputDir) {
+  let icons = glob.sync(`**/*.svg`, {
+    cwd: inputDir,
+    absolute: true,
+    nodir: true,
   });
 
-  return fs.writeFile(
-    outputPath,
-    prettier.format(result.data, { parser: "html" })
-  );
+  let relative = path.relative(process.cwd(), inputDir);
+  let count = icons.length === 1 ? "icon" : "icons";
+  console.log(`Found ${icons.length} ${count} in ./${relative}`);
+
+  let sprites = new Map();
+
+  for (let icon of icons) {
+    let relative = path.relative(inputDir, icon);
+    let basename = path.basename(icon);
+    let iconName = basename.replace(".svg", "");
+    // if the icon is in a subdirectory, add the subdirectory name to the icon name
+    if (basename !== relative) {
+      let dir = relative.split(path.sep);
+      iconName = dir.slice(0, dir.length - 1).join(":") + ":" + iconName;
+    }
+    let content = await fse.readFile(icon, "utf-8");
+    sprites.set(iconName, content);
+  }
+
+  return sprites;
 }
 
 async function compile() {
-  // 1. verify all output directories exist
+  await fse.ensureDir(HEROICONS_OUT_DIR);
+  let heroicons = await createSprite(HEROICONS_PATH);
+  let custom = await createSprite(CUSTOM_ICON_DIR);
+
+  let all_icons = [...heroicons, ...custom];
+  let all_names = [...all_icons].map(([name]) => name);
+
+  let sprites = svgstore();
+  for (let [name, content] of all_icons) {
+    sprites.add(name, content);
+  }
+
+  let component = js`
+    import iconsHref from "./sprite.svg";
+
+    export type SpriteName = ${[...all_names]
+      .map((icon) => `"${icon}"`)
+      .join(" | ")};
+
+    export type SpriteProps = { name: SpriteName; } & JSX.IntrinsicElements["svg"];
+
+    export function Svg({ name, ...svgProps }: SpriteProps) {
+      return (
+        <svg {...svgProps} aria-hidden="true">
+          <use href={iconsHref + "#" + name} />
+        </svg>
+      );
+    }
+  `;
+
   await Promise.all([
-    fs.mkdir(OUTDIR_OUTLINE, { recursive: true }),
-    fs.mkdir(OUTDIR_SOLID, { recursive: true }),
+    fse.writeFile(
+      OUTFILE,
+      prettier.format(sprites.toString(), { parser: "html" })
+    ),
+    fse.writeFile(
+      COMPONENT_FILE,
+      prettier.format(component, { parser: "typescript" })
+    ),
   ]);
 
-  // 2. get all svg icons from heroicons
-  let [solid, outline] = await Promise.all([
-    fs.readdir(HEROCIONS_SOLID_PATH),
-    fs.readdir(HEROCIONS_OUTLINE_PATH),
-  ]);
-
-  // 3. generate icons
-  await Promise.all([
-    ...solid.map((icon) =>
-      wrapSymbol(path.join(HEROCIONS_SOLID_PATH, icon), OUTDIR_SOLID)
-    ),
-    ...outline.map((icon) =>
-      wrapSymbol(path.join(HEROCIONS_OUTLINE_PATH, icon), OUTDIR_OUTLINE)
-    ),
-  ]);
+  console.log(`Created ${RELATIVE_OUTFILE} and ${RELATIVE_COMPONENT_FILE}`);
 }
 
 compile();

@@ -17,7 +17,7 @@ import appStylesHref from "tailwindcss/tailwind.css";
 import { useMatches } from "./lib/use-matches";
 import { getUser } from "./session.server";
 import interStylesHref from "./styles/inter.css";
-import refreshClockwise from "./assets/icons/refresh-clockwise.svg";
+import { Svg } from "./components/heroicons";
 import { getSeo } from "./seo";
 import { Document } from "./components/document";
 import { env } from "./env";
@@ -127,9 +127,10 @@ export default function App() {
     >
       {showPendingSpinner && (
         <div className="fixed z-10 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 transform-gpu">
-          <svg className="z-10 w-10 h-10 text-blue-600 animate-spin">
-            <use href={`${refreshClockwise}#refresh-clockwise`} />
-          </svg>
+          <Svg
+            className="z-10 w-10 h-10 fill-blue-600 animate-spin"
+            name="24:solid:refresh-clockwise"
+          />
         </div>
       )}
 

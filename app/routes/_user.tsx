@@ -20,8 +20,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { route } from "routes-gen";
 
 import { prisma } from "~/db.server";
-import x from "~/assets/icons/outline/x.svg";
-import plusSm from "~/assets/icons/solid/plus-sm.svg";
+import { Svg } from "~/components/heroicons";
 import { getUserId, sessionStorage } from "~/session.server";
 import { getSeoMeta } from "~/seo";
 import { possessive } from "~/utils/possessive";
@@ -210,13 +209,11 @@ export default function UserSneakersPage() {
                 <h2 className="text-lg font-medium text-gray-900">Filters</h2>
                 <button
                   type="button"
-                  className="-mr-2 w-10 h-10 p-2 flex items-center justify-center text-gray-400 hover:text-gray-500"
+                  className="-mr-2 w-10 h-10 p-2 flex items-center justify-center fill-gray-400 hover:fill-gray-500"
                   onClick={() => setMobileFiltersOpen(false)}
                 >
                   <span className="sr-only">Close menu</span>
-                  <svg className="h-6 w-6" aria-hidden="true">
-                    <use href={`${x}#x`} />
-                  </svg>
+                  <Svg className="h-6 w-6" name="24:solid:x-mark" />
                 </button>
               </div>
 
@@ -325,12 +322,10 @@ export default function UserSneakersPage() {
               onClick={() => setMobileFiltersOpen(true)}
             >
               <span className="text-sm font-medium text-gray-700">Filters</span>
-              <svg
-                className="flex-shrink-0 ml-1 h-5 w-5 text-gray-400"
-                aria-hidden="true"
-              >
-                <use href={`${plusSm}#plus-sm`} />
-              </svg>
+              <Svg
+                className="flex-shrink-0 ml-1 h-5 w-5 fill-gray-700"
+                name="20:solid:plus-small"
+              />
             </button>
 
             <div className="hidden lg:block">

@@ -14,10 +14,7 @@ import { prisma } from "~/db.server";
 import { editProfile } from "~/lib/schemas/user.server";
 import { getSeoMeta } from "~/seo";
 import { LoadingButton } from "~/components/loading-button";
-import check from "~/assets/icons/solid/check.svg";
-import exclamation from "~/assets/icons/solid/exclamation.svg";
-import refreshClockwise from "~/assets/icons/refresh-clockwise.svg";
-import cloud from "~/assets/icons/solid/cloud.svg";
+import { Svg } from "~/components/heroicons";
 
 let colors = {
   idle: {
@@ -217,24 +214,28 @@ export default function ProfilePage() {
             className={`px-4 py-2 disabled:cursor-not-allowed border border-transparent shadow-sm text-base font-medium rounded text-white ${colors[state].bg} ${colors[state].hover} focus:outline-none focus:ring-2 focus:ring-offset-2 ${colors[state].ring}`}
             state={state}
             iconLoading={
-              <svg className="w-6 h-6 text-white animate-spin inline-block">
-                <use href={`${refreshClockwise}#refresh-clockwise`} />
-              </svg>
+              <Svg
+                className="w-6 h-6 fill-white animate-spin inline-block"
+                name="24:solid:refresh-clockwise"
+              />
             }
             icon={
-              <svg className="w-6 h-6 ml-2 text-white inline-block">
-                <use href={`${cloud}#cloud`} />
-              </svg>
+              <Svg
+                className="w-6 h-6 ml-2 fill-white inline-block"
+                name="24:solid:cloud"
+              />
             }
             iconError={
-              <svg className="w-6 h-6 ml-2 text-white inline-block">
-                <use href={`${exclamation}#exclamation`} />
-              </svg>
+              <Svg
+                className="w-6 h-6 ml-2 fill-white inline-block"
+                name="24:solid:exclamation-triangle"
+              />
             }
             iconSuccess={
-              <svg className="w-6 h-6 ml-2 text-white inline-block">
-                <use href={`${check}#check`} />
-              </svg>
+              <Svg
+                className="w-6 h-6 ml-2 fill-white inline-block"
+                name="24:solid:check"
+              />
             }
           />
         </fieldset>

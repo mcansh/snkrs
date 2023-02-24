@@ -8,8 +8,7 @@
 /.cache
 /build
 /public/build
-/app/assets/icons/solid
-/app/assets/icons/outline
+/app/components/heroicons
 /app/routes.d.ts
 
 /.husky/_
