@@ -25,6 +25,18 @@ export let loader = async ({ params, request }: LoaderArgs) => {
       sneakers: {
         include: { brand: true },
         orderBy: { purchaseDate: sort },
+        where: {
+          brand: {
+            is: {
+              OR:
+                selectedBrands.length > 0
+                  ? selectedBrands.map((brand) => ({
+                      slug: brand,
+                    }))
+                  : undefined,
+            },
+          },
+        },
       },
     },
   });
@@ -46,14 +58,8 @@ export let loader = async ({ params, request }: LoaderArgs) => {
       })
     : null;
 
-  let sneakers = selectedBrands.length
-    ? user.sneakers.filter((sneaker) =>
-        selectedBrands.includes(sneaker.brand.slug)
-      )
-    : user.sneakers;
-
   return json(
-    { user: { ...user, sneakers } },
+    { user },
     {
       headers: {
         "Set-Cookie": sessionUser
