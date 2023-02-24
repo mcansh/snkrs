@@ -308,7 +308,7 @@ export default function UserSneakersPage() {
         </Dialog>
       </Transition.Root>
 
-      <main className="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
+      <main className="max-w-2xl mx-auto pb-16 px-4 sm:pb-24 sm:px-6 lg:max-w-7xl lg:px-8 pt-10 sm:pt-16">
         <div className="border-b border-gray-200 pb-10">
           <h1 className="text-4xl font-extrabold tracking-tight text-gray-900">
             {data.user.fullName}
