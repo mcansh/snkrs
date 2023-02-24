@@ -1,7 +1,8 @@
+import * as React from "react";
 import type { LoaderArgs, MetaFunction, SerializeFrom } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
-import type { Prisma } from "@prisma/client";
+import { defer } from "@remix-run/node";
+import { Await, useLoaderData } from "@remix-run/react";
+import type { Brand, Prisma, Sneaker } from "@prisma/client";
 
 import { prisma } from "~/db.server";
 import { SneakerCard } from "~/components/sneaker";
@@ -18,6 +19,8 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   let sortQuery = url.searchParams.get("sort");
   let sort: Prisma.SortOrder = sortQuery === "asc" ? "asc" : "desc";
 
+  let initial_sneakers_to_fetch = 20;
+
   let user = await prisma.user.findUnique({
     where: { username: params.username },
     select: {
@@ -25,6 +28,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
       sneakers: {
         include: { brand: true },
         orderBy: { purchaseDate: sort },
+        take: initial_sneakers_to_fetch,
         where: {
           brand: {
             is: {
@@ -58,8 +62,21 @@ export let loader = async ({ params, request }: LoaderArgs) => {
       })
     : null;
 
-  return json(
-    { user },
+  let rest = new Promise<(Sneaker & { brand: Brand })[]>(async (resolve) => {
+    let r = await prisma.sneaker.findMany({
+      where: {
+        user: { username: params.username },
+      },
+      skip: initial_sneakers_to_fetch,
+      include: { brand: true },
+      orderBy: { purchaseDate: sort },
+    });
+
+    resolve(r);
+  });
+
+  return defer(
+    { user, rest },
     {
       headers: {
         "Set-Cookie": sessionUser
@@ -103,7 +120,45 @@ export default function UserSneakersPage() {
       {data.user.sneakers.length === 0 ? (
         <EmptyState fullName={data.user.fullName} />
       ) : (
-        <SneakerGrid sneakers={data.user.sneakers} />
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-4">
+          {data.user.sneakers.map((sneaker) => {
+            return (
+              <li key={sneaker.id}>
+                <SneakerCard key={sneaker.id} {...sneaker} />
+              </li>
+            );
+          })}
+          <React.Suspense
+            fallback={
+              <>
+                <li>
+                  <FallbackSneakerCard />
+                </li>
+                <li>
+                  <FallbackSneakerCard />
+                </li>
+                <li>
+                  <FallbackSneakerCard />
+                </li>
+                <li>
+                  <FallbackSneakerCard />
+                </li>
+              </>
+            }
+          >
+            <Await resolve={data.rest} errorElement={<p>oops...</p>}>
+              {(resolved) => {
+                return resolved.map((sneaker) => {
+                  return (
+                    <li key={sneaker.id}>
+                      <SneakerCard key={sneaker.id} {...sneaker} />
+                    </li>
+                  );
+                });
+              }}
+            </Await>
+          </React.Suspense>
+        </ul>
       )}
     </div>
   );
@@ -119,16 +174,18 @@ function EmptyState({ fullName }: { fullName: string }) {
   );
 }
 
-function SneakerGrid({
-  sneakers,
-}: {
-  sneakers: SerializeFrom<typeof loader>["user"]["sneakers"];
-}) {
+function FallbackSneakerCard() {
   return (
-    <ul className="grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-4">
-      {sneakers.map((sneaker) => (
-        <SneakerCard key={sneaker.id} {...sneaker} />
-      ))}
-    </ul>
+    <div className="animate-pulse flex">
+      <div className="flex-1">
+        <div className="bg-gray-400 rounded-md overflow-hidden group-hover:opacity-75 aspect-1" />
+        <div className="rounded-md mt-1 text-sm bg-gray-400 text-transparent">
+          ...
+        </div>
+        <div className="rounded-md mt-1 text-sm font-medium text-transparent bg-gray-400">
+          ...
+        </div>
+      </div>
+    </div>
   );
 }
