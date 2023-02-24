@@ -22,9 +22,12 @@ export function getSession(request: Request): Promise<Session> {
 }
 
 let USER_SESSION_KEY = "userId";
+let IMPERSONATION_SESSION_KEY = "impersonation_user_id";
 
 export async function getUserId(request: Request): Promise<string | undefined> {
   let session = await getSession(request);
+  let impersonation_user_id = session.get(IMPERSONATION_SESSION_KEY);
+  if (impersonation_user_id) return impersonation_user_id;
   return session.get(USER_SESSION_KEY);
 }
 
@@ -63,6 +66,25 @@ export async function requireUser(
   return user;
 }
 
+export async function isImpersonating(request: Request) {
+  let session = await getSession(request);
+  return session.get(IMPERSONATION_SESSION_KEY);
+}
+
+export async function createImpersonatedUserSession(
+  request: Request,
+  userId: string,
+  redirectTo: string
+) {
+  let session = await getSession(request);
+  session.set(IMPERSONATION_SESSION_KEY, userId);
+  return redirect(redirectTo, {
+    headers: {
+      "Set-Cookie": await sessionStorage.commitSession(session),
+    },
+  });
+}
+
 export async function createUserSession(
   request: Request,
   userId: string,
@@ -70,6 +92,21 @@ export async function createUserSession(
 ) {
   let session = await getSession(request);
   session.set(USER_SESSION_KEY, userId);
+  return redirect(redirectTo, {
+    headers: {
+      "Set-Cookie": await sessionStorage.commitSession(session),
+    },
+  });
+}
+
+export async function stopImpersonating(
+  request: Request,
+  redirectTo: string = "/"
+) {
+  let session = await getSession(request);
+  console.log(session.data);
+  session.unset(IMPERSONATION_SESSION_KEY);
+
   return redirect(redirectTo, {
     headers: {
       "Set-Cookie": await sessionStorage.commitSession(session),
