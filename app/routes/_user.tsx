@@ -127,7 +127,7 @@ const sortOptions = [
 export let meta: MetaFunction = ({
   data,
 }: {
-  data?: Partial<SerializeFrom<typeof loader>>;
+  data?: SerializeFrom<typeof loader> | undefined;
 }) => {
   if (!data?.user) {
     return getSeoMeta();
@@ -153,7 +153,7 @@ export default function UserSneakersPage() {
   let data = useLoaderData<typeof loader>();
   let submit = useSubmit();
   let location = useLocation();
-  const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
+  let [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
 
   if (
     data.sessionUser &&

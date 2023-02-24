@@ -1,6 +1,12 @@
 import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, Link, useActionData, useTransition } from "@remix-run/react";
+import {
+  Form,
+  Link,
+  useActionData,
+  useLocation,
+  useNavigation,
+} from "@remix-run/react";
 import { Alert } from "@reach/alert";
 import { route } from "routes-gen";
 
@@ -48,7 +54,7 @@ export let action = async ({ request }: ActionArgs) => {
 
   let valid = loginSchema.safeParse(formData);
   if (!valid.success) {
-    return json({ errors: valid.error.flatten().fieldErrors }, { status: 400 });
+    return json({ errors: valid.error.flatten().fieldErrors }, { status: 422 });
   }
 
   let foundUser = await prisma.user.findUnique({
@@ -58,16 +64,17 @@ export let action = async ({ request }: ActionArgs) => {
   if (!foundUser) {
     return json(
       { errors: { email: ["Invalid email or password"] } },
-      { status: 400 }
+      { status: 422 }
     );
   }
 
   let validCredentials = await verify(valid.data.password, foundUser.password);
 
   if (!validCredentials) {
-    return json({
-      errors: { email: ["Invalid email or password"] },
-    });
+    return json(
+      { errors: { email: ["Invalid email or password"] } },
+      { status: 422 }
+    );
   }
 
   return createUserSession(
@@ -90,8 +97,11 @@ export let handle: RouteHandle = {
 
 export default function LoginPage() {
   let actionData = useActionData<typeof action>();
-  let transition = useTransition();
-  let pendingForm = transition.submission;
+  let navigation = useNavigation();
+  let location = useLocation();
+  let pendingForm =
+    navigation.formAction === location.pathname &&
+    navigation.state === "submitting";
 
   let emailErrors =
     actionData && "email" in actionData.errors && actionData.errors.email;
@@ -109,7 +119,7 @@ export default function LoginPage() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <Form method="post">
-            <fieldset disabled={!!pendingForm} className="space-y-6">
+            <fieldset disabled={pendingForm} className="space-y-6">
               <div>
                 <label
                   htmlFor="email"

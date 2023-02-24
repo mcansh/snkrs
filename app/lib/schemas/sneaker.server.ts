@@ -25,6 +25,9 @@ const preprocessPrice: z.PreprocessEffect<unknown>["transform"] = (data) => {
   return accounting.unformat(data) * 100;
 };
 
+export let url_regex =
+  /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi;
+
 export let sneakerSchema = zfd.formData({
   model: zfd.text(),
   colorway: zfd.text(),

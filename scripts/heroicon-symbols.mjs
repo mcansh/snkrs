@@ -1,6 +1,5 @@
 import path from "path";
 import { promises as fs } from "fs";
-
 import { optimize, createContentItem } from "svgo";
 import prettier from "prettier";
 

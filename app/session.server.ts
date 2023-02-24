@@ -3,16 +3,17 @@ import { createCookieSessionStorage, redirect } from "@remix-run/node";
 import type { User } from "@prisma/client";
 
 import { prisma } from "./db.server";
+import { env } from "./env";
 
 export let sessionStorage = createCookieSessionStorage({
   cookie: {
     name: "__session",
-    secrets: [process.env.SESSION_PASSWORD],
+    secrets: [env.SESSION_PASSWORD],
     sameSite: "strict",
     maxAge: 60 * 60 * 24 * 14, // 2 weeks
     httpOnly: true,
     path: "/",
-    secure: process.env.NODE_ENV === "production",
+    secure: env.NODE_ENV === "production",
   },
 });
 

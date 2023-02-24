@@ -1,6 +1,0 @@
-!.*.js
-coverage
-.next
-build
-public/build
-app/routes.d.ts

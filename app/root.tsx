@@ -6,11 +6,12 @@ import {
   Link,
   Outlet,
   useLoaderData,
-  useTransition,
+  useLocation,
+  useNavigation,
 } from "@remix-run/react";
+import { cssBundleHref } from "@remix-run/css-bundle";
 import * as Fathom from "fathom-client";
 import clsx from "clsx";
-// eslint-disable-next-line import/no-extraneous-dependencies
 import appStylesHref from "tailwindcss/tailwind.css";
 
 import { useMatches } from "./lib/use-matches";
@@ -19,6 +20,7 @@ import interStylesHref from "./styles/inter.css";
 import refreshClockwise from "./assets/icons/refresh-clockwise.svg";
 import { getSeo } from "./seo";
 import { Document } from "./components/document";
+import { env } from "./env";
 
 export { CatchBoundary } from "./components/root-catch-boundary";
 export { ErrorBoundary } from "./components/root-error-boundary";
@@ -35,51 +37,61 @@ export let meta: MetaFunction = () => ({
   viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
 });
 
-export let links: LinksFunction = () => [
-  ...seoLinks,
-  { rel: "preload", href: appStylesHref, as: "style" },
-  { rel: "preload", href: interStylesHref, as: "style" },
-  { rel: "stylesheet", href: appStylesHref },
-  { rel: "stylesheet", href: interStylesHref },
-  {
-    rel: "icon",
-    href: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext x='0' y='14'%3E👟%3C/text%3E%3C/svg%3E",
-  },
-  {
-    rel: "apple-touch-icon",
-    sizes: "180x180",
-    href: "/apple-touch-icon.png",
-  },
-  {
-    rel: "alternate icon",
-    type: "image/png",
-    sizes: "32x32",
-    href: "/favicon-32x32.png",
-  },
-  {
-    rel: "alternate icon",
-    type: "image/png",
-    sizes: "16x16",
-    href: "/favicon-16x16.png",
-  },
-  { rel: "manifest", href: "/manifest.webmanifest" },
-  { rel: "mask-icon", href: "/safari-pinned-tab.svg", color: "#000000" },
-];
+export let links: LinksFunction = () => {
+  let result = [
+    ...seoLinks,
+    { rel: "preload", href: appStylesHref, as: "style" },
+    { rel: "preload", href: interStylesHref, as: "style" },
+    { rel: "stylesheet", href: appStylesHref },
+    { rel: "stylesheet", href: interStylesHref },
+    {
+      rel: "icon",
+      href: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext x='0' y='14'%3E👟%3C/text%3E%3C/svg%3E",
+    },
+    {
+      rel: "apple-touch-icon",
+      sizes: "180x180",
+      href: "/apple-touch-icon.png",
+    },
+    {
+      rel: "alternate icon",
+      type: "image/png",
+      sizes: "32x32",
+      href: "/favicon-32x32.png",
+    },
+    {
+      rel: "alternate icon",
+      type: "image/png",
+      sizes: "16x16",
+      href: "/favicon-16x16.png",
+    },
+    { rel: "manifest", href: "/manifest.webmanifest" },
+    { rel: "mask-icon", href: "/safari-pinned-tab.svg", color: "#000000" },
+  ];
+
+  if (cssBundleHref) {
+    result.push({ rel: "preload", href: cssBundleHref, as: "style" });
+    result.push({ rel: "stylesheet", href: cssBundleHref });
+  }
+
+  return result;
+};
 
 export async function loader({ request }: LoaderArgs) {
   let user = await getUser(request);
   return json({
     user,
     ENV: {
-      FATHOM_SITE_ID: process.env.FATHOM_SITE_ID,
-      FATHOM_SCRIPT_URL: process.env.FATHOM_SCRIPT_URL,
+      FATHOM_SITE_ID: env.FATHOM_SITE_ID,
+      FATHOM_SCRIPT_URL: env.FATHOM_SCRIPT_URL,
     },
   });
 }
 
 export default function App() {
   let data = useLoaderData<typeof loader>();
-  let transition = useTransition();
+  let navigation = useNavigation();
+  let location = useLocation();
   let [showPendingSpinner, setShowPendingSpinner] = React.useState(false);
 
   let matches = useMatches();
@@ -94,13 +106,17 @@ export default function App() {
 
   React.useEffect(() => {
     let timer = setTimeout(() => {
-      setShowPendingSpinner(transition.state !== "idle");
+      setShowPendingSpinner(
+        navigation.state !== "idle" &&
+          navigation.formMethod !== "post" &&
+          location.pathname !== "/profile"
+      );
     }, 500);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [transition.state]);
+  }, [location.pathname, navigation.formMethod, navigation.state]);
 
   return (
     <Document
@@ -118,7 +134,9 @@ export default function App() {
       )}
 
       <nav className="flex items-center justify-end px-4 py-2 sm:px-6 lg:px-8">
-        {data.user ? (
+        {["/login", "/join", "/logout"].includes(
+          location.pathname
+        ) ? null : data.user ? (
           <div className="flex items-center space-x-4">
             <Link to="/sneakers/add">Add Sneaker</Link>
             <Form reloadDocument method="post" action="/logout">
@@ -126,9 +144,19 @@ export default function App() {
             </Form>
           </div>
         ) : (
-          <div className="space-x-4">
-            <Link to="/login">Login</Link>
-            <Link to="/join">Join</Link>
+          <div className="space-x-4 mt-5">
+            <Link
+              to="/login"
+              className="rounded-md border border-transparent px-5 py-3 bg-rose-500 text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10 text-center"
+            >
+              Login
+            </Link>
+            <Link
+              to="/join"
+              className="rounded-md border border-transparent px-5 py-3 bg-indigo-500 text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10 text-center"
+            >
+              Join
+            </Link>
           </div>
         )}
       </nav>

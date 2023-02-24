@@ -4,11 +4,12 @@ import { Link, useLoaderData } from "@remix-run/react";
 import { route } from "routes-gen";
 
 import screenshotUrl from "~/assets/screenshot.jpg";
+import { env } from "~/env";
 import { getSeoMeta } from "~/seo";
 
 export let loader = async (_args: LoaderArgs) => {
   return json({
-    demo: process.env.DEFAULT_USER,
+    demo: env.DEFAULT_USER,
   });
 };
 

@@ -1,16 +1,18 @@
-import React from "react";
 import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useTransition } from "@remix-run/react";
+import {
+  Form,
+  useActionData,
+  useLocation,
+  useNavigation,
+} from "@remix-run/react";
 import slugify from "slugify";
 import { NumericFormat } from "react-number-format";
-import accounting from "accounting";
 import { route } from "routes-gen";
 
 import { prisma } from "~/db.server";
 import { cloudinary } from "~/lib/cloudinary.server";
-import { sneakerSchema } from "~/lib/schemas/sneaker.server";
-import { parseStringFormData } from "~/utils/parse-string-formdata";
+import { sneakerSchema, url_regex } from "~/lib/schemas/sneaker.server";
 import { requireUserId } from "~/session.server";
 import { getSeoMeta } from "~/seo";
 
@@ -27,30 +29,11 @@ export async function loader({ request }: LoaderArgs) {
 
 export async function action({ request }: ActionArgs) {
   let userId = await requireUserId(request);
-  let formData = await parseStringFormData(request);
-
-  let price = formData.price
-    ? Number(formData.price) || accounting.unformat(formData.price) * 100
-    : undefined;
-  let retailPrice = formData.retailPrice
-    ? Number(formData.retailPrice) ||
-      accounting.unformat(formData.retailPrice) * 100
-    : undefined;
-  let size = formData.size ? parseInt(formData.size, 10) : undefined;
-
-  let valid = sneakerSchema.safeParse({
-    brand: formData.brand,
-    model: formData.model,
-    colorway: formData.colorway,
-    price,
-    retailPrice,
-    purchaseDate: formData.purchaseDate,
-    size,
-    imagePublicId: formData.image,
-  });
+  let formData = await request.formData();
+  let valid = sneakerSchema.safeParse(formData);
 
   if (!valid.success) {
-    return json({ errors: valid.error.flatten().fieldErrors });
+    return json({ errors: valid.error.flatten().fieldErrors }, { status: 422 });
   }
 
   let imagePublicId = "";
@@ -58,11 +41,7 @@ export async function action({ request }: ActionArgs) {
     // image was already uploaded to our cloudinary bucket
     if (valid.data.imagePublicId.startsWith("shoes/")) {
       imagePublicId = valid.data.imagePublicId;
-    } else if (
-      /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi.test(
-        valid.data.imagePublicId
-      )
-    ) {
+    } else if (url_regex.test(valid.data.imagePublicId)) {
       // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
       let res = await cloudinary.v2.uploader.upload(valid.data.imagePublicId, {
         resource_type: "image",
@@ -104,15 +83,30 @@ export async function action({ request }: ActionArgs) {
 }
 
 export default function NewSneakerPage() {
-  let transition = useTransition();
-  let pendingForm = transition.submission;
+  let location = useLocation();
+  let navigation = useNavigation();
+  let pendingForm =
+    navigation.formAction === location.pathname &&
+    navigation.state === "submitting";
+  let actionData = useActionData<typeof action>();
 
   return (
     <main className="container h-full p-4 pb-6 mx-auto">
       <h2 className="py-4 text-lg">Add a sneaker to your collection</h2>
+      {actionData?.errors ? (
+        <div className="p-4 mb-4 text-white bg-red-500 rounded">
+          <ul className="list-disc list-inside">
+            {Object.entries(actionData.errors).map(([errorKey, errorValue]) => (
+              <li key={`${errorKey}-${errorValue}`}>
+                {errorKey}: {errorValue}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       <Form method="post">
         <fieldset
-          disabled={!!pendingForm}
+          disabled={pendingForm}
           className="w-full space-y-2 sm:grid sm:items-center sm:gap-x-4 sm:gap-y-6 sm:grid-cols-2 sm:space-y-0"
         >
           <label>
@@ -201,7 +195,7 @@ export default function NewSneakerPage() {
             <input
               className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               type="text"
-              name="image"
+              name="imagePublicId"
               placeholder="1200x1200 photo or cloudinary publicId"
             />
           </label>
@@ -209,7 +203,7 @@ export default function NewSneakerPage() {
             type="submit"
             className="self-start w-auto col-span-2 px-4 py-2 text-sm font-medium text-left text-white bg-indigo-600 border border-transparent rounded-md shadow-sm disabled:bg-blue-200 disabled:cursor-not-allowed hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            Add{!!pendingForm && "ing"} to collection
+            Add{pendingForm ? "ing" : ""} to collection
           </button>
         </fieldset>
       </Form>
