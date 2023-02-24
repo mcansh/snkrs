@@ -84,6 +84,10 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
 
   let originalSneaker = await prisma.sneaker.findUnique({
     where: { id: sneakerId },
+    select: {
+      userId: true,
+      imagePublicId: true,
+    },
   });
 
   if (!originalSneaker) {
@@ -142,14 +146,6 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
       purchaseDate: valid.data.purchaseDate,
       retailPrice: valid.data.retailPrice,
       size: valid.data.size,
-      sold: valid.data.sold,
-      soldDate: valid.data.soldDate ? valid.data.soldDate : null,
-      soldPrice: valid.data.soldPrice ? valid.data.soldPrice : null,
-    },
-    select: {
-      user: { select: { username: true } },
-      brand: true,
-      purchaseDate: true,
     },
   });
 

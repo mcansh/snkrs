@@ -138,9 +138,19 @@ export default function App() {
           location.pathname
         ) ? null : data.user ? (
           <div className="flex items-center space-x-4">
-            <Link to="/sneakers/add">Add Sneaker</Link>
+            <Link
+              to="/sneakers/add"
+              className="rounded-md border border-transparent px-5 py-3 bg-rose-500 text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10 text-center"
+            >
+              Add Sneaker
+            </Link>
             <Form reloadDocument method="post" action="/logout">
-              <button type="submit">Logout</button>
+              <button
+                type="submit"
+                className="rounded-md border border-transparent px-5 py-3 bg-indigo-500 text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10 text-center"
+              >
+                Logout
+              </button>
             </Form>
           </div>
         ) : (

@@ -26,42 +26,45 @@ export let loader = async ({ request }: LoaderArgs) => {
 export let action = async ({ request }: ActionArgs) => {
   let formData = await request.formData();
 
-  let valid = registerSchema.safeParse(formData);
+  let result = registerSchema.safeParse(formData);
 
-  if (!valid.success) {
-    return json({ errors: valid.error.flatten().fieldErrors }, { status: 422 });
+  if (!result.success) {
+    return json(
+      { errors: result.error.formErrors.fieldErrors },
+      { status: 422 }
+    );
   }
 
   let foundUser = await prisma.user.findFirst({
     where: {
-      OR: [{ email: valid.data.email }, { username: valid.data.username }],
+      OR: [{ email: result.data.email }, { username: result.data.username }],
     },
   });
 
-  if (foundUser && foundUser.email === valid.data.email) {
+  if (foundUser && foundUser.email === result.data.email) {
     return json(
       { errors: { email: ["A user with this email already exists"] } },
       { status: 422 }
     );
   }
 
-  if (foundUser && foundUser.username === valid.data.username) {
+  if (foundUser && foundUser.username === result.data.username) {
     return json(
       { errors: { username: ["A user with this username already exists"] } },
       { status: 422 }
     );
   }
 
-  let hashed = await hash(valid.data.password);
+  let hashed = await hash(result.data.password);
 
   let newUser = await prisma.user.create({
     data: {
-      email: valid.data.email,
-      familyName: valid.data.familyName,
-      givenName: valid.data.givenName,
+      email: result.data.email,
+      familyName: result.data.familyName,
+      givenName: result.data.givenName,
       password: hashed,
-      username: valid.data.username,
-      fullName: `${valid.data.givenName} ${valid.data.familyName}`,
+      username: result.data.username,
+      fullName: `${result.data.givenName} ${result.data.familyName}`,
     },
   });
 

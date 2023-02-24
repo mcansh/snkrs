@@ -54,7 +54,10 @@ export let action = async ({ request }: ActionArgs) => {
 
   let valid = loginSchema.safeParse(formData);
   if (!valid.success) {
-    return json({ errors: valid.error.flatten().fieldErrors }, { status: 422 });
+    return json(
+      { errors: valid.error.formErrors.fieldErrors },
+      { status: 422 }
+    );
   }
 
   let foundUser = await prisma.user.findUnique({
