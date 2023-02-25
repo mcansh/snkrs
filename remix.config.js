@@ -11,5 +11,6 @@ module.exports = {
     unstable_dev: true,
     v2_routeConvention: true,
     unstable_tailwind: true,
+    unstable_postcss: true,
   },
 };

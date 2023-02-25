@@ -1,6 +1,7 @@
 {
   "private": true,
   "sideEffects": false,
+  "packageManager": "pnpm@7.27.1",
   "scripts": {
     "dev": "run-p dev:*",
     "dev:routes": "npm run generate:routes -- --watch",
@@ -97,5 +98,10 @@
     "tailwindcss": "3.2.7",
     "ts-jest": "29.0.5",
     "typescript": "4.9.5"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "@remix-run/dev@0.0.0-nightly-dc98a6b-20230223": "patches/@remix-run__dev@0.0.0-nightly-dc98a6b-20230223.patch"
+    }
   }
 }
