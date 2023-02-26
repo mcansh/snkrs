@@ -132,8 +132,8 @@ export default function App() {
       {showPendingSpinner && (
         <div className="fixed top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 transform-gpu">
           <Svg
-            className="z-10 h-10 w-10 animate-spin fill-blue-600"
-            name="24:solid:refresh-clockwise"
+            className="z-10 h-10 w-10 animate-spin fill-none stroke-blue-600 stroke-2"
+            name="24:outline:arrow-path"
           />
         </div>
       )}
