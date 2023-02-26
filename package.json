@@ -2,6 +2,7 @@
   "private": true,
   "sideEffects": false,
   "scripts": {
+    "predev": "npm run build:icons",
     "dev": "run-p dev:*",
     "dev:routes": "npm run generate:routes -- --watch",
     "dev:remix": "remix dev",
