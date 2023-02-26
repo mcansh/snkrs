@@ -13,6 +13,7 @@ import { cssBundleHref } from "@remix-run/css-bundle";
 import * as Fathom from "fathom-client";
 import clsx from "clsx";
 import appStylesHref from "tailwindcss/tailwind.css";
+import { Dialog, Transition } from "@headlessui/react";
 
 import { useMatches } from "./lib/use-matches";
 import { getUser } from "./session.server";
@@ -93,6 +94,7 @@ export default function App() {
   let navigation = useNavigation();
   let location = useLocation();
   let [showPendingSpinner, setShowPendingSpinner] = React.useState(false);
+  let [showMenu, setShowMenu] = React.useState(false);
 
   let matches = useMatches();
   let handleBodyClassName = matches.map((match) => match.handle?.bodyClassName);
@@ -113,6 +115,8 @@ export default function App() {
       );
     }, 500);
 
+    setShowMenu(false);
+
     return () => {
       clearTimeout(timer);
     };
@@ -126,50 +130,110 @@ export default function App() {
       )}
     >
       {showPendingSpinner && (
-        <div className="fixed z-10 -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 transform-gpu">
+        <div className="fixed top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 transform-gpu">
           <Svg
-            className="z-10 w-10 h-10 fill-blue-600 animate-spin"
+            className="z-10 h-10 w-10 animate-spin fill-blue-600"
             name="24:solid:refresh-clockwise"
           />
         </div>
       )}
 
       <nav className="flex items-center justify-end px-4 py-2 sm:px-6 lg:px-8">
-        {["/login", "/join", "/logout"].includes(
-          location.pathname
-        ) ? null : data.user ? (
-          <div className="flex items-center space-x-4">
-            <Link
-              to="/sneakers/add"
-              className="rounded-md border border-transparent px-5 py-3 bg-rose-500 text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10 text-center"
+        <Transition.Root show={showMenu} as={React.Fragment}>
+          <Dialog
+            as="div"
+            className="fixed inset-0 z-40 flex"
+            onClose={setShowMenu}
+          >
+            <Transition.Child
+              as={React.Fragment}
+              enter="transition-opacity ease-linear duration-300"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
+              leave="transition-opacity ease-linear duration-300"
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
             >
-              Add Sneaker
-            </Link>
-            <Form reloadDocument method="post" action="/logout">
-              <button
-                type="submit"
-                className="rounded-md border border-transparent px-5 py-3 bg-indigo-500 text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10 text-center"
-              >
-                Logout
-              </button>
-            </Form>
-          </div>
-        ) : (
-          <div className="space-x-4 mt-5">
-            <Link
-              to="/login"
-              className="rounded-md border border-transparent px-5 py-3 bg-rose-500 text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10 text-center"
+              <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-25" />
+            </Transition.Child>
+
+            <Transition.Child
+              as={React.Fragment}
+              enter="transition ease-in-out duration-300 transform"
+              enterFrom="translate-x-full"
+              enterTo="translate-x-0"
+              leave="transition ease-in-out duration-300 transform"
+              leaveFrom="translate-x-0"
+              leaveTo="translate-x-full"
             >
-              Login
-            </Link>
-            <Link
-              to="/join"
-              className="rounded-md border border-transparent px-5 py-3 bg-indigo-500 text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10 text-center"
-            >
-              Join
-            </Link>
-          </div>
-        )}
+              <div className="relative ml-auto flex h-full w-full max-w-xs flex-col space-y-4 overflow-y-auto bg-white px-4 pt-4 pb-6 shadow-xl">
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    className="-mr-2 flex h-10 w-10 items-center justify-center fill-gray-400 p-2 hover:fill-gray-500"
+                    onClick={() => setShowMenu(false)}
+                  >
+                    <span className="sr-only">Close menu</span>
+                    <Svg className="h-6 w-6" name="24:solid:x-mark" />
+                  </button>
+                </div>
+                {data.user ? (
+                  <>
+                    <Link
+                      to="/"
+                      className="w-full rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
+                    >
+                      Home
+                    </Link>
+                    <Link
+                      to="sneakers/add"
+                      className="w-full rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
+                    >
+                      Add Sneaker
+                    </Link>
+                    <Link
+                      to="profile"
+                      className="w-full rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
+                    >
+                      Edit Account
+                    </Link>
+                    <Form reloadDocument method="post" action="logout">
+                      <button
+                        type="submit"
+                        className="w-full rounded-md border border-transparent bg-rose-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10"
+                      >
+                        Logout
+                      </button>
+                    </Form>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="login"
+                      className="rounded-md border border-transparent bg-rose-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      to="join"
+                      className="rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
+                    >
+                      Join
+                    </Link>
+                  </>
+                )}
+              </div>
+            </Transition.Child>
+          </Dialog>
+        </Transition.Root>
+
+        <button type="button" onClick={() => setShowMenu(true)}>
+          <span className="sr-only">Open menu</span>
+          <Svg
+            className="h-10 w-10 fill-gray-400 hover:fill-gray-500"
+            name="24:solid:bars-3"
+          />
+        </button>
       </nav>
 
       <Outlet />
