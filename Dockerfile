@@ -17,7 +17,8 @@ FROM base as deps
 WORKDIR /myapp
 
 ADD package.json package-lock.json .npmrc ./
-RUN npm install --production=false
+ADD patches ./patches
+RUN npm ci --production=false
 
 ###############################################################################
 
@@ -28,6 +29,7 @@ WORKDIR /myapp
 
 COPY --from=deps /myapp/node_modules /myapp/node_modules
 ADD package.json package-lock.json .npmrc ./
+ADD patches ./patches
 RUN npm prune --production
 
 ###############################################################################
