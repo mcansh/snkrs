@@ -37,50 +37,57 @@ export let loader = async ({ params, request }: LoaderArgs) => {
 
   let year = params.year ? Number(params.year) : null;
 
-  let user = await prisma.user.findUnique({
-    where: { username: params.username },
-    select: {
-      username: true,
-      id: true,
-      fullName: true,
-      settings: { select: { showTotalPrice: true } },
-      sneakers: {
-        include: { brand: true },
-        orderBy: { purchaseDate: sort },
-        where: {
-          brand: {
-            is: {
-              OR:
-                selectedBrands.length > 0
-                  ? selectedBrands.map((brand) => ({ slug: brand }))
-                  : undefined,
+  let { user, brands, sessionUser } = await prisma.$transaction(async (tx) => {
+    let user = await prisma.user.findUnique({
+      where: { username: params.username },
+      select: {
+        username: true,
+        id: true,
+        fullName: true,
+        settings: { select: { showTotalPrice: true } },
+        sneakers: {
+          include: { brand: true },
+          orderBy: { purchaseDate: sort },
+          where: {
+            brand: {
+              is: {
+                OR:
+                  selectedBrands.length > 0
+                    ? selectedBrands.map((brand) => ({ slug: brand }))
+                    : undefined,
+              },
             },
           },
         },
       },
-    },
-  });
-
-  if (!user) {
-    throw new Response("This user doesn't exist", {
-      status: 404,
-      statusText: "Not Found",
     });
-  }
 
-  let [brands, sessionUser] = await Promise.all([
-    prisma.brand.findMany({
+    if (!user) {
+      throw new Response("This user doesn't exist", {
+        status: 404,
+        statusText: "Not Found",
+      });
+    }
+
+    let brands = await prisma.brand.findMany({
       select: { slug: true, name: true },
       orderBy: { name: "asc" },
       where: { sneakers: { some: { userId: user.id } } },
-    }),
-    userId
+    });
+
+    let sessionUser = userId
       ? await prisma.user.findUnique({
           where: { id: userId },
           select: { givenName: true, id: true },
         })
-      : null,
-  ]);
+      : null;
+
+    return {
+      user,
+      brands,
+      sessionUser,
+    };
+  });
 
   if (
     brands.length > 0 &&

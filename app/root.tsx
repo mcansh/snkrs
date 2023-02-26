@@ -177,14 +177,14 @@ export default function App() {
                     <Svg className="h-6 w-6" name="24:solid:x-mark" />
                   </button>
                 </div>
+                <Link
+                  to="/"
+                  className="w-full rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
+                >
+                  Home
+                </Link>
                 {data.user ? (
                   <>
-                    <Link
-                      to="/"
-                      className="w-full rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
-                    >
-                      Home
-                    </Link>
                     <Link
                       to="sneakers/add"
                       className="w-full rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
