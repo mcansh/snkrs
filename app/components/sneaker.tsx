@@ -35,6 +35,8 @@ export function SneakerCard({
             sizes="(min-width: 1024px) 25vw, 50vw"
             srcSet={srcSet}
             alt=""
+            height={1200}
+            width={1200}
           />
         </div>
         <h3 className="mt-4 text-sm text-gray-700">

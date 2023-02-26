@@ -134,6 +134,8 @@ export default function SneakerPage() {
             srcSet={srcSet.join()}
             alt={data.title}
             className="object-contain"
+            height={1200}
+            width={1200}
           />
         </div>
         <div className="flex flex-col justify-between">

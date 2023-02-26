@@ -101,6 +101,8 @@ export default function IndexPage() {
                 className="w-full rounded-md shadow-xl ring-1 ring-black ring-opacity-5 lg:h-full lg:w-auto lg:max-w-none"
                 src={screenshotUrl}
                 alt=""
+                width={2648}
+                height={1788}
               />
             </div>
           </div>

@@ -15,6 +15,7 @@
     "generate:routes": "routes-gen -d @routes-gen/remix",
     "generate": "run-p generate:*",
     "lint": "eslint --cache --ignore-path .gitignore .",
+    "format": "prettier --ignore-path .gitignore --ignore-unknown --write .",
     "test": "jest",
     "type-check": "tsc",
     "validate": "run-p lint type-check test",
