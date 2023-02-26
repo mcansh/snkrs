@@ -1,12 +1,13 @@
-import type { LoaderArgs, MetaFunction, RouteComponent } from "@remix-run/node";
+import type {
+  LoaderArgs,
+  RouteComponent,
+  V2_MetaFunction,
+} from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 
 import { prisma } from "~/db.server";
-
-interface RouteData {
-  ok: boolean;
-}
+import { getPageTitle, mergeMeta } from "~/meta";
 
 let loader = async (_args: LoaderArgs) => {
   try {
@@ -18,12 +19,12 @@ let loader = async (_args: LoaderArgs) => {
   }
 };
 
-let meta: MetaFunction = () => ({
-  title: "Health Check",
+let meta: V2_MetaFunction = mergeMeta(() => {
+  return [{ title: getPageTitle("Health Check") }];
 });
 
 let Page: RouteComponent = () => {
-  let data = useLoaderData<RouteData>();
+  let data = useLoaderData<typeof loader>();
   return data.ok ? <h1>Everything is fine</h1> : <h1>Something went wrong</h1>;
 };
 

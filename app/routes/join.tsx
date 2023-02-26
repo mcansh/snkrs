@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
@@ -16,6 +16,7 @@ import { registerSchema } from "~/lib/schemas/user.server";
 import { hash } from "~/lib/auth.server";
 import { createUserSession, getUserId } from "~/session.server";
 import type { RouteHandle } from "~/lib/use-matches";
+import { getPageTitle, mergeMeta } from "~/meta";
 
 export let loader = async ({ request }: LoaderArgs) => {
   let userId = await getUserId(request);
@@ -77,9 +78,8 @@ export let action = async ({ request }: ActionArgs) => {
   );
 };
 
-export let meta: MetaFunction = () => ({
-  title: "Join",
-  description: "show off your sneaker collection",
+export let meta: V2_MetaFunction = mergeMeta(() => {
+  return [{ title: getPageTitle("Join") }];
 });
 
 export let handle: RouteHandle = {
