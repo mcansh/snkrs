@@ -18,7 +18,7 @@
     "type-check": "tsc",
     "validate": "run-p lint type-check test",
     "db:migrate": "prisma migrate dev --preview-feature",
-    "prepare": "husky install",
+    "prepare": "husky install && patch-package",
     "clean": "del .cache build public/build app/assets/icons/{solid,outline}",
     "start": "cross-env NODE_ENV=production node ./server.mjs"
   },
