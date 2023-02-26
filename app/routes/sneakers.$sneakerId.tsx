@@ -52,6 +52,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
     settings: {
       showPurchasePrice: settings?.showPurchasePrice ?? true,
       showRetailPrice: settings?.showRetailPrice ?? false,
+      timezone: settings?.timezone,
     },
     sneaker: {
       ...sneaker,
@@ -84,7 +85,7 @@ export let meta: MetaFunction = ({
     return getSeoMeta();
   }
 
-  let date = formatDate(data.sneaker.purchaseDate, {
+  let date = formatDate(data.sneaker.purchaseDate, data.settings.timezone, {
     month: "long",
     day: "numeric",
     year: "numeric",
@@ -194,11 +195,15 @@ export default function SneakerPage() {
               className="text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
               onClick={() => {
                 if ("share" in navigator) {
-                  let date = formatDate(data.sneaker.purchaseDate, {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  });
+                  let date = formatDate(
+                    data.sneaker.purchaseDate,
+                    data.settings.timezone,
+                    {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    }
+                  );
 
                   return navigator.share({
                     title: data.title,

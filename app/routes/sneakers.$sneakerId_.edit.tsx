@@ -47,6 +47,11 @@ export let loader = async ({ params, request }: DataFunctionArgs) => {
     });
   }
 
+  let settings = await prisma.settings.findUnique({
+    where: { userId },
+    select: { timezone: true },
+  });
+
   let userCreatedSneaker = sneaker.user.id === userId;
 
   if (!userCreatedSneaker) {
@@ -58,7 +63,7 @@ export let loader = async ({ params, request }: DataFunctionArgs) => {
 
   return json({
     id: params.sneakerId,
-    userCreatedSneaker,
+    timezone: settings?.timezone,
     sneaker: {
       ...sneaker,
       createdAt:
@@ -170,29 +175,29 @@ let formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
 export default function EditSneakerPage() {
   let location = useLocation();
-  let { sneaker } = useLoaderData<typeof loader>();
+  let data = useLoaderData<typeof loader>();
   let navigation = useNavigation();
   let actionData = useActionData<typeof action>();
   let pendingForm =
     navigation.formAction === location.pathname &&
     navigation.state === "submitting";
 
-  let title = `Editing ${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`;
+  let title = `Editing ${data.sneaker.brand.name} ${data.sneaker.model} – ${data.sneaker.colorway}`;
 
-  let srcSet = getImageURLs(sneaker.imagePublicId);
+  let srcSet = getImageURLs(data.sneaker.imagePublicId);
 
   return (
     <main className="container mx-auto h-full p-4 pb-6">
       <Link
         prefetch="intent"
-        to={route("/sneakers/:sneakerId", { sneakerId: sneaker.id })}
+        to={route("/sneakers/:sneakerId", { sneakerId: data.sneaker.id })}
       >
         Back
       </Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-2 sm:gap-8">
         <div className="relative pb-[100%]">
           <img
-            src={getCloudinaryURL(sneaker.imagePublicId, {
+            src={getCloudinaryURL(data.sneaker.imagePublicId, {
               resize: { width: 200, height: 200, type: "pad" },
             })}
             sizes="(min-width: 640px) 50vw, 100vw"
@@ -206,13 +211,13 @@ export default function EditSneakerPage() {
         </div>
         <div>
           <h1 className="text-2xl">{title}</h1>
-          <p className="text-xl">{formatMoney(sneaker.price)}</p>
+          <p className="text-xl">{formatMoney(data.sneaker.price)}</p>
           <p>
             <time
               className="text-md"
-              dateTime={new Date(sneaker.purchaseDate).toISOString()}
+              dateTime={new Date(data.sneaker.purchaseDate).toISOString()}
             >
-              Purchased {formatDate(sneaker.purchaseDate)}
+              Purchased {formatDate(data.sneaker.purchaseDate, data.timezone)}
             </time>
           </p>
         </div>
@@ -240,28 +245,28 @@ export default function EditSneakerPage() {
             <input
               className="w-full appearance-none rounded border-2 border-gray-200 p-1"
               type="text"
-              defaultValue={sneaker.brand.name}
+              defaultValue={data.sneaker.brand.name}
               placeholder="Brand"
               name="brand"
             />
             <input
               className="w-full appearance-none rounded border-2 border-gray-200 p-1"
               type="text"
-              defaultValue={sneaker.model}
+              defaultValue={data.sneaker.model}
               placeholder="Model"
               name="model"
             />
             <input
               className="w-full appearance-none rounded border-2 border-gray-200 p-1"
               type="text"
-              defaultValue={sneaker.colorway}
+              defaultValue={data.sneaker.colorway}
               placeholder="Colorway"
               name="colorway"
             />
             <input
               className="w-full appearance-none rounded border-2 border-gray-200 p-1"
               type="number"
-              defaultValue={sneaker.size}
+              defaultValue={data.sneaker.size}
               placeholder="Size"
               name="size"
               step={0.5}
@@ -269,7 +274,7 @@ export default function EditSneakerPage() {
             <input
               className="w-full appearance-none rounded border-2 border-gray-200 p-1"
               type="text"
-              defaultValue={sneaker.imagePublicId}
+              defaultValue={data.sneaker.imagePublicId}
               placeholder="shoes/..."
               name="imagePublicId"
             />
@@ -278,19 +283,22 @@ export default function EditSneakerPage() {
               placeholder="Price"
               className="w-full appearance-none rounded border-2 border-gray-200 p-1"
               prefix="$"
-              defaultValue={sneaker.price / 100}
+              defaultValue={data.sneaker.price / 100}
             />
             <NumericFormat
               name="retailPrice"
               placeholder="Retail Price"
               className="w-full appearance-none rounded border-2 border-gray-200 p-1"
               prefix="$"
-              defaultValue={sneaker.retailPrice / 100}
+              defaultValue={data.sneaker.retailPrice / 100}
             />
             <input
               className="w-full appearance-none rounded border-2 border-gray-200 p-1"
               type="datetime-local"
-              defaultValue={format(parseISO(sneaker.purchaseDate), formatter)}
+              defaultValue={format(
+                parseISO(data.sneaker.purchaseDate),
+                formatter
+              )}
               placeholder="Purchase Date"
               name="purchaseDate"
             />

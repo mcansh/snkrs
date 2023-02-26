@@ -41,6 +41,7 @@
     "cross-env": "7.0.3",
     "cuid": "2.1.8",
     "date-fns": "2.29.3",
+    "date-fns-tz": "2.0.0",
     "etag": "1.8.1",
     "fastify": "4.13.0",
     "fathom-client": "3.5.0",

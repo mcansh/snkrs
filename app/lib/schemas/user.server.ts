@@ -3,6 +3,7 @@ import { zfd } from "zod-form-data";
 
 import reservedUsernames from "./reserved-usernames.json";
 import commonPasswords from "./common-passwords.json";
+import { timeZones } from "../timezones";
 
 function isValidPassword(password: string): boolean {
   return !commonPasswords.includes(password.toLowerCase());
@@ -38,6 +39,7 @@ export let editProfile = zfd.formData({
     showPurchasePrice: zfd.checkbox(),
     showRetailPrice: zfd.checkbox(),
     showTotalPrice: zfd.checkbox(),
+    timezone: zfd.text(z.enum(timeZones).optional().default("UTC")),
   }),
 });
 

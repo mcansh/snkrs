@@ -8,6 +8,7 @@ import {
   useLocation,
   useNavigation,
 } from "@remix-run/react";
+import type { Settings } from "@prisma/client";
 
 import { requireUser, requireUserId } from "~/session.server";
 import { prisma } from "~/db.server";
@@ -15,6 +16,7 @@ import { editProfile } from "~/lib/schemas/user.server";
 import { getSeoMeta } from "~/seo";
 import { LoadingButton } from "~/components/loading-button";
 import { Svg } from "~/components/heroicons";
+import { timeZones } from "~/lib/timezones";
 
 let colors = {
   idle: {
@@ -45,17 +47,17 @@ export let loader = async ({ request }: LoaderArgs) => {
     where: { userId: user.id },
   });
 
+  let { id, userId, ...publicUserSettings } = userSettings || ({} as Settings);
+
+  if (!publicUserSettings?.timezone) {
+    publicUserSettings.timezone = "UTC";
+  }
+
   return json({
     user: {
       email: user.email,
       username: user.username,
-      settings: userSettings
-        ? {
-            showPurchasePrice: userSettings.showPurchasePrice,
-            showRetailPrice: userSettings.showRetailPrice,
-            showTotalPrice: userSettings.showTotalPrice,
-          }
-        : null,
+      settings: publicUserSettings,
     },
   });
 };
@@ -75,16 +77,8 @@ export let action = async ({ request }: ActionArgs) => {
       username: valid.data.username,
       settings: {
         upsert: {
-          create: {
-            showPurchasePrice: valid.data.settings.showPurchasePrice,
-            showRetailPrice: valid.data.settings.showRetailPrice,
-            showTotalPrice: valid.data.settings.showTotalPrice,
-          },
-          update: {
-            showPurchasePrice: valid.data.settings.showPurchasePrice,
-            showRetailPrice: valid.data.settings.showRetailPrice,
-            showTotalPrice: valid.data.settings.showTotalPrice,
-          },
+          create: valid.data.settings,
+          update: valid.data.settings,
         },
       },
     },
@@ -201,6 +195,20 @@ export default function ProfilePage() {
             />
           </label>
 
+          <label>
+            <span className="mr-2">Time Zone:</span>
+            <select
+              defaultValue={data.user.settings?.timezone}
+              name="settings.timezone"
+            >
+              {timeZones.map((tz) => (
+                <option key={tz} value={tz}>
+                  {tz}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <LoadingButton
             type="submit"
             disabled={pendingForm}
@@ -215,8 +223,8 @@ export default function ProfilePage() {
             state={state}
             iconLoading={
               <Svg
-                className="inline-block h-6 w-6 animate-spin fill-white"
-                name="24:solid:refresh-clockwise"
+                className="inline-block h-6 w-6 animate-spin fill-none stroke-white stroke-2"
+                name="24:outline:arrow-path"
               />
             }
             icon={
