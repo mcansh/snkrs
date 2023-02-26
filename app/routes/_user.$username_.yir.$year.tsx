@@ -1,5 +1,5 @@
 import type { Prisma } from "@prisma/client";
-import type { LoaderArgs, MetaFunction, SerializeFrom } from "@remix-run/node";
+import type { LoaderArgs, V2_MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { endOfYear, startOfYear } from "date-fns";
@@ -7,7 +7,7 @@ import invariant from "tiny-invariant";
 
 import { SneakerCard } from "~/components/sneaker";
 import { prisma } from "~/db.server";
-import { getSeoMeta } from "~/seo";
+import { getPageTitle, mergeMeta } from "~/meta";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
   invariant(params.year, "year is required");
@@ -66,21 +66,15 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   return json({ user, year });
 };
 
-export let meta: MetaFunction = ({
-  data,
-}: {
-  data: SerializeFrom<typeof loader> | undefined;
-}) => {
-  if (!data?.user) {
-    return getSeoMeta();
-  }
-
+export let meta: V2_MetaFunction = mergeMeta<typeof loader>(({ data }) => {
   let sneakers = data.user.sneakers.length === 1 ? "sneaker" : "sneakers";
-  return getSeoMeta({
-    title: `${data.year} • ${data.user.username}`,
-    description: `${data.user.username} bought ${data.user.sneakers.length} ${sneakers} in ${data.year}`,
-  });
-};
+  let description = `${data.user.username} bought ${data.user.sneakers.length} ${sneakers} in ${data.year}`;
+  return [
+    { title: getPageTitle(`${data.year} • ${data.user.username}`) },
+    { name: "description", content: description },
+    { property: "og:description", content: description },
+  ];
+});
 
 export default function SneakersYearInReview() {
   let { user, year } = useLoaderData<typeof loader>();

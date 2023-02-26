@@ -1,9 +1,4 @@
-import * as React from "react";
-import type {
-  DataFunctionArgs,
-  MetaFunction,
-  SerializeFrom,
-} from "@remix-run/node";
+import type { DataFunctionArgs, V2_MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
@@ -26,7 +21,7 @@ import { prisma } from "~/db.server";
 import { sneakerSchema, url_regex } from "~/lib/schemas/sneaker.server";
 import { cloudinary } from "~/lib/cloudinary.server";
 import { getTimeZone, requireUserId } from "~/session.server";
-import { getSeoMeta } from "~/seo";
+import { getPageTitle, mergeMeta } from "~/meta";
 
 export let loader = async ({ params, request }: DataFunctionArgs) => {
   invariant(params.sneakerId);
@@ -154,19 +149,15 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
   return redirect(request.url);
 };
 
-export let meta: MetaFunction = ({
-  data,
-}: {
-  data?: SerializeFrom<typeof loader> | undefined;
-}) => {
-  if (!data?.sneaker) {
-    return getSeoMeta();
-  }
-
-  return getSeoMeta({
-    title: `Editing ${data.sneaker.brand.name} ${data.sneaker.model} – ${data.sneaker.colorway}`,
-  });
-};
+export let meta: V2_MetaFunction = mergeMeta<typeof loader>(({ data }) => {
+  return [
+    {
+      title: getPageTitle(
+        `Editing ${data.sneaker.brand.name} ${data.sneaker.model} – ${data.sneaker.colorway}`
+      ),
+    },
+  ];
+});
 
 let formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 

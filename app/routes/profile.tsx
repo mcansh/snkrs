@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
@@ -12,9 +12,9 @@ import {
 import { requireUser, requireUserId } from "~/session.server";
 import { prisma } from "~/db.server";
 import { editProfile } from "~/lib/schemas/user.server";
-import { getSeoMeta } from "~/seo";
 import { LoadingButton } from "~/components/loading-button";
 import { Svg } from "~/components/heroicons";
+import { getPageTitle, mergeMeta } from "~/meta";
 
 let colors = {
   idle: {
@@ -94,9 +94,9 @@ export let action = async ({ request }: ActionArgs) => {
   return redirect("/profile");
 };
 
-export let meta: MetaFunction = () => {
-  return getSeoMeta({ title: "Edit Profile" });
-};
+export let meta: V2_MetaFunction = mergeMeta(() => {
+  return [{ title: getPageTitle("Edit Profile") }];
+});
 
 export default function ProfilePage() {
   let data = useLoaderData<typeof loader>();

@@ -1,5 +1,9 @@
 import * as React from "react";
-import type { LinksFunction, LoaderArgs, MetaFunction } from "@remix-run/node";
+import type {
+  LinksFunction,
+  LoaderArgs,
+  V2_MetaFunction,
+} from "@remix-run/node";
 import { json } from "@remix-run/node";
 import {
   Form,
@@ -9,7 +13,6 @@ import {
   useLoaderData,
   useLocation,
   useNavigation,
-  useSubmit,
 } from "@remix-run/react";
 import { cssBundleHref } from "@remix-run/css-bundle";
 import * as Fathom from "fathom-client";
@@ -17,32 +20,45 @@ import clsx from "clsx";
 import appStylesHref from "tailwindcss/tailwind.css";
 import { Dialog, Transition } from "@headlessui/react";
 
+import screenshotUrl from "~/assets/screenshot.jpg";
+
 import { useMatches } from "./lib/use-matches";
 import { getUser } from "./session.server";
 import interStylesHref from "./styles/inter.css";
 import { Svg } from "./components/heroicons";
-import { getSeo } from "./seo";
 import { Document } from "./components/document";
 import { env } from "./env";
 
 export { CatchBoundary } from "./components/root-catch-boundary";
 export { ErrorBoundary } from "./components/root-error-boundary";
 
-let [seoMeta, seoLinks] = getSeo();
-
-export let meta: MetaFunction = () => ({
-  ...seoMeta,
-  "apple-mobile-web-app-title": "Sneakers",
-  "application-name": "Sneakers",
-  "msapplication-TileColor": "#000000",
-  "apple-mobile-web-app-capable": "yes",
-  "apple-mobile-web-app-status-bar-style": "black-translucent",
-  viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
-});
+export let meta: V2_MetaFunction = () => {
+  return [
+    { title: "Snkrs" },
+    { name: "description", content: "show off your sneaker collection" },
+    { property: "og:title", content: "Snkrs" },
+    { property: "og:description", content: "show off your sneaker collection" },
+    { property: "og:image", content: screenshotUrl },
+    { property: "og:image:alt", content: "screenshot of the Snkrs app" },
+    { property: "og:image:width", content: 2648 },
+    { property: "og:image:height", content: 1788 },
+    { name: "apple-mobile-web-app-title", content: "Sneakers" },
+    { name: "application-name", content: "Sneakers" },
+    { name: "msapplication-TileColor", content: "#000000" },
+    { name: "apple-mobile-web-app-capable", content: "yes" },
+    {
+      name: "apple-mobile-web-app-status-bar-style",
+      content: "black-translucent",
+    },
+    {
+      name: "viewport",
+      content: "width=device-width, initial-scale=1, viewport-fit=cover",
+    },
+  ];
+};
 
 export let links: LinksFunction = () => {
   let result = [
-    ...seoLinks,
     { rel: "preload", href: appStylesHref, as: "style" },
     { rel: "preload", href: interStylesHref, as: "style" },
     { rel: "stylesheet", href: appStylesHref },

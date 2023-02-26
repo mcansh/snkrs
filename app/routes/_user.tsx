@@ -2,8 +2,7 @@ import * as React from "react";
 import type {
   HeadersFunction,
   LoaderArgs,
-  MetaFunction,
-  SerializeFrom,
+  V2_MetaFunction,
 } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import {
@@ -21,9 +20,9 @@ import { route } from "routes-gen";
 import { prisma } from "~/db.server";
 import { Svg } from "~/components/heroicons";
 import { getUserId, sessionStorage } from "~/session.server";
-import { getSeoMeta } from "~/seo";
 import { possessive } from "~/utils/possessive";
 import { formatMoney } from "~/utils/format-money";
+import { getPageTitle, mergeMeta } from "~/meta";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
   let session = await sessionStorage.getSession(request.headers.get("Cookie"));
@@ -156,30 +155,19 @@ const sortOptions = [
   { value: "asc", label: "Oldest first" },
 ];
 
-export let meta: MetaFunction = ({
-  data,
-}: {
-  data?: SerializeFrom<typeof loader> | undefined;
-}) => {
-  if (!data?.user) {
-    return getSeoMeta();
-  }
-
+export let meta: V2_MetaFunction = mergeMeta<typeof loader>(({ data }) => {
   let name = possessive(data.user.fullName);
-
-  return getSeoMeta({
-    title: `${name} Sneaker Collection`,
-    description: `${name} sneaker collection`,
-    twitter: {
-      card: "summary_large_image",
-      site: "@loganmcansh",
-      // TODO: add support for linking your twitter account
-      creator: "@loganmcansh",
-      description: `${name} sneaker collection`,
-      // TODO: add support for user avatar
-    },
-  });
-};
+  let description = `${name} Sneaker Collection`;
+  return [
+    { title: getPageTitle(`${name} Sneaker Collection`) },
+    { property: "og:title", content: description },
+    { property: "og:description", content: description },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: description },
+    { name: "twitter:description", content: description },
+    { name: "description", content: description },
+  ];
+});
 
 export default function UserSneakersPage() {
   let data = useLoaderData<typeof loader>();

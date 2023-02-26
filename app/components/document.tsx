@@ -5,6 +5,7 @@ import {
   Meta,
   Scripts,
   ScrollRestoration,
+  useLocation,
 } from "@remix-run/react";
 
 export function Document({
@@ -16,6 +17,8 @@ export function Document({
   bodyClassName?: string;
   title?: string;
 }) {
+  let location = useLocation();
+
   return (
     <html lang="en">
       <head>
@@ -23,6 +26,10 @@ export function Document({
         {title ? <title>{title}</title> : null}
         <Meta />
         <Links />
+        <meta
+          property="og:url"
+          content={`https://snkrs.mcan.sh${location.pathname}`}
+        />
       </head>
       <body className={clsx("min-h-screen", bodyClassName)}>
         {children}

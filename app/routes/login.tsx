@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
@@ -19,8 +19,8 @@ import {
   getUserId,
   sessionStorage,
 } from "~/session.server";
-import { getSeoMeta } from "~/seo";
 import type { RouteHandle } from "~/lib/use-matches";
+import { getPageTitle, mergeMeta } from "~/meta";
 
 export let loader = async ({ request }: LoaderArgs) => {
   let userId = await getUserId(request);
@@ -87,12 +87,9 @@ export let action = async ({ request }: ActionArgs) => {
   );
 };
 
-export let meta: MetaFunction = () => {
-  return getSeoMeta({
-    title: "Log in",
-    description: "show off your sneaker collection",
-  });
-};
+export let meta: V2_MetaFunction = mergeMeta(() => {
+  return [{ title: getPageTitle("Log in") }];
+});
 
 export let handle: RouteHandle = {
   bodyClassName: "bg-gray-50",

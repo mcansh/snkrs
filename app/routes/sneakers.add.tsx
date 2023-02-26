@@ -1,4 +1,4 @@
-import type { ActionArgs, LoaderArgs, MetaFunction } from "@remix-run/node";
+import type { ActionArgs, LoaderArgs, V2_MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
@@ -14,13 +14,11 @@ import { prisma } from "~/db.server";
 import { cloudinary } from "~/lib/cloudinary.server";
 import { sneakerSchema, url_regex } from "~/lib/schemas/sneaker.server";
 import { requireUserId } from "~/session.server";
-import { getSeoMeta } from "~/seo";
+import { getPageTitle, mergeMeta } from "~/meta";
 
-export const meta: MetaFunction = () => {
-  return getSeoMeta({
-    title: "Add a sneaker to your collection",
-  });
-};
+export const meta: V2_MetaFunction = mergeMeta(() => {
+  return [{ title: getPageTitle("Add a sneaker to your collection") }];
+});
 
 export async function loader({ request }: LoaderArgs) {
   await requireUserId(request);

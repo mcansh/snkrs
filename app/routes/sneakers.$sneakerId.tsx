@@ -1,4 +1,4 @@
-import type { LoaderArgs, MetaFunction, SerializeFrom } from "@remix-run/node";
+import type { LoaderArgs, V2_MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
@@ -9,8 +9,8 @@ import { getCloudinaryURL } from "~/utils/get-cloudinary-url";
 import { formatMoney } from "~/utils/format-money";
 import { copy } from "~/utils/copy";
 import { prisma } from "~/db.server";
-import { getSeoMeta } from "~/seo";
 import { getTimeZone, getUserId } from "~/session.server";
+import { getPageTitle, mergeMeta } from "~/meta";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
   invariant(params.sneakerId, "sneakerID is required");
@@ -76,26 +76,21 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   });
 };
 
-export let meta: MetaFunction = ({
-  data,
-}: {
-  data: SerializeFrom<typeof loader> | undefined;
-}) => {
-  if (!data?.sneaker) {
-    return getSeoMeta();
-  }
-
+export let meta: V2_MetaFunction = mergeMeta<typeof loader>(({ data }) => {
   let date = formatDate(data.sneaker.purchaseDate, data.timeZone, {
     month: "long",
     day: "numeric",
     year: "numeric",
   });
 
-  return getSeoMeta({
-    title: data.title,
-    description: `${data.sneaker.user.fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`,
-  });
-};
+  return [
+    { title: getPageTitle(data.title) },
+    {
+      name: "description",
+      content: `${data.sneaker.user.fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`,
+    },
+  ];
+});
 
 export default function SneakerPage() {
   let data = useLoaderData<typeof loader>();

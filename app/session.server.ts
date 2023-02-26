@@ -6,7 +6,7 @@ import { z } from "zod";
 import { prisma } from "./db.server";
 import { env } from "./env";
 
-export let sessionStorage = createCookieSessionStorage({
+let sessionStorage = createCookieSessionStorage({
   cookie: {
     name: "__session",
     secrets: [env.SESSION_PASSWORD],
@@ -27,6 +27,8 @@ let typedSessionStorage = createTypedSessionStorage({
   sessionStorage,
   schema: sessionSchema,
 });
+
+export { typedSessionStorage as sessionStorage };
 
 export function getSession(request: Request) {
   return typedSessionStorage.getSession(request.headers.get("Cookie"));

@@ -1,4 +1,4 @@
-import type { LoaderArgs, MetaFunction, SerializeFrom } from "@remix-run/node";
+import type { LoaderArgs, SerializeFrom } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import type { Prisma } from "@prisma/client";
@@ -6,8 +6,6 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "~/db.server";
 import { SneakerCard } from "~/components/sneaker";
 import { getUserId, sessionStorage } from "~/session.server";
-import { getSeoMeta } from "~/seo";
-import { possessive } from "~/utils/possessive";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
   let session = await sessionStorage.getSession(request.headers.get("Cookie"));
@@ -68,31 +66,6 @@ export let loader = async ({ params, request }: LoaderArgs) => {
       },
     }
   );
-};
-
-export let meta: MetaFunction = ({
-  data,
-}: {
-  data?: Partial<SerializeFrom<typeof loader>>;
-}) => {
-  if (!data?.user) {
-    return getSeoMeta();
-  }
-
-  let name = possessive(data.user.fullName);
-
-  return getSeoMeta({
-    title: `${name} Sneaker Collection`,
-    description: `${name} sneaker collection`,
-    twitter: {
-      card: "summary_large_image",
-      site: "@loganmcansh",
-      // TODO: add support for linking your twitter account
-      creator: "@loganmcansh",
-      description: `${name} sneaker collection`,
-      // TODO: add support for user avatar
-    },
-  });
 };
 
 export default function UserSneakersPage() {
