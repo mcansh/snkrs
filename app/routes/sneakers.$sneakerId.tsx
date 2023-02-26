@@ -10,7 +10,7 @@ import { formatMoney } from "~/utils/format-money";
 import { copy } from "~/utils/copy";
 import { prisma } from "~/db.server";
 import { getSeoMeta } from "~/seo";
-import { getUserId } from "~/session.server";
+import { getTimeZone, getUserId } from "~/session.server";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
   invariant(params.sneakerId, "sneakerID is required");
@@ -46,6 +46,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
 
   return json({
     id: params.sneakerId,
+    timeZone: await getTimeZone(request),
     userCreatedSneaker,
     title: `${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`,
     purchaseYear: new Date(sneaker.purchaseDate).getFullYear(),
@@ -84,7 +85,7 @@ export let meta: MetaFunction = ({
     return getSeoMeta();
   }
 
-  let date = formatDate(data.sneaker.purchaseDate, {
+  let date = formatDate(data.sneaker.purchaseDate, data.timeZone, {
     month: "long",
     day: "numeric",
     year: "numeric",
@@ -153,14 +154,14 @@ export default function SneakerPage() {
             <p className="text-md">
               Purchased on{" "}
               <time dateTime={data.sneaker.purchaseDate}>
-                {formatDate(data.sneaker.purchaseDate)}
+                {formatDate(data.sneaker.purchaseDate, data.timeZone)}
               </time>
             </p>
 
             <p>
               Last Updated{" "}
               <time dateTime={data.sneaker.updatedAt}>
-                {formatDate(data.sneaker.updatedAt)}
+                {formatDate(data.sneaker.updatedAt, data.timeZone)}
               </time>
             </p>
 
@@ -168,7 +169,7 @@ export default function SneakerPage() {
               <p className="text-md">
                 Sold{" "}
                 <time dateTime={data.sneaker.soldDate}>
-                  {formatDate(data.sneaker.soldDate)}{" "}
+                  {formatDate(data.sneaker.soldDate, data.timeZone)}{" "}
                   {data.sneaker.soldPrice && (
                     <>For {formatMoney(data.sneaker.soldPrice)}</>
                   )}
@@ -194,11 +195,15 @@ export default function SneakerPage() {
               className="text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
               onClick={() => {
                 if ("share" in navigator) {
-                  let date = formatDate(data.sneaker.purchaseDate, {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  });
+                  let date = formatDate(
+                    data.sneaker.purchaseDate,
+                    data.timeZone,
+                    {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    }
+                  );
 
                   return navigator.share({
                     title: data.title,

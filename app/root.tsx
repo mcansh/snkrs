@@ -5,9 +5,11 @@ import {
   Form,
   Link,
   Outlet,
+  useFetcher,
   useLoaderData,
   useLocation,
   useNavigation,
+  useSubmit,
 } from "@remix-run/react";
 import { cssBundleHref } from "@remix-run/css-bundle";
 import * as Fathom from "fathom-client";
@@ -93,6 +95,7 @@ export default function App() {
   let data = useLoaderData<typeof loader>();
   let navigation = useNavigation();
   let location = useLocation();
+  let fetcher = useFetcher();
   let [showPendingSpinner, setShowPendingSpinner] = React.useState(false);
   let [showMenu, setShowMenu] = React.useState(false);
 
@@ -121,6 +124,16 @@ export default function App() {
       clearTimeout(timer);
     };
   }, [location.pathname, navigation.formMethod, navigation.state]);
+
+  React.useEffect(() => {
+    let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    let formData = new FormData();
+    formData.append("timeZone", timeZone);
+    fetcher.submit(formData, {
+      action: "/api/timezone",
+      method: "post",
+    });
+  }, []);
 
   return (
     <Document

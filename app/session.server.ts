@@ -1,6 +1,7 @@
-import type { Session } from "@remix-run/node";
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
 import type { User } from "@prisma/client";
+import { createTypedSessionStorage } from "remix-utils";
+import { z } from "zod";
 
 import { prisma } from "./db.server";
 import { env } from "./env";
@@ -17,13 +18,25 @@ export let sessionStorage = createCookieSessionStorage({
   },
 });
 
-export function getSession(request: Request): Promise<Session> {
-  return sessionStorage.getSession(request.headers.get("Cookie"));
+let sessionSchema = z.object({
+  userId: z.string().optional(),
+  timeZone: z.string().optional().default("UTC"),
+});
+
+let typedSessionStorage = createTypedSessionStorage({
+  sessionStorage,
+  schema: sessionSchema,
+});
+
+export function getSession(request: Request) {
+  return typedSessionStorage.getSession(request.headers.get("Cookie"));
 }
 
-let USER_SESSION_KEY = "userId";
+let USER_SESSION_KEY = "userId" as const;
 
-export async function getUserId(request: Request): Promise<string | undefined> {
+export async function getUserId(
+  request: Request
+): Promise<string | undefined | null> {
   let session = await getSession(request);
   return session.get(USER_SESSION_KEY);
 }
@@ -72,7 +85,7 @@ export async function createUserSession(
   session.set(USER_SESSION_KEY, userId);
   return redirect(redirectTo, {
     headers: {
-      "Set-Cookie": await sessionStorage.commitSession(session),
+      "Set-Cookie": await typedSessionStorage.commitSession(session),
     },
   });
 }
@@ -81,7 +94,14 @@ export async function logout(request: Request) {
   let session = await getSession(request);
   return redirect("/", {
     headers: {
-      "Set-Cookie": await sessionStorage.destroySession(session),
+      "Set-Cookie": await typedSessionStorage.destroySession(session),
     },
   });
 }
+
+export async function getTimeZone(request: Request) {
+  let session = await getSession(request);
+  return session.get("timeZone") || "UTC";
+}
+
+export const commitSession = typedSessionStorage.commitSession;

@@ -1,13 +1,15 @@
 import { parseISO } from "date-fns";
+import { utcToZonedTime } from "date-fns-tz";
 
-let baseFormatDateOptions: Intl.DateTimeFormatOptions = {
+export let baseFormatDateOptions: Intl.DateTimeFormatOptions = {
   month: "short",
   day: "numeric",
   year: "numeric",
 };
 
-function formatDate(
+export function formatDate(
   date: Date | number | string,
+  timeZone: string,
   additionalFormatOptions: Intl.DateTimeFormatOptions = {}
 ) {
   let formatter = new Intl.DateTimeFormat("en-US", {
@@ -15,9 +17,8 @@ function formatDate(
     ...additionalFormatOptions,
   });
   if (typeof date === "string") {
-    return formatter.format(parseISO(date));
+    date = parseISO(date);
   }
-  return formatter.format(date);
-}
 
-export { formatDate, baseFormatDateOptions };
+  return formatter.format(utcToZonedTime(date, timeZone));
+}

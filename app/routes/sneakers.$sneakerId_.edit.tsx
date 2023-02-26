@@ -25,12 +25,13 @@ import { formatMoney } from "~/utils/format-money";
 import { prisma } from "~/db.server";
 import { sneakerSchema, url_regex } from "~/lib/schemas/sneaker.server";
 import { cloudinary } from "~/lib/cloudinary.server";
-import { requireUserId } from "~/session.server";
+import { getTimeZone, requireUserId } from "~/session.server";
 import { getSeoMeta } from "~/seo";
 
 export let loader = async ({ params, request }: DataFunctionArgs) => {
   invariant(params.sneakerId);
   let userId = await requireUserId(request);
+  let timeZone = await getTimeZone(request);
 
   let sneaker = await prisma.sneaker.findUnique({
     where: { id: params.sneakerId },
@@ -59,6 +60,7 @@ export let loader = async ({ params, request }: DataFunctionArgs) => {
   return json({
     id: params.sneakerId,
     userCreatedSneaker,
+    timeZone,
     sneaker: {
       ...sneaker,
       createdAt:
@@ -170,7 +172,7 @@ let formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
 export default function EditSneakerPage() {
   let location = useLocation();
-  let { sneaker } = useLoaderData<typeof loader>();
+  let { sneaker, timeZone } = useLoaderData<typeof loader>();
   let navigation = useNavigation();
   let actionData = useActionData<typeof action>();
   let pendingForm =
@@ -212,7 +214,7 @@ export default function EditSneakerPage() {
               className="text-md"
               dateTime={new Date(sneaker.purchaseDate).toISOString()}
             >
-              Purchased {formatDate(sneaker.purchaseDate)}
+              Purchased {formatDate(sneaker.purchaseDate, timeZone)}
             </time>
           </p>
         </div>
