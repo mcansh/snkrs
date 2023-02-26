@@ -35,6 +35,8 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   let sortQuery = url.searchParams.get("sort");
   let sort: Prisma.SortOrder = sortQuery === "asc" ? "asc" : "desc";
 
+  let year = params.year ? Number(params.year) : null;
+
   let user = await prisma.user.findUnique({
     where: { username: params.username },
     select: {
@@ -93,7 +95,16 @@ export let loader = async ({ params, request }: LoaderArgs) => {
 
   let totalCollectionCost =
     user.settings?.showTotalPrice === true
-      ? user.sneakers.reduce((acc, sneaker) => acc + sneaker.price, 0)
+      ? user.sneakers.reduce((acc, sneaker) => {
+          if (year) {
+            if (sneaker.purchaseDate.getFullYear() === year) {
+              return acc + sneaker.price;
+            }
+            return acc;
+          }
+
+          return acc + sneaker.price;
+        }, 0)
       : null;
 
   let { settings, sneakers, ...userToReturn } = user;
