@@ -2,7 +2,7 @@
   "private": true,
   "sideEffects": false,
   "scripts": {
-    "predev": "npm run build:icons",
+    "predev": "run-s clean build:icons",
     "dev": "run-p dev:*",
     "dev:routes": "npm run generate:routes -- --watch",
     "dev:remix": "remix dev",
@@ -20,7 +20,7 @@
     "validate": "run-p lint type-check test",
     "db:migrate": "prisma migrate dev --preview-feature",
     "prepare": "husky install && patch-package",
-    "clean": "del .cache build public/build app/assets/icons/{solid,outline}",
+    "clean": "./scripts/clean.mjs",
     "start": "cross-env NODE_ENV=production node ./server.mjs"
   },
   "dependencies": {
@@ -75,12 +75,12 @@
     "@types/react": "18.0.28",
     "@types/react-dom": "18.0.11",
     "autoprefixer": "10.4.13",
-    "cssnano": "5.1.15",
-    "del-cli": "5.0.0",
+    "del": "7.0.0",
     "dotenv": "16.0.3",
     "eslint": "8.34.0",
     "eslint-plugin-prefer-let": "3.0.1",
     "fs-extra": "11.1.0",
+    "gitignore-fs": "2.2.2",
     "glob": "8.1.0",
     "heroicons": "2.0.16",
     "husky": "8.0.3",
