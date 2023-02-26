@@ -138,12 +138,12 @@ export default function ProfilePage() {
   }, [navigation.state, state]);
 
   return (
-    <div className="max-w-screen-md px-6 mx-auto ">
+    <div className="mx-auto max-w-screen-md px-6 ">
       <h1>Edit Account</h1>
 
       {actionData?.errors ? (
-        <div className="p-4 mb-4 text-white bg-red-500 rounded">
-          <ul className="list-disc list-inside">
+        <div className="mb-4 rounded bg-red-500 p-4 text-white">
+          <ul className="list-inside list-disc">
             {Object.entries(actionData.errors).map(([errorKey, errorValue]) => (
               <li key={`${errorKey}-${errorValue}`}>
                 {errorKey}: {errorValue}
@@ -158,7 +158,7 @@ export default function ProfilePage() {
           <label>
             <span>Email:</span>
             <input
-              className="w-full px-2 py-1 border border-gray-400 rounded"
+              className="w-full rounded border border-gray-400 px-2 py-1"
               type="email"
               name="email"
               defaultValue={data.user.email}
@@ -167,7 +167,7 @@ export default function ProfilePage() {
           <label>
             <span>Username:</span>
             <input
-              className="w-full px-2 py-1 border border-gray-400 rounded"
+              className="w-full rounded border border-gray-400 px-2 py-1"
               type="text"
               name="username"
               defaultValue={data.user.username}
@@ -211,29 +211,29 @@ export default function ProfilePage() {
             ariaLoadingAlert="Attempting to save changes"
             ariaSuccessAlert="Successfully saved changes, redirecting..."
             ariaErrorAlert="Error saving changes"
-            className={`px-4 py-2 disabled:cursor-not-allowed border border-transparent shadow-sm text-base font-medium rounded text-white ${colors[state].bg} ${colors[state].hover} focus:outline-none focus:ring-2 focus:ring-offset-2 ${colors[state].ring}`}
+            className={`rounded border border-transparent px-4 py-2 text-base font-medium text-white shadow-sm disabled:cursor-not-allowed ${colors[state].bg} ${colors[state].hover} focus:outline-none focus:ring-2 focus:ring-offset-2 ${colors[state].ring}`}
             state={state}
             iconLoading={
               <Svg
-                className="w-6 h-6 fill-white animate-spin inline-block"
+                className="inline-block h-6 w-6 animate-spin fill-white"
                 name="24:solid:refresh-clockwise"
               />
             }
             icon={
               <Svg
-                className="w-6 h-6 ml-2 fill-white inline-block"
+                className="ml-2 inline-block h-6 w-6 fill-white"
                 name="24:solid:cloud"
               />
             }
             iconError={
               <Svg
-                className="w-6 h-6 ml-2 fill-white inline-block"
+                className="ml-2 inline-block h-6 w-6 fill-white"
                 name="24:solid:exclamation-triangle"
               />
             }
             iconSuccess={
               <Svg
-                className="w-6 h-6 ml-2 fill-white inline-block"
+                className="ml-2 inline-block h-6 w-6 fill-white"
                 name="24:solid:check"
               />
             }

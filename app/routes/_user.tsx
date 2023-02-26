@@ -179,7 +179,7 @@ export default function UserSneakersPage() {
     data.user.id === data.sessionUser.id
   ) {
     return (
-      <div className="flex flex-col items-center justify-center h-full">
+      <div className="flex h-full flex-col items-center justify-center">
         <h1 className="mb-2 text-lg">
           {data.sessionUser.givenName}, welcome to SNKRS
         </h1>
@@ -199,7 +199,7 @@ export default function UserSneakersPage() {
       <Transition.Root show={mobileFiltersOpen} as={React.Fragment}>
         <Dialog
           as="div"
-          className="fixed inset-0 flex z-40 lg:hidden"
+          className="fixed inset-0 z-40 flex lg:hidden"
           onClose={setMobileFiltersOpen}
         >
           <Transition.Child
@@ -223,12 +223,12 @@ export default function UserSneakersPage() {
             leaveFrom="translate-x-0"
             leaveTo="translate-x-full"
           >
-            <div className="ml-auto relative max-w-xs w-full h-full bg-white shadow-xl py-4 pb-6 flex flex-col overflow-y-auto">
-              <div className="px-4 flex items-center justify-between">
+            <div className="relative ml-auto flex h-full w-full max-w-xs flex-col overflow-y-auto bg-white py-4 pb-6 shadow-xl">
+              <div className="flex items-center justify-between px-4">
                 <h2 className="text-lg font-medium text-gray-900">Filters</h2>
                 <button
                   type="button"
-                  className="-mr-2 w-10 h-10 p-2 flex items-center justify-center fill-gray-400 hover:fill-gray-500"
+                  className="-mr-2 flex h-10 w-10 items-center justify-center fill-gray-400 p-2 hover:fill-gray-500"
                   onClick={() => setMobileFiltersOpen(false)}
                 >
                   <span className="sr-only">Close menu</span>
@@ -250,17 +250,17 @@ export default function UserSneakersPage() {
                     <legend className="w-full px-2">
                       <fieldset>
                         <legend className="w-full px-2">
-                          <div className="w-full p-2 flex items-center justify-between text-gray-400 hover:text-gray-500">
+                          <div className="flex w-full items-center justify-between p-2 text-gray-400 hover:text-gray-500">
                             <span className="text-sm font-medium text-gray-900">
                               Sort
                             </span>
                           </div>
                         </legend>
-                        <div className="pt-4 pb-2 px-4">
+                        <div className="px-4 pt-4 pb-2">
                           <select
                             title="sort"
                             name="sort"
-                            className="w-full border-gray-300 rounded text-indigo-600 focus:ring-indigo-500"
+                            className="w-full rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                             defaultValue={data.sort}
                           >
                             {sortOptions.map((option) => (
@@ -284,13 +284,13 @@ export default function UserSneakersPage() {
                   >
                     <fieldset>
                       <legend className="w-full px-2">
-                        <div className="w-full p-2 flex items-center justify-between text-gray-400 hover:text-gray-500">
+                        <div className="flex w-full items-center justify-between p-2 text-gray-400 hover:text-gray-500">
                           <span className="text-sm font-medium text-gray-900">
                             {section.name}
                           </span>
                         </div>
                       </legend>
-                      <div className="pt-4 pb-2 px-4">
+                      <div className="px-4 pt-4 pb-2">
                         <div className="space-y-6">
                           {section.options.map((option) => (
                             <div
@@ -303,7 +303,7 @@ export default function UserSneakersPage() {
                                 defaultChecked={option.checked}
                                 value={option.value}
                                 type="checkbox"
-                                className="h-4 w-4 border-gray-300 rounded text-indigo-600 focus:ring-indigo-500"
+                                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                               />
                               <label
                                 htmlFor={`${section.id}-${option.label}-mobile`}
@@ -324,7 +324,7 @@ export default function UserSneakersPage() {
         </Dialog>
       </Transition.Root>
 
-      <main className="max-w-2xl mx-auto pb-16 px-4 sm:pb-24 sm:px-6 lg:max-w-7xl lg:px-8 pt-10 sm:pt-16">
+      <main className="mx-auto max-w-2xl px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-16 lg:max-w-7xl lg:px-8">
         <div className="border-b border-gray-200 pb-10">
           <h1 className="text-4xl font-extrabold tracking-tight text-gray-900">
             {data.user.fullName}
@@ -349,7 +349,7 @@ export default function UserSneakersPage() {
             >
               <span className="text-sm font-medium text-gray-700">Filters</span>
               <Svg
-                className="flex-shrink-0 ml-1 h-5 w-5 fill-gray-700"
+                className="ml-1 h-5 w-5 flex-shrink-0 fill-gray-700"
                 name="20:solid:plus-small"
               />
             </button>
@@ -358,7 +358,7 @@ export default function UserSneakersPage() {
               <Form
                 key={location.key}
                 action={location.pathname}
-                className="divide-y divide-gray-200 space-y-10"
+                className="space-y-10 divide-y divide-gray-200"
                 replace
                 onChange={(event) => {
                   submit(event.currentTarget, { replace: true });
@@ -369,11 +369,11 @@ export default function UserSneakersPage() {
                     <legend className="block text-sm font-medium text-gray-900">
                       Sort
                     </legend>
-                    <div className="pt-6 space-y-3">
+                    <div className="space-y-3 pt-6">
                       <select
                         title="sort"
                         name="sort"
-                        className="border-gray-300 rounded text-indigo-600 focus:ring-indigo-500"
+                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       >
                         {sortOptions.map((option) => (
                           <option
@@ -393,7 +393,7 @@ export default function UserSneakersPage() {
                       <legend className="block text-sm font-medium text-gray-900">
                         {section.name}
                       </legend>
-                      <div className="pt-6 space-y-3">
+                      <div className="space-y-3 pt-6">
                         {section.options.map((option, optionIdx) => (
                           <div key={option.value} className="flex items-center">
                             <input
@@ -402,7 +402,7 @@ export default function UserSneakersPage() {
                               defaultChecked={option.checked}
                               value={option.value}
                               type="checkbox"
-                              className="h-4 w-4 border-gray-300 rounded text-indigo-600 focus:ring-indigo-500"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                             />
                             <label
                               htmlFor={`${section.id}-${optionIdx}`}
@@ -420,7 +420,7 @@ export default function UserSneakersPage() {
             </div>
           </aside>
 
-          <div className="mt-6 lg:mt-0 lg:col-span-3">
+          <div className="mt-6 lg:col-span-3 lg:mt-0">
             <Outlet />
           </div>
         </div>

@@ -95,7 +95,7 @@ export default function JoinPage() {
     navigation.state === "submitting";
 
   return (
-    <div className="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Join now and start showing off your collection
@@ -126,10 +126,10 @@ export default function JoinPage() {
                         type={input.type}
                         autoComplete={input.autoComplete}
                         className={clsx(
-                          "appearance-none block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none sm:text-sm",
+                          "block w-full appearance-none rounded-md border px-3 py-2 shadow-sm focus:outline-none sm:text-sm",
                           error
-                            ? "border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500"
-                            : "border-gray-300 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500"
+                            ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                            : "border-gray-300 placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500"
                         )}
                         aria-invalid={error ? true : undefined}
                         aria-errormessage={
@@ -171,7 +171,7 @@ export default function JoinPage() {
               <div>
                 <button
                   type="submit"
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  className="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
                   Join now
                 </button>

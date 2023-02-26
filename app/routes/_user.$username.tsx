@@ -99,7 +99,7 @@ export default function UserSneakersPage() {
   let data = useLoaderData<typeof loader>();
 
   return (
-    <div className="mt-6 lg:mt-0 lg:col-span-2 xl:col-span-3">
+    <div className="mt-6 lg:col-span-2 lg:mt-0 xl:col-span-3">
       {data.user.sneakers.length === 0 ? (
         <EmptyState fullName={data.user.fullName} />
       ) : (

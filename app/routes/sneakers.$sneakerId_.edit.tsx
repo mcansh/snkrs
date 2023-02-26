@@ -182,14 +182,14 @@ export default function EditSneakerPage() {
   let srcSet = getImageURLs(sneaker.imagePublicId);
 
   return (
-    <main className="container h-full p-4 pb-6 mx-auto">
+    <main className="container mx-auto h-full p-4 pb-6">
       <Link
         prefetch="intent"
         to={route("/sneakers/:sneakerId", { sneakerId: sneaker.id })}
       >
         Back
       </Link>
-      <div className="grid grid-cols-1 gap-4 pt-4 sm:gap-8 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-2 sm:gap-8">
         <div className="relative pb-[100%]">
           <img
             src={getCloudinaryURL(sneaker.imagePublicId, {
@@ -220,8 +220,8 @@ export default function EditSneakerPage() {
       <div>
         <h2 className="py-4 text-lg">Edit Sneaker:</h2>
         {actionData?.errors ? (
-          <div className="p-4 mb-4 text-white bg-red-500 rounded">
-            <ul className="list-disc list-inside">
+          <div className="mb-4 rounded bg-red-500 p-4 text-white">
+            <ul className="list-inside list-disc">
               {Object.entries(actionData.errors).map(
                 ([errorKey, errorValue]) => (
                   <li key={`${errorKey}-${errorValue}`}>
@@ -235,31 +235,31 @@ export default function EditSneakerPage() {
         <Form method="post">
           <fieldset
             disabled={pendingForm}
-            className="pb-4 space-y-2 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-2"
+            className="space-y-2 pb-4 sm:grid sm:grid-cols-2 sm:gap-2 sm:space-y-0"
           >
             <input
-              className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
+              className="w-full appearance-none rounded border-2 border-gray-200 p-1"
               type="text"
               defaultValue={sneaker.brand.name}
               placeholder="Brand"
               name="brand"
             />
             <input
-              className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
+              className="w-full appearance-none rounded border-2 border-gray-200 p-1"
               type="text"
               defaultValue={sneaker.model}
               placeholder="Model"
               name="model"
             />
             <input
-              className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
+              className="w-full appearance-none rounded border-2 border-gray-200 p-1"
               type="text"
               defaultValue={sneaker.colorway}
               placeholder="Colorway"
               name="colorway"
             />
             <input
-              className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
+              className="w-full appearance-none rounded border-2 border-gray-200 p-1"
               type="number"
               defaultValue={sneaker.size}
               placeholder="Size"
@@ -267,7 +267,7 @@ export default function EditSneakerPage() {
               step={0.5}
             />
             <input
-              className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
+              className="w-full appearance-none rounded border-2 border-gray-200 p-1"
               type="text"
               defaultValue={sneaker.imagePublicId}
               placeholder="shoes/..."
@@ -276,19 +276,19 @@ export default function EditSneakerPage() {
             <NumericFormat
               name="price"
               placeholder="Price"
-              className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
+              className="w-full appearance-none rounded border-2 border-gray-200 p-1"
               prefix="$"
               defaultValue={sneaker.price / 100}
             />
             <NumericFormat
               name="retailPrice"
               placeholder="Retail Price"
-              className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
+              className="w-full appearance-none rounded border-2 border-gray-200 p-1"
               prefix="$"
               defaultValue={sneaker.retailPrice / 100}
             />
             <input
-              className="w-full p-1 border-2 border-gray-200 rounded appearance-none"
+              className="w-full appearance-none rounded border-2 border-gray-200 p-1"
               type="datetime-local"
               defaultValue={format(parseISO(sneaker.purchaseDate), formatter)}
               placeholder="Purchase Date"
@@ -296,7 +296,7 @@ export default function EditSneakerPage() {
             />
             <button
               type="submit"
-              className="self-start w-auto px-4 py-2 text-center text-white bg-blue-500 rounded disabled:bg-blue-200 disabled:cursor-not-allowed sm:col-span-2"
+              className="w-auto self-start rounded bg-blue-500 px-4 py-2 text-center text-white disabled:cursor-not-allowed disabled:bg-blue-200 sm:col-span-2"
             >
               Sav{pendingForm ? "ing" : "e"} Changes
             </button>

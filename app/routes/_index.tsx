@@ -1,7 +1,6 @@
 import type { LoaderArgs } from "@remix-run/node";
 import { route } from "routes-gen";
 
-
 import { getUserId, createUserSession } from "~/session.server";
 import { prisma } from "~/db.server";
 

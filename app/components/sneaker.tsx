@@ -27,7 +27,7 @@ export function SneakerCard({
   return (
     <li>
       <div className="group relative">
-        <div className="bg-gray-200 rounded-md overflow-hidden group-hover:opacity-75 aspect-1">
+        <div className="aspect-1 overflow-hidden rounded-md bg-gray-200 group-hover:opacity-75">
           <img
             src={getCloudinaryURL(imagePublicId, {
               resize: { width: 200, height: 200, type: "pad" },

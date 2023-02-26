@@ -24,8 +24,8 @@ export default function IndexPage() {
 
   return (
     <main>
-      <div className="pt-8 overflow-hidden sm:pt-12 lg:relative lg:py-48">
-        <div className="mx-auto max-w-md px-4 sm:max-w-3xl sm:px-6 lg:px-8 lg:max-w-7xl lg:grid lg:grid-cols-2 lg:gap-24">
+      <div className="overflow-hidden pt-8 sm:pt-12 lg:relative lg:py-48">
+        <div className="mx-auto max-w-md px-4 sm:max-w-3xl sm:px-6 lg:grid lg:max-w-7xl lg:grid-cols-2 lg:gap-24 lg:px-8">
           <div>
             <div>
               <svg className="h-11 w-12 text-indigo-500">
@@ -34,22 +34,22 @@ export default function IndexPage() {
             </div>
             <div className="mt-20">
               <div className="sm:max-w-xl">
-                <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl">
+                <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
                   SNKRS
                 </h1>
                 <p className="mt-6 text-xl text-gray-500">
                   Showcase your collection
                 </p>
-                <div className="mt-12 sm:max-w-lg sm:w-full flex sm:flex-row sm:space-x-4 sm:space-y-0 space-y-4 flex-col">
+                <div className="mt-12 flex flex-col space-y-4 sm:w-full sm:max-w-lg sm:flex-row sm:space-x-4 sm:space-y-0">
                   <Link
                     to={route("/join")}
-                    className="rounded-md border border-transparent px-5 py-3 bg-indigo-500 text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10 text-center"
+                    className="rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
                   >
                     Get started
                   </Link>
                   <Link
                     to={route("/:username", { username: data.demo })}
-                    className="rounded-md border border-transparent px-5 py-3 bg-rose-500 text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10 text-center"
+                    className="rounded-md border border-transparent bg-rose-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10"
                   >
                     View live demo
                   </Link>
@@ -62,9 +62,9 @@ export default function IndexPage() {
         <div className="sm:mx-auto sm:max-w-3xl sm:px-6">
           <div className="py-12 sm:relative sm:mt-12 sm:py-16 lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
             <div className="hidden sm:block">
-              <div className="absolute inset-y-0 left-1/2 w-screen bg-gray-50 rounded-l-3xl lg:left-80 lg:right-0 lg:w-full" />
+              <div className="absolute inset-y-0 left-1/2 w-screen rounded-l-3xl bg-gray-50 lg:left-80 lg:right-0 lg:w-full" />
               <svg
-                className="absolute top-8 right-1/2 -mr-3 lg:m-0 lg:left-0"
+                className="absolute top-8 right-1/2 -mr-3 lg:left-0 lg:m-0"
                 width={404}
                 height={392}
                 fill="none"
@@ -96,7 +96,7 @@ export default function IndexPage() {
                 />
               </svg>
             </div>
-            <div className="relative pl-4 -mr-40 sm:mx-auto sm:max-w-3xl sm:px-0 lg:max-w-none lg:h-full lg:pl-12">
+            <div className="relative -mr-40 pl-4 sm:mx-auto sm:max-w-3xl sm:px-0 lg:h-full lg:max-w-none lg:pl-12">
               <img
                 className="w-full rounded-md shadow-xl ring-1 ring-black ring-opacity-5 lg:h-full lg:w-auto lg:max-w-none"
                 src={screenshotUrl}

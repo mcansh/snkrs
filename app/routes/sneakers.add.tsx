@@ -91,11 +91,11 @@ export default function NewSneakerPage() {
   let actionData = useActionData<typeof action>();
 
   return (
-    <main className="container h-full p-4 pb-6 mx-auto">
+    <main className="container mx-auto h-full p-4 pb-6">
       <h2 className="py-4 text-lg">Add a sneaker to your collection</h2>
       {actionData?.errors ? (
-        <div className="p-4 mb-4 text-white bg-red-500 rounded">
-          <ul className="list-disc list-inside">
+        <div className="mb-4 rounded bg-red-500 p-4 text-white">
+          <ul className="list-inside list-disc">
             {Object.entries(actionData.errors).map(([errorKey, errorValue]) => (
               <li key={`${errorKey}-${errorValue}`}>
                 {errorKey}: {errorValue}
@@ -107,14 +107,14 @@ export default function NewSneakerPage() {
       <Form method="post">
         <fieldset
           disabled={pendingForm}
-          className="w-full space-y-2 sm:grid sm:items-center sm:gap-x-4 sm:gap-y-6 sm:grid-cols-2 sm:space-y-0"
+          className="w-full space-y-2 sm:grid sm:grid-cols-2 sm:items-center sm:gap-x-4 sm:gap-y-6 sm:space-y-0"
         >
           <label>
             <span className="block text-sm font-medium text-gray-700">
               Brand
             </span>
             <input
-              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               type="text"
               placeholder="Nike"
               name="brand"
@@ -125,7 +125,7 @@ export default function NewSneakerPage() {
               Model
             </span>
             <input
-              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               type="text"
               placeholder="Air Max 1"
               name="model"
@@ -136,7 +136,7 @@ export default function NewSneakerPage() {
               Colorway
             </span>
             <input
-              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               type="text"
               placeholder="Anniversary Royal"
               name="colorway"
@@ -150,7 +150,7 @@ export default function NewSneakerPage() {
               id="price"
               name="price"
               placeholder="12000"
-              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               prefix="$"
             />
           </label>
@@ -162,7 +162,7 @@ export default function NewSneakerPage() {
               id="retailPrice"
               name="retailPrice"
               placeholder="12000"
-              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               prefix="$"
             />
           </label>
@@ -171,7 +171,7 @@ export default function NewSneakerPage() {
               Purchase Date
             </span>
             <input
-              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               type="datetime-local"
               name="purchaseDate"
             />
@@ -181,7 +181,7 @@ export default function NewSneakerPage() {
               Size
             </span>
             <input
-              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               type="number"
               placeholder="10"
               name="size"
@@ -193,7 +193,7 @@ export default function NewSneakerPage() {
               Image
             </span>
             <input
-              className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               type="text"
               name="imagePublicId"
               placeholder="1200x1200 photo or cloudinary publicId"
@@ -201,7 +201,7 @@ export default function NewSneakerPage() {
           </label>
           <button
             type="submit"
-            className="self-start w-auto col-span-2 px-4 py-2 text-sm font-medium text-left text-white bg-indigo-600 border border-transparent rounded-md shadow-sm disabled:bg-blue-200 disabled:cursor-not-allowed hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="col-span-2 w-auto self-start rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-left text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-blue-200"
           >
             Add{pendingForm ? "ing" : ""} to collection
           </button>

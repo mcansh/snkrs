@@ -73,7 +73,7 @@ export default function SneakersYearInReview() {
 
   if (!user.sneakers.length) {
     return (
-      <div className="flex items-center justify-center w-full h-full text-lg text-center">
+      <div className="flex h-full w-full items-center justify-center text-center text-lg">
         <p>
           {user.username} didn&apos;t buy any sneakers in {year}
         </p>
@@ -82,7 +82,7 @@ export default function SneakersYearInReview() {
   }
 
   return (
-    <div className="mt-6 lg:mt-0 lg:col-span-2 xl:col-span-3">
+    <div className="mt-6 lg:col-span-2 lg:mt-0 xl:col-span-3">
       <ul className="grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-4">
         {user.sneakers.map((sneaker) => (
           <SneakerCard key={sneaker.id} {...sneaker} />

@@ -19,10 +19,10 @@ export default function LogoutPage() {
     <Form
       reloadDocument
       method="post"
-      className="h-full grid place-items-center min-h-screen"
+      className="grid h-full min-h-screen place-items-center"
     >
       <button
-        className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+        className="inline-flex items-center rounded-md border border-transparent bg-red-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
         type="submit"
       >
         Log out
