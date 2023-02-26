@@ -85,7 +85,9 @@ export default function SneakersYearInReview() {
     <div className="mt-6 lg:mt-0 lg:col-span-2 xl:col-span-3">
       <ul className="grid grid-cols-2 gap-x-4 gap-y-8 lg:grid-cols-4">
         {user.sneakers.map((sneaker) => (
-          <SneakerCard key={sneaker.id} {...sneaker} />
+          <li key={sneaker.id}>
+            <SneakerCard {...sneaker} />
+          </li>
         ))}
       </ul>
     </div>
