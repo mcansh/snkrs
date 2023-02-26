@@ -23,7 +23,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import screenshotUrl from "~/assets/screenshot.jpg";
 
 import { useMatches } from "./lib/use-matches";
-import { getUser } from "./session.server";
+import { getSession, getUser } from "./session.server";
 import interStylesHref from "./styles/inter.css";
 import { Svg } from "./components/heroicons";
 import { Document } from "./components/document";
@@ -98,8 +98,10 @@ export let links: LinksFunction = () => {
 
 export async function loader({ request }: LoaderArgs) {
   let user = await getUser(request);
+  let session = await getSession(request);
   return json({
     user,
+    timeZone: session.get("timeZone"),
     ENV: {
       FATHOM_SITE_ID: env.FATHOM_SITE_ID,
       FATHOM_SCRIPT_URL: env.FATHOM_SCRIPT_URL,
@@ -114,6 +116,7 @@ export default function App() {
   let fetcher = useFetcher();
   let [showPendingSpinner, setShowPendingSpinner] = React.useState(false);
   let [showMenu, setShowMenu] = React.useState(false);
+  let [showTimeZonePrompt, setShowTimeZonePrompt] = React.useState(false);
 
   let fathomInitialized = React.useRef(false);
 
@@ -151,15 +154,25 @@ export default function App() {
     };
   }, [location.pathname, navigation.formMethod, navigation.state]);
 
+  let updateTimeZone = React.useCallback(
+    (timeZone: string) => {
+      let formData = new FormData();
+      formData.append("timeZone", timeZone);
+      fetcher.submit(formData, {
+        action: "/api/timezone",
+        method: "post",
+      });
+    },
+    [fetcher.submit]
+  );
+
   React.useEffect(() => {
     let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    let formData = new FormData();
-    formData.append("timeZone", timeZone);
-    fetcher.submit(formData, {
-      action: "/api/timezone",
-      method: "post",
-    });
-  }, []);
+    if (data.timeZone !== timeZone) {
+      console.log("TODO: prompt to update timezone");
+      setShowTimeZonePrompt(true);
+    }
+  }, [data.timeZone, fetcher.submit]);
 
   return (
     <Document
@@ -276,6 +289,54 @@ export default function App() {
       </nav>
 
       <Outlet />
+
+      {showTimeZonePrompt ? (
+        <div
+          className="fixed bottom-2 right-2 left-2 sm:left-auto"
+          role="alert"
+          aria-live="polite"
+        >
+          <div className="rounded-lg bg-white p-4 shadow-lg">
+            <div className="flex items-center space-x-4">
+              <div className="flex-shrink-0">
+                <Svg
+                  className="h-6 w-6 fill-none stroke-gray-400"
+                  name="24:outline:clock"
+                />
+              </div>
+              <div className="flex-grow">
+                <p className="text-xs font-medium text-gray-900 sm:text-sm">
+                  Your timeZone has changed.
+                </p>
+                <p className="text-xs text-gray-500 sm:text-sm">
+                  Would you like to update?
+                </p>
+              </div>
+              <div className="flex-shrink-0 space-x-2">
+                <button
+                  type="button"
+                  className="inline-flex items-center rounded border border-transparent bg-indigo-500 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  onClick={() => {
+                    let timeZone =
+                      Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    updateTimeZone(timeZone);
+                    setShowTimeZonePrompt(false);
+                  }}
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center rounded border border-transparent bg-rose-500 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+                  onClick={() => setShowTimeZonePrompt(false)}
+                >
+                  No
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </Document>
   );
 }
