@@ -24,6 +24,7 @@ import { Svg } from "~/components/heroicons";
 import { getUserId, sessionStorage } from "~/session.server";
 import { getSeoMeta } from "~/seo";
 import { possessive } from "~/utils/possessive";
+import { formatMoney } from "~/utils/format-money";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
   let session = await sessionStorage.getSession(request.headers.get("Cookie"));
@@ -35,16 +36,27 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   let sort: Prisma.SortOrder = sortQuery === "asc" ? "asc" : "desc";
 
   let user = await prisma.user.findUnique({
-    where: {
-      username: params.username,
-    },
+    where: { username: params.username },
     select: {
       username: true,
       id: true,
       fullName: true,
+      settings: { select: { showTotalPrice: true } },
       sneakers: {
         include: { brand: true },
         orderBy: { purchaseDate: sort },
+        where: {
+          brand: {
+            is: {
+              OR:
+                selectedBrands.length > 0
+                  ? selectedBrands.map((brand) => ({
+                      slug: brand,
+                    }))
+                  : undefined,
+            },
+          },
+        },
       },
     },
   });
@@ -66,12 +78,6 @@ export let loader = async ({ params, request }: LoaderArgs) => {
       })
     : null;
 
-  let sneakers = selectedBrands.length
-    ? user.sneakers.filter((sneaker) =>
-        selectedBrands.includes(sneaker.brand.slug)
-      )
-    : user.sneakers;
-
   let uniqueBrands = uniqBy(
     user.sneakers.map((sneaker) => sneaker.brand),
     "name"
@@ -85,9 +91,22 @@ export let loader = async ({ params, request }: LoaderArgs) => {
     throw redirect(url.toString());
   }
 
+  let totalCollectionCost =
+    user.settings?.showTotalPrice === true
+      ? user.sneakers.reduce((acc, sneaker) => acc + sneaker.price, 0)
+      : null;
+
+  let { settings, sneakers, ...userToReturn } = user;
+
   return json(
     {
-      user: { ...user, sneakers },
+      user: {
+        ...userToReturn,
+        totalCollectionCost: totalCollectionCost
+          ? formatMoney(totalCollectionCost)
+          : null,
+        collectionCount: sneakers.length,
+      },
       filters: [
         {
           id: "brand",
@@ -156,7 +175,7 @@ export default function UserSneakersPage() {
 
   if (
     data.sessionUser &&
-    data.user.sneakers.length === 0 &&
+    data.user.collectionCount === 0 &&
     data.user.id === data.sessionUser.id
   ) {
     return (
@@ -310,6 +329,13 @@ export default function UserSneakersPage() {
           <h1 className="text-4xl font-extrabold tracking-tight text-gray-900">
             {data.user.fullName}
           </h1>
+          {data.user.totalCollectionCost ? (
+            <h2>
+              {" "}
+              {data.sessionUser?.id === data.user.id ? "Your" : "This"}{" "}
+              collection is worth {data.user.totalCollectionCost}
+            </h2>
+          ) : null}
         </div>
 
         <div className="pt-12 lg:grid lg:grid-cols-4 lg:gap-x-8">
