@@ -15,7 +15,6 @@ import {
   useSubmit,
 } from "@remix-run/react";
 import type { Prisma } from "@prisma/client";
-import uniqBy from "lodash.uniqby";
 import { Dialog, Transition } from "@headlessui/react";
 import { route } from "routes-gen";
 

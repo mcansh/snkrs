@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { LoaderArgs, MetaFunction, SerializeFrom } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
@@ -8,9 +9,10 @@ import { SneakerCard } from "~/components/sneaker";
 import { prisma } from "~/db.server";
 import { getSeoMeta } from "~/seo";
 
-export let loader = async ({ params }: LoaderArgs) => {
+export let loader = async ({ params, request }: LoaderArgs) => {
   invariant(params.year, "year is required");
   invariant(params.username, "username is required");
+  let url = new URL(request.url);
   let year = parseInt(params.year, 10);
 
   let date = new Date(year, 0);
@@ -24,18 +26,30 @@ export let loader = async ({ params }: LoaderArgs) => {
     });
   }
 
+  let selectedBrands = url.searchParams.getAll("brand");
+  let sortQuery = url.searchParams.get("sort");
+  let sort: Prisma.SortOrder = sortQuery === "asc" ? "asc" : "desc";
+
   let user = await prisma.user.findUnique({
     where: { username: params.username },
     select: {
       username: true,
       settings: true,
       sneakers: {
-        orderBy: { purchaseDate: "asc" },
+        orderBy: { purchaseDate: sort },
         include: { brand: true },
         where: {
           purchaseDate: {
             gte: start,
             lte: end,
+          },
+          brand: {
+            is: {
+              OR:
+                selectedBrands.length > 0
+                  ? selectedBrands.map((brand) => ({ slug: brand }))
+                  : undefined,
+            },
           },
         },
       },
