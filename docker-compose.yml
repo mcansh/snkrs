@@ -2,6 +2,7 @@ version: "3.7"
 services:
   postgres:
     image: postgres:latest
+    restart: always
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
