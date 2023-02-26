@@ -52,9 +52,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
             is: {
               OR:
                 selectedBrands.length > 0
-                  ? selectedBrands.map((brand) => ({
-                      slug: brand,
-                    }))
+                  ? selectedBrands.map((brand) => ({ slug: brand }))
                   : undefined,
             },
           },
@@ -70,24 +68,23 @@ export let loader = async ({ params, request }: LoaderArgs) => {
     });
   }
 
-  let sessionUser = userId
-    ? await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          givenName: true,
-          id: true,
-        },
-      })
-    : null;
-
-  let uniqueBrands = uniqBy(
-    user.sneakers.map((sneaker) => sneaker.brand),
-    "name"
-  ).sort((a, b) => a.name.localeCompare(b.name));
+  let [brands, sessionUser] = await Promise.all([
+    prisma.brand.findMany({
+      select: { slug: true, name: true },
+      orderBy: { name: "asc" },
+      where: { sneakers: { some: { userId: user.id } } },
+    }),
+    userId
+      ? await prisma.user.findUnique({
+          where: { id: userId },
+          select: { givenName: true, id: true },
+        })
+      : null,
+  ]);
 
   if (
-    uniqueBrands.length > 0 &&
-    uniqueBrands.every((brand) => selectedBrands.includes(brand.slug))
+    brands.length > 0 &&
+    brands.every((brand) => selectedBrands.includes(brand.slug))
   ) {
     url.searchParams.delete("brand");
     throw redirect(url.toString());
@@ -122,7 +119,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
         {
           id: "brand",
           name: "Brand",
-          options: uniqueBrands.map((brand) => {
+          options: brands.map((brand) => {
             return {
               value: brand.slug,
               label: brand.name,
