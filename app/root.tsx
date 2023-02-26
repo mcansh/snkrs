@@ -115,15 +115,25 @@ export default function App() {
   let [showPendingSpinner, setShowPendingSpinner] = React.useState(false);
   let [showMenu, setShowMenu] = React.useState(false);
 
+  let fathomInitialized = React.useRef(false);
+
   let matches = useMatches();
   let handleBodyClassName = matches.map((match) => match.handle?.bodyClassName);
 
   React.useEffect(() => {
+    if (fathomInitialized.current) return;
     Fathom.load(data.ENV.FATHOM_SITE_ID, {
       excludedDomains: ["localhost"],
       url: data.ENV.FATHOM_SCRIPT_URL,
     });
-  }, [data.ENV]);
+    fathomInitialized.current = true;
+  }, [data.ENV.FATHOM_SCRIPT_URL, data.ENV.FATHOM_SITE_ID]);
+
+  React.useEffect(() => {
+    Fathom.trackPageview({
+      url: location.pathname + location.search,
+    });
+  }, [location.pathname, location.search]);
 
   React.useEffect(() => {
     let timer = setTimeout(() => {
