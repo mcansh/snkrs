@@ -32,7 +32,7 @@
     "@reach/alert": "0.18.0",
     "@remix-run/css-bundle": "0.0.0-nightly-dc98a6b-20230223",
     "@remix-run/node": "0.0.0-nightly-dc98a6b-20230223",
-    "@remix-run/react": "0.0.0-nightly-dc98a6b-20230223",
+    "@remix-run/react": "1.13.0",
     "@sentry/node": "7.39.0",
     "accounting": "0.4.1",
     "cloudinary": "1.34.0",
