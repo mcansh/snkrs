@@ -168,11 +168,12 @@ export default function App() {
 
   React.useEffect(() => {
     let timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (data.timeZone !== timeZone) {
-      console.log("TODO: prompt to update timezone");
+    if (!data.timeZone) {
+      updateTimeZone(timeZone);
+    } else if (data.timeZone !== timeZone) {
       setShowTimeZonePrompt(true);
     }
-  }, [data.timeZone, fetcher.submit]);
+  }, [data.timeZone, fetcher.submit, updateTimeZone]);
 
   return (
     <Document

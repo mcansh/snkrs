@@ -20,7 +20,7 @@ let sessionStorage = createCookieSessionStorage({
 
 let sessionSchema = z.object({
   userId: z.string().optional(),
-  timeZone: z.string().optional().default("UTC"),
+  timeZone: z.string().optional(),
 });
 
 let typedSessionStorage = createTypedSessionStorage({
@@ -103,7 +103,7 @@ export async function logout(request: Request) {
 
 export async function getTimeZone(request: Request) {
   let session = await getSession(request);
-  return session.get("timeZone") || "UTC";
+  return session.get("timeZone");
 }
 
 export const commitSession = typedSessionStorage.commitSession;
