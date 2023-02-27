@@ -103,7 +103,7 @@ export async function logout(request: Request) {
 
 export async function getTimeZone(request: Request) {
   let session = await getSession(request);
-  return session.get("timeZone");
+  return session.get("timeZone") || "UTC";
 }
 
 export const commitSession = typedSessionStorage.commitSession;
