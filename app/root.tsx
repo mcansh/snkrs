@@ -32,13 +32,27 @@ import { env } from "./env";
 export { CatchBoundary } from "./components/root-catch-boundary";
 export { ErrorBoundary } from "./components/root-error-boundary";
 
-export let meta: V2_MetaFunction = () => {
+export async function loader({ request }: LoaderArgs) {
+  let user = await getUser(request);
+  let session = await getSession(request);
+  return json({
+    user,
+    timeZone: session.get("timeZone"),
+    ENV: {
+      FATHOM_SITE_ID: env.FATHOM_SITE_ID,
+      FATHOM_SCRIPT_URL: env.FATHOM_SCRIPT_URL,
+    },
+    origin: new URL(request.url).origin,
+  });
+}
+
+export let meta: V2_MetaFunction = ({ data }) => {
   return [
     { title: "Snkrs" },
     { name: "description", content: "show off your sneaker collection" },
     { property: "og:title", content: "Snkrs" },
     { property: "og:description", content: "show off your sneaker collection" },
-    { property: "og:image", content: screenshotUrl },
+    { property: "og:image", content: data.origin + screenshotUrl },
     { property: "og:image:alt", content: "screenshot of the Snkrs app" },
     { property: "og:image:width", content: "2648" },
     { property: "og:image:height", content: "1788" },
@@ -95,19 +109,6 @@ export let links: LinksFunction = () => {
 
   return result;
 };
-
-export async function loader({ request }: LoaderArgs) {
-  let user = await getUser(request);
-  let session = await getSession(request);
-  return json({
-    user,
-    timeZone: session.get("timeZone"),
-    ENV: {
-      FATHOM_SITE_ID: env.FATHOM_SITE_ID,
-      FATHOM_SCRIPT_URL: env.FATHOM_SCRIPT_URL,
-    },
-  });
-}
 
 export default function App() {
   let data = useLoaderData<typeof loader>();

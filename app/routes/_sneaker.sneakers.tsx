@@ -7,7 +7,6 @@ import { route } from "routes-gen";
 import { formatDate } from "~/utils/format-date";
 import { getCloudinaryURL, getImageURLs } from "~/utils/get-cloudinary-url";
 import { formatMoney } from "~/utils/format-money";
-import { copy } from "~/utils/copy";
 import { prisma } from "~/db.server";
 import { getTimeZone, getUserId } from "~/session.server";
 import { getPageTitle, mergeMeta } from "~/meta";
@@ -16,6 +15,8 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   invariant(params.sneakerId, "sneakerID is required");
 
   let userId = await getUserId(request);
+  let url = new URL(request.url);
+  let origin = url.origin;
 
   let sneaker = await prisma.sneaker.findUnique({
     where: { id: params.sneakerId },
@@ -56,6 +57,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
     },
     editing: false,
     sneaker,
+    ogUrl: `${origin}/api/og/${sneaker.id}`,
   });
 };
 
@@ -72,6 +74,10 @@ export let meta: V2_MetaFunction = mergeMeta<typeof loader>(({ data }) => {
       name: "description",
       content: `${data.sneaker.user.fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`,
     },
+    { property: "og:image", content: data.ogUrl },
+    { property: "og:image:width", content: "800" },
+    { property: "og:image:height", content: "400" },
+    { property: "og:image:alt", content: data.title },
   ];
 });
 
