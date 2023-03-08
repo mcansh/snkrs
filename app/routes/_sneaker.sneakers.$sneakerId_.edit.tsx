@@ -2,7 +2,6 @@ import type { DataFunctionArgs, V2_MetaFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
-  Link,
   useActionData,
   useLoaderData,
   useLocation,
@@ -12,21 +11,16 @@ import { format, parseISO } from "date-fns";
 import slugify from "slugify";
 import { NumericFormat } from "react-number-format";
 import invariant from "tiny-invariant";
-import { route } from "routes-gen";
 
-import { formatDate } from "~/utils/format-date";
-import { getCloudinaryURL, getImageURLs } from "~/utils/get-cloudinary-url";
-import { formatMoney } from "~/utils/format-money";
 import { prisma } from "~/db.server";
 import { sneakerSchema, url_regex } from "~/lib/schemas/sneaker.server";
 import { cloudinary } from "~/lib/cloudinary.server";
-import { getTimeZone, requireUserId } from "~/session.server";
+import { requireUserId } from "~/session.server";
 import { getPageTitle, mergeMeta } from "~/meta";
 
 export let loader = async ({ params, request }: DataFunctionArgs) => {
   invariant(params.sneakerId);
   let userId = await requireUserId(request);
-  let timeZone = await getTimeZone(request);
 
   let sneaker = await prisma.sneaker.findUnique({
     where: { id: params.sneakerId },
@@ -54,23 +48,7 @@ export let loader = async ({ params, request }: DataFunctionArgs) => {
 
   return json({
     id: params.sneakerId,
-    userCreatedSneaker,
-    timeZone,
-    sneaker: {
-      ...sneaker,
-      createdAt:
-        typeof sneaker.createdAt === "string"
-          ? sneaker.createdAt
-          : sneaker.createdAt.toISOString(),
-      purchaseDate:
-        typeof sneaker.purchaseDate === "string"
-          ? sneaker.purchaseDate
-          : sneaker.purchaseDate.toISOString(),
-      soldDate:
-        typeof sneaker.soldDate === "string"
-          ? sneaker.soldDate
-          : sneaker.soldDate?.toISOString(),
-    },
+    sneaker,
   });
 };
 
@@ -163,53 +141,15 @@ let formatter = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
 export default function EditSneakerPage() {
   let location = useLocation();
-  let { sneaker, timeZone } = useLoaderData<typeof loader>();
+  let { sneaker } = useLoaderData<typeof loader>();
   let navigation = useNavigation();
   let actionData = useActionData<typeof action>();
   let pendingForm =
     navigation.formAction === location.pathname &&
     navigation.state === "submitting";
 
-  let title = `Editing ${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`;
-
-  let srcSet = getImageURLs(sneaker.imagePublicId);
-
   return (
-    <main className="container mx-auto h-full p-4 pb-6">
-      <Link
-        prefetch="intent"
-        to={route("/sneakers/:sneakerId", { sneakerId: sneaker.id })}
-      >
-        Back
-      </Link>
-      <div className="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-2 sm:gap-8">
-        <div className="relative pb-[100%]">
-          <img
-            src={getCloudinaryURL(sneaker.imagePublicId, {
-              resize: { width: 200, height: 200, type: "pad" },
-            })}
-            sizes="(min-width: 640px) 50vw, 100vw"
-            srcSet={srcSet}
-            alt={title}
-            height={1200}
-            width={1200}
-            className="absolute inset-0 overflow-hidden rounded-md"
-            loading="lazy"
-          />
-        </div>
-        <div>
-          <h1 className="text-2xl">{title}</h1>
-          <p className="text-xl">{formatMoney(sneaker.price)}</p>
-          <p>
-            <time
-              className="text-md"
-              dateTime={new Date(sneaker.purchaseDate).toISOString()}
-            >
-              Purchased {formatDate(sneaker.purchaseDate, timeZone)}
-            </time>
-          </p>
-        </div>
-      </div>
+    <>
       <div>
         <h2 className="py-4 text-lg">Edit Sneaker:</h2>
         {actionData?.errors ? (
@@ -228,7 +168,7 @@ export default function EditSneakerPage() {
         <Form method="post">
           <fieldset
             disabled={pendingForm}
-            className="space-y-2 pb-4 sm:grid sm:grid-cols-2 sm:gap-2 sm:space-y-0"
+            className="space-y-2 sm:grid sm:grid-cols-2 sm:gap-2 sm:space-y-0"
           >
             <input
               className="w-full appearance-none rounded border-2 border-gray-200 p-1"
@@ -296,6 +236,6 @@ export default function EditSneakerPage() {
           </fieldset>
         </Form>
       </div>
-    </main>
+    </>
   );
 }

@@ -1,13 +1,12 @@
 import type { LoaderArgs, V2_MetaFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Link, Outlet, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
 import { route } from "routes-gen";
 
 import { formatDate } from "~/utils/format-date";
-import { getCloudinaryURL } from "~/utils/get-cloudinary-url";
+import { getCloudinaryURL, getImageURLs } from "~/utils/get-cloudinary-url";
 import { formatMoney } from "~/utils/format-money";
-import { copy } from "~/utils/copy";
 import { prisma } from "~/db.server";
 import { getTimeZone, getUserId } from "~/session.server";
 import { getPageTitle, mergeMeta } from "~/meta";
@@ -16,6 +15,8 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   invariant(params.sneakerId, "sneakerID is required");
 
   let userId = await getUserId(request);
+  let url = new URL(request.url);
+  let origin = url.origin;
 
   let sneaker = await prisma.sneaker.findUnique({
     where: { id: params.sneakerId },
@@ -54,25 +55,9 @@ export let loader = async ({ params, request }: LoaderArgs) => {
       showPurchasePrice: settings?.showPurchasePrice ?? true,
       showRetailPrice: settings?.showRetailPrice ?? false,
     },
-    sneaker: {
-      ...sneaker,
-      createdAt:
-        typeof sneaker.createdAt === "string"
-          ? sneaker.createdAt
-          : sneaker.createdAt.toISOString(),
-      soldDate:
-        typeof sneaker.soldDate === "string"
-          ? sneaker.soldDate
-          : sneaker.soldDate?.toISOString(),
-      purchaseDate:
-        typeof sneaker.purchaseDate === "string"
-          ? sneaker.purchaseDate
-          : sneaker.purchaseDate.toISOString(),
-      updatedAt:
-        typeof sneaker.updatedAt === "string"
-          ? sneaker.updatedAt
-          : sneaker.updatedAt.toISOString(),
-    },
+    editing: false,
+    sneaker,
+    ogUrl: `${origin}/api/og/${sneaker.id}`,
   });
 };
 
@@ -89,49 +74,31 @@ export let meta: V2_MetaFunction = mergeMeta<typeof loader>(({ data }) => {
       name: "description",
       content: `${data.sneaker.user.fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`,
     },
+    { property: "og:image", content: data.ogUrl },
+    { property: "og:image:width", content: "800" },
+    { property: "og:image:height", content: "400" },
+    { property: "og:image:alt", content: data.title },
   ];
 });
 
 export default function SneakerPage() {
   let data = useLoaderData<typeof loader>();
 
-  let sizes = [200, 400, 600];
-
-  let srcSet = sizes.map(
-    (size) =>
-      `${getCloudinaryURL(data.sneaker.imagePublicId, {
-        resize: {
-          width: size,
-          height: size,
-          type: "pad",
-        },
-      })} ${size}w`
-  );
+  let srcSet = getImageURLs(data.sneaker.imagePublicId);
 
   return (
     <main className="container mx-auto h-full p-4 pb-6">
-      <Link
-        prefetch="intent"
-        to={route("/:username", { username: data.sneaker.user.username })}
-      >
-        Back
-      </Link>
       <div className="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-2 sm:gap-8">
         <div className="aspect-w-1 aspect-h-1 relative w-full overflow-hidden rounded-lg bg-gray-100">
           <img
             src={getCloudinaryURL(data.sneaker.imagePublicId, {
-              resize: {
-                type: "pad",
-                width: 200,
-                height: 200,
-              },
+              resize: { type: "pad", width: 200, height: 200 },
             })}
             sizes="(min-width: 640px) 50vw, 100vw"
-            srcSet={srcSet.join()}
+            srcSet={srcSet}
             alt={data.title}
-            className="object-contain"
-            height={1200}
-            width={1200}
+            height={480}
+            width={480}
           />
         </div>
         <div className="flex flex-col justify-between">
@@ -171,7 +138,6 @@ export default function SneakerPage() {
                 </time>
               </p>
             )}
-
             <Link
               to={route("/:username/yir/:year", {
                 username: data.sneaker.user.username,
@@ -184,45 +150,7 @@ export default function SneakerPage() {
             </Link>
           </div>
 
-          <div className="flex justify-between">
-            <button
-              type="button"
-              className="text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
-              onClick={() => {
-                if ("share" in navigator) {
-                  let date = formatDate(
-                    data.sneaker.purchaseDate,
-                    data.timeZone,
-                    {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    }
-                  );
-
-                  return navigator.share({
-                    title: data.title,
-                    text: `${data.sneaker.user.fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`,
-                    url: location.href,
-                  });
-                }
-
-                return copy(location.href);
-              }}
-            >
-              Permalink
-            </button>
-            {data.userCreatedSneaker && (
-              <Link
-                to={route("/sneakers/:sneakerId/edit", {
-                  sneakerId: data.sneaker.id,
-                })}
-                className="inline-block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
-              >
-                Edit Sneaker
-              </Link>
-            )}
-          </div>
+          <Outlet />
         </div>
       </div>
     </main>
