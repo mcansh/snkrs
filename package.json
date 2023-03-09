@@ -61,7 +61,7 @@
     "@cld-apis/types": "0.1.6",
     "@commitlint/cli": "17.4.4",
     "@commitlint/config-conventional": "17.4.4",
-    "@remix-run/dev": "v0.0.0-experimental-699baf49c",
+    "@remix-run/dev": "v1.14.0",
     "@remix-run/eslint-config": "v0.0.0-experimental-699baf49c",
     "@routes-gen/remix": "0.3.6",
     "@tailwindcss/aspect-ratio": "0.4.2",
