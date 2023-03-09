@@ -155,19 +155,27 @@ const sortOptions = [
   { value: "asc", label: "Oldest first" },
 ];
 
-export let meta: V2_MetaFunction = mergeMeta<typeof loader>(({ data }) => {
-  let name = possessive(data.user.fullName);
-  let description = `${name} Sneaker Collection`;
-  return [
-    { title: getPageTitle(`${name} Sneaker Collection`) },
-    { property: "og:title", content: description },
-    { property: "og:description", content: description },
-    { name: "twitter:card", content: "summary_large_image" },
-    { name: "twitter:title", content: description },
-    { name: "twitter:description", content: description },
-    { name: "description", content: description },
-  ];
-});
+export let meta: V2_MetaFunction = mergeMeta<typeof loader>(
+  ({ data }) => {
+    let name = possessive(data.user.fullName);
+    let description = `${name} Sneaker Collection`;
+    return [
+      { title: getPageTitle(`${name} Sneaker Collection`) },
+      { property: "og:title", content: description },
+      { property: "og:description", content: description },
+      { name: "description", content: description },
+    ];
+  },
+  ({ data }) => {
+    let name = possessive(data.user.fullName);
+    let description = `${name} Sneaker Collection`;
+    return [
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: description },
+      { name: "twitter:description", content: description },
+    ];
+  }
+);
 
 export default function UserSneakersPage() {
   let data = useLoaderData<typeof loader>();

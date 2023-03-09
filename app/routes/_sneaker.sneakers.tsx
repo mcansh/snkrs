@@ -61,25 +61,47 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   });
 };
 
-export let meta: V2_MetaFunction = mergeMeta<typeof loader>(({ data }) => {
-  let date = formatDate(data.sneaker.purchaseDate, data.timeZone, {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
+export let meta: V2_MetaFunction = mergeMeta<typeof loader>(
+  ({ data }) => {
+    let date = formatDate(data.sneaker.purchaseDate, data.timeZone, {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
 
-  return [
-    { title: getPageTitle(data.title) },
-    {
-      name: "description",
-      content: `${data.sneaker.user.fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`,
-    },
-    { property: "og:image", content: data.ogUrl },
-    { property: "og:image:width", content: "800" },
-    { property: "og:image:height", content: "400" },
-    { property: "og:image:alt", content: data.title },
-  ];
-});
+    let description = `${data.sneaker.user.fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`;
+
+    return [
+      { title: getPageTitle(data.title) },
+      {
+        name: "description",
+        content: description,
+      },
+      { property: "og:title", content: data.title },
+      { property: "og:description", content: description },
+      { property: "og:image", content: data.ogUrl },
+      { property: "og:image:width", content: "800" },
+      { property: "og:image:height", content: "400" },
+      { property: "og:image:alt", content: data.title },
+    ];
+  },
+  ({ data }) => {
+    let date = formatDate(data.sneaker.purchaseDate, data.timeZone, {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+
+    let description = `${data.sneaker.user.fullName} bought the ${data.sneaker.brand.name} ${data.sneaker.model} on ${date}`;
+    return [
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: description },
+      { name: "twitter:description", content: description },
+      { name: "twitter:image", content: data.ogUrl },
+      { name: "twitter:image:alt", content: data.title },
+    ];
+  }
+);
 
 export default function SneakerPage() {
   let data = useLoaderData<typeof loader>();
