@@ -30,7 +30,7 @@
     "@mcansh/remix-secure-headers": "0.6.2",
     "@prisma/client": "4.10.1",
     "@reach/alert": "0.18.0",
-    "@remix-run/css-bundle": "v0.0.0-experimental-699baf49c",
+    "@remix-run/css-bundle": "v1.14.3",
     "@remix-run/node": "v0.0.0-experimental-699baf49c",
     "@remix-run/react": "v0.0.0-experimental-699baf49c",
     "@sentry/node": "7.39.0",
