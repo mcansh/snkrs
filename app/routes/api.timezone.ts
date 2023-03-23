@@ -22,5 +22,5 @@ export async function action({ request }: DataFunctionArgs) {
     });
   }
 
-  return false;
+  return json(false);
 }

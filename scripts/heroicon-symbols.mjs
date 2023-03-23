@@ -1,7 +1,7 @@
 import path from "node:path";
 import fse from "fs-extra";
 import svgstore from "svgstore";
-import glob from "glob";
+import { globSync } from "glob";
 import prettier from "prettier";
 
 let HEROICONS_PATH = path.join(process.cwd(), "node_modules/heroicons");
@@ -18,11 +18,7 @@ let RELATIVE_COMPONENT_FILE = path.relative(process.cwd(), COMPONENT_FILE);
 let js = String.raw;
 
 async function createSprite(inputDir) {
-  let icons = glob.sync(`**/*.svg`, {
-    cwd: inputDir,
-    absolute: true,
-    nodir: true,
-  });
+  let icons = globSync(`${inputDir}/**/*.svg`, { nodir: true });
 
   let relative = path.relative(process.cwd(), inputDir);
   let count = icons.length === 1 ? "icon" : "icons";
