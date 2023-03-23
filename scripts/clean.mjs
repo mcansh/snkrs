@@ -1,21 +1,18 @@
 #!/usr/bin/env node
 
 import path from "node:path";
-import { promisify } from "node:util";
 import { deleteAsync } from "del";
 import kleur from "kleur";
 import Gitignore from "gitignore-fs";
-import glob from "glob";
+import { globSync } from "glob";
 
 import remixConfig from "../remix.config.mjs";
-
-let asyncGlob = promisify(glob);
 
 async function clean() {
   let cwd = process.cwd();
   let gitignore = new Gitignore();
 
-  let files = await asyncGlob("**/*", {
+  let files = await globSync("**/*", {
     absolute: true,
     ignore: ["node_modules/**/*", ".husky/**/*", ".env"],
     nodir: true,
