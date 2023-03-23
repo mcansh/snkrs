@@ -5,7 +5,7 @@ specifiers:
   "@commitlint/cli": 17.5.0
   "@commitlint/config-conventional": 17.4.4
   "@headlessui/react": 1.7.13
-  "@mcansh/remix-fastify": 2.6.4
+  "@mcansh/remix-fastify": 2.6.3
   "@mcansh/remix-secure-headers": 0.7.0
   "@prisma/client": 4.11.0
   "@reach/alert": 0.18.0
@@ -77,7 +77,7 @@ specifiers:
 
 dependencies:
   "@headlessui/react": 1.7.13_biqbaboplfbrettd7655fr4n2y
-  "@mcansh/remix-fastify": 2.6.4_wit5dtfpkdlwarl2wjukixalk4
+  "@mcansh/remix-fastify": 2.6.3_wit5dtfpkdlwarl2wjukixalk4
   "@mcansh/remix-secure-headers": 0.7.0
   "@prisma/client": 4.11.0_prisma@4.11.0
   "@reach/alert": 0.18.0_biqbaboplfbrettd7655fr4n2y
@@ -2968,10 +2968,10 @@ packages:
     engines: { node: ">=8" }
     dev: false
 
-  /@mcansh/remix-fastify/2.6.4_wit5dtfpkdlwarl2wjukixalk4:
+  /@mcansh/remix-fastify/2.6.3_wit5dtfpkdlwarl2wjukixalk4:
     resolution:
       {
-        integrity: sha512-9w2jF8FPmeh+KX/uvjXLnXbZ9fqFBWf90o//i2ELXhUPZE2o9mrApUMWGEqvwWXgu77iTeBWhFpBQB+rbsPjpg==,
+        integrity: sha512-I14HPQpE0rKAKc63ZSVZ2ZmbBhApjb5bEzT1xRAstWflIEzAn3EiHMw/DMRFVuTukmk/2PBs4yu9RRbF8caaZA==,
       }
     peerDependencies:
       "@remix-run/node": ^1.6.0
