@@ -9,10 +9,12 @@ import {
   Form,
   Link,
   Outlet,
+  isRouteErrorResponse,
   useFetcher,
   useLoaderData,
   useLocation,
   useNavigation,
+  useRouteError,
 } from "@remix-run/react";
 import { cssBundleHref } from "@remix-run/css-bundle";
 import * as Fathom from "fathom-client";
@@ -28,9 +30,6 @@ import interStylesHref from "./styles/inter.css";
 import { Svg } from "./components/heroicons";
 import { Document } from "./components/document";
 import { env } from "./env";
-
-export { CatchBoundary } from "./components/root-catch-boundary";
-export { ErrorBoundary } from "./components/root-error-boundary";
 
 export async function loader({ request }: LoaderArgs) {
   let user = await getUser(request);
@@ -339,6 +338,60 @@ export default function App() {
           </div>
         </div>
       ) : null}
+    </Document>
+  );
+}
+
+export function ErrorBoundary() {
+  let error = useRouteError();
+  console.error("Check your server terminal output");
+
+  if (isRouteErrorResponse(error)) {
+    if (error.error) {
+      return (
+        <Document
+          title="Shoot..."
+          bodyClassName="min-h-screen w-[90%] max-w-5xl mx-auto pt-20 space-y-4 font-mono text-center text-white bg-blue-bsod"
+        >
+          <h1 className="inline-block bg-white text-3xl font-bold text-blue-bsod">
+            Uncaught Exception!
+          </h1>
+          <p>
+            If you are not the developer, please click back in your browser and
+            try again.
+          </p>
+          <pre className="overflow-auto border-4 border-white px-4 py-2">
+            {error.error?.message}
+          </pre>
+          <p>
+            There was an uncaught exception in your application. Check the
+            browser console and/or the server console to inspect the error.
+          </p>
+        </Document>
+      );
+    }
+
+    return (
+      <Document
+        title={`${error.status} ${error.statusText}`}
+        bodyClassName="w-[90%] max-w-5xl mx-auto pt-20 space-y-4 font-mono text-center text-white bg-blue-bsod"
+      >
+        <h1 className="inline-block bg-white text-3xl font-bold text-blue-bsod">
+          {error.status} {error.statusText}
+        </h1>
+      </Document>
+    );
+  }
+
+  return (
+    <Document
+      title="Oops!"
+      bodyClassName="w-[90%] max-w-5xl mx-auto pt-20 space-y-4 font-mono text-center text-white bg-blue-bsod"
+    >
+      <h1 className="inline-block bg-white text-3xl font-bold text-blue-bsod">
+        Oops!
+      </h1>
+      <p>Something went wrong</p>
     </Document>
   );
 }
