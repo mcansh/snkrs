@@ -22,6 +22,7 @@ import {
 } from "~/session.server";
 import type { RouteHandle } from "~/lib/use-matches";
 import { getPageTitle, mergeMeta } from "~/meta";
+import { getFormData } from "~/lib/schemas";
 
 export let loader = async ({ request }: LoaderArgs) => {
   let userId = await getUserId(request);
@@ -48,21 +49,16 @@ export let loader = async ({ request }: LoaderArgs) => {
 };
 
 export let action = async ({ request }: ActionArgs) => {
-  let formData = await request.formData();
-
   let url = new URL(request.url);
   let redirectTo = url.searchParams.get("returnTo");
 
-  let valid = loginSchema.safeParse(formData);
-  if (!valid.success) {
-    return json(
-      { errors: valid.error.formErrors.fieldErrors },
-      { status: 422 }
-    );
+  let result = await getFormData(request, loginSchema);
+  if (!result.success) {
+    return json({ errors: result.errors }, { status: 422 });
   }
 
   let foundUser = await prisma.user.findUnique({
-    where: { email: valid.data.email },
+    where: { email: result.data.email },
   });
 
   if (!foundUser) {
@@ -72,7 +68,7 @@ export let action = async ({ request }: ActionArgs) => {
     );
   }
 
-  let validCredentials = await verify(valid.data.password, foundUser.password);
+  let validCredentials = await verify(result.data.password, foundUser.password);
 
   if (!validCredentials) {
     return json(
@@ -105,9 +101,15 @@ export default function LoginPage() {
     navigation.state === "submitting";
 
   let emailErrors =
-    actionData && "email" in actionData.errors && actionData.errors.email;
+    actionData &&
+    "errors" in actionData &&
+    "email" in actionData.errors &&
+    actionData.errors.email;
   let passwordErrors =
-    actionData && "password" in actionData.errors && actionData.errors.password;
+    actionData &&
+    "errors" in actionData &&
+    "password" in actionData.errors &&
+    actionData.errors.password;
 
   return (
     <div className="flex min-h-full flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">

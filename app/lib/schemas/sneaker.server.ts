@@ -1,7 +1,6 @@
 import accounting from "accounting";
 import { isAfter } from "date-fns";
 import { z } from "zod";
-import { zfd } from "zod-form-data";
 
 const preprocessDate: z.PreprocessEffect<unknown>["transform"] = (data) => {
   if (typeof data !== "string") return data;
@@ -28,16 +27,16 @@ const preprocessPrice: z.PreprocessEffect<unknown>["transform"] = (data) => {
 export let url_regex =
   /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi;
 
-export let sneakerSchema = zfd.formData({
-  model: zfd.text(),
-  colorway: zfd.text(),
-  brand: zfd.text(),
-  size: zfd.numeric(z.number().positive()),
-  imagePublicId: zfd.text(),
+export let sneakerSchema = z.object({
+  model: z.string(),
+  colorway: z.string(),
+  brand: z.string(),
+  size: z.number().positive(),
+  imagePublicId: z.string(),
   retailPrice: z.preprocess(preprocessPrice, z.number()),
   price: z.preprocess(preprocessPrice, z.number()),
-  purchaseDate: zfd
-    .text(z.preprocess(preprocessDate, z.date()))
+  purchaseDate: z
+    .preprocess(preprocessDate, z.date())
     .superRefine(isReasonableDate),
 });
 

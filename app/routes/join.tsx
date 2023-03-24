@@ -18,6 +18,7 @@ import { hash } from "~/lib/auth.server";
 import { createUserSession, getUserId } from "~/session.server";
 import type { RouteHandle } from "~/lib/use-matches";
 import { getPageTitle, mergeMeta } from "~/meta";
+import { getFormData } from "~/lib/schemas";
 
 export let loader = async ({ request }: LoaderArgs) => {
   let userId = await getUserId(request);
@@ -26,15 +27,10 @@ export let loader = async ({ request }: LoaderArgs) => {
 };
 
 export let action = async ({ request }: ActionArgs) => {
-  let formData = await request.formData();
-
-  let result = registerSchema.safeParse(formData);
+  let result = await getFormData(request, registerSchema);
 
   if (!result.success) {
-    return json(
-      { errors: result.error.formErrors.fieldErrors },
-      { status: 422 }
-    );
+    return json({ errors: result.errors }, { status: 422 });
   }
 
   let foundUser = await prisma.user.findFirst({
@@ -110,8 +106,10 @@ export default function JoinPage() {
               {inputs.map((input) => {
                 let error =
                   actionData && input.name in actionData.errors
-                    ? actionData.errors[input.name]
+                    ? // @ts-expect-error 🥱
+                      actionData.errors[input.name]
                     : null;
+
                 return (
                   <div key={input.name}>
                     <label
