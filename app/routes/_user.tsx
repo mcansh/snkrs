@@ -1,9 +1,6 @@
 import * as React from "react";
-import type {
-  HeadersFunction,
-  LoaderArgs,
-  V2_MetaFunction,
-} from "@remix-run/node";
+import type { HeadersFunction, LoaderArgs } from "@remix-run/node";
+import type { V2_MetaFunction } from "@remix-run/react";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,

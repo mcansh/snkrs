@@ -1,5 +1,6 @@
 import * as React from "react";
-import type { ActionArgs, LoaderArgs, V2_MetaFunction } from "@remix-run/node";
+import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import type { V2_MetaFunction } from "@remix-run/react";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
@@ -216,7 +217,7 @@ export default function ProfilePage() {
             iconLoading={
               <Svg
                 className="inline-block h-6 w-6 animate-spin fill-white"
-                name="24:solid:refresh-clockwise"
+                name="24:solid:arrow-path"
               />
             }
             icon={

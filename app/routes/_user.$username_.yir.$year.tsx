@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
-import type { LoaderArgs, V2_MetaFunction } from "@remix-run/node";
+import type { LoaderArgs } from "@remix-run/node";
+import type { V2_MetaFunction } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { endOfYear, startOfYear } from "date-fns";

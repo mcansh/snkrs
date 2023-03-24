@@ -1,6 +1,7 @@
-import type { LoaderArgs, V2_MetaFunction } from "@remix-run/node";
+import type { LoaderArgs } from "@remix-run/node";
+import type { V2_MetaFunction } from "@remix-run/react";
 import { json } from "@remix-run/node";
-import { Link, Outlet, useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
 import { route } from "routes-gen";
 

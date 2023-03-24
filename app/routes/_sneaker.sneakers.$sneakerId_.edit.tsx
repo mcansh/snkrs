@@ -1,4 +1,5 @@
-import type { DataFunctionArgs, V2_MetaFunction } from "@remix-run/node";
+import type { DataFunctionArgs } from "@remix-run/node";
+import type { V2_MetaFunction } from "@remix-run/react";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,

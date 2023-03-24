@@ -1,8 +1,5 @@
-import type {
-  LoaderFunction,
-  V2_HtmlMetaDescriptor,
-  V2_MetaFunction,
-} from "@remix-run/node";
+import type { LoaderFunction } from "@remix-run/node";
+import type { V2_MetaDescriptor, V2_MetaFunction } from "@remix-run/react";
 
 export function getPageTitle(title: string) {
   return `${title} | Snkrs`;
@@ -17,18 +14,15 @@ export const mergeMeta = <
 ): V2_MetaFunction => {
   return (args) => {
     // get meta from parent routes
-    let mergedMeta = args.matches.reduce<V2_HtmlMetaDescriptor[]>(
-      (acc, match) => {
-        return acc.concat(match.meta || []);
-      },
-      []
-    );
+    let mergedMeta = args.matches.reduce<V2_MetaDescriptor[]>((acc, match) => {
+      return acc.concat(match.meta || []);
+    }, []);
 
     if (!args.data) return mergedMeta;
 
     // replace any parent meta with the same name or property with the override
     // @ts-expect-error
-    let overrides = overrideFn(args);
+    let overrides = overrideFn(args) || [];
     for (let override of overrides) {
       let index = mergedMeta.findIndex((meta) => {
         let name =
