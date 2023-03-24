@@ -12,6 +12,10 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   let url = new URL(request.url);
   let userId = await getUserId(request);
 
+  if (!params.username) {
+    throw new Response(null, { status: 404 });
+  }
+
   let selectedBrands = url.searchParams.getAll("brand");
   let sortQuery = url.searchParams.get("sort");
   let sort: Prisma.SortOrder = sortQuery === "asc" ? "asc" : "desc";
@@ -25,14 +29,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
         orderBy: { purchaseDate: sort },
         where: {
           brand: {
-            is: {
-              OR:
-                selectedBrands.length > 0
-                  ? selectedBrands.map((brand) => ({
-                      slug: brand,
-                    }))
-                  : undefined,
-            },
+            slug: selectedBrands.length > 0 ? { in: selectedBrands } : {},
           },
         },
       },

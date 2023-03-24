@@ -45,12 +45,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
             lte: end,
           },
           brand: {
-            is: {
-              OR:
-                selectedBrands.length > 0
-                  ? selectedBrands.map((brand) => ({ slug: brand }))
-                  : undefined,
-            },
+            slug: selectedBrands.length > 0 ? { in: selectedBrands } : {},
           },
         },
       },

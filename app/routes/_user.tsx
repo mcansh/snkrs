@@ -33,6 +33,9 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   let year = params.year ? Number(params.year) : null;
 
   let { user, brands, sessionUser } = await prisma.$transaction(async (tx) => {
+    if (!params.username) {
+      throw new Response("This user doesn't exist", { status: 404 });
+    }
     let user = await prisma.user.findUnique({
       where: { username: params.username },
       select: {
@@ -45,12 +48,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
           orderBy: { purchaseDate: sort },
           where: {
             brand: {
-              is: {
-                OR:
-                  selectedBrands.length > 0
-                    ? selectedBrands.map((brand) => ({ slug: brand }))
-                    : undefined,
-              },
+              slug: selectedBrands.length > 0 ? { in: selectedBrands } : {},
             },
           },
         },

@@ -12,6 +12,7 @@
     "strict": true,
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
+    "exactOptionalPropertyTypes": true,
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
