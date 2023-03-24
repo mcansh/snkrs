@@ -4,13 +4,11 @@ import { Link, Outlet, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
 import { route } from "routes-gen";
 
-import { formatDate } from "~/utils/format-date";
-import { getCloudinaryURL, getImageURLs } from "~/utils/get-cloudinary-url";
-import { formatMoney } from "~/utils/format-money";
-import { copy } from "~/utils/copy";
+import { copy } from "~/lib/copy";
 import { prisma } from "~/db.server";
 import { getTimeZone, getUserId } from "~/session.server";
 import { getPageTitle, mergeMeta } from "~/meta";
+import { formatDate } from "~/lib/format-date";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
   invariant(params.sneakerId, "sneakerID is required");

@@ -20,8 +20,8 @@ import { route } from "routes-gen";
 import { prisma } from "~/db.server";
 import { Svg } from "~/components/heroicons";
 import { getUserId, sessionStorage } from "~/session.server";
-import { possessive } from "~/utils/possessive";
-import { formatMoney } from "~/utils/format-money";
+import { possessive } from "~/lib/possessive";
+import { formatMoney } from "~/lib/format-money";
 import { getPageTitle, mergeMeta } from "~/meta";
 
 export let loader = async ({ params, request }: LoaderArgs) => {

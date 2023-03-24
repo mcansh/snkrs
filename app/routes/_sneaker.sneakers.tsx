@@ -4,9 +4,9 @@ import { Link, Outlet, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
 import { route } from "routes-gen";
 
-import { formatDate } from "~/utils/format-date";
-import { getCloudinaryURL, getImageURLs } from "~/utils/get-cloudinary-url";
-import { formatMoney } from "~/utils/format-money";
+import { formatDate } from "~/lib/format-date";
+import { getCloudinaryURL, getImageURLs } from "~/lib/get-cloudinary-url";
+import { formatMoney } from "~/lib/format-money";
 import { prisma } from "~/db.server";
 import { getTimeZone, getUserId } from "~/session.server";
 import { getPageTitle, mergeMeta } from "~/meta";

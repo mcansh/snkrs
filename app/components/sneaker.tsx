@@ -3,8 +3,8 @@ import { Link } from "@remix-run/react";
 import { route } from "routes-gen";
 import type { SerializeFrom } from "@remix-run/node";
 
-import { getCloudinaryURL, getImageURLs } from "~/utils/get-cloudinary-url";
-import { formatMoney } from "~/utils/format-money";
+import { getCloudinaryURL, getImageURLs } from "~/lib/get-cloudinary-url";
+import { formatMoney } from "~/lib/format-money";
 
 let sneakerWithBrand = Prisma.validator<Prisma.SneakerArgs>()({
   include: { brand: true },

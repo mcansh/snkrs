@@ -8,7 +8,7 @@ import type { SatoriOptions } from "satori";
 import interRegularFontUrl from "~/styles/fonts/Inter-Regular.woff";
 import interBoldFontUrl from "~/styles/fonts/Inter-Bold.woff";
 import { prisma } from "~/db.server";
-import { getCloudinaryURL } from "~/utils/get-cloudinary-url";
+import { getCloudinaryURL } from "~/lib/get-cloudinary-url";
 
 export async function loader({ params }: DataFunctionArgs) {
   if (!params.sneakerId) {
