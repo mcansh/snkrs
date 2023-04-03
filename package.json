@@ -33,7 +33,7 @@
     "@remix-run/css-bundle": "1.15.0-pre.2",
     "@remix-run/node": "1.15.0-pre.2",
     "@remix-run/react": "1.15.0-pre.2",
-    "@sentry/node": "7.44.2",
+    "@sentry/node": "7.46.0",
     "accounting": "0.4.1",
     "cloudinary": "1.35.0",
     "cloudinary-build-url": "0.2.4",
