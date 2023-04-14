@@ -27,6 +27,7 @@ import interStylesHref from "./styles/inter.css";
 import { Svg } from "./components/heroicons";
 import { Document } from "./components/document";
 import { env } from "./env";
+import { TailwindIndicator } from "./components/tailwind-indicator";
 
 export async function loader({ request }: LoaderArgs) {
   let user = await getUser(request);
@@ -335,6 +336,7 @@ export default function App() {
           </div>
         </div>
       ) : null}
+      <TailwindIndicator />
     </Document>
   );
 }
