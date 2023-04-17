@@ -73,7 +73,7 @@
     "@types/etag": "1.8.1",
     "@types/jest": "29.5.0",
     "@types/node": "18.15.11",
-    "@types/react": "18.0.33",
+    "@types/react": "18.0.35",
     "@types/react-dom": "18.0.11",
     "autoprefixer": "10.4.14",
     "del": "7.0.0",
