@@ -181,7 +181,7 @@ export default function App() {
       )}
     >
       {showPendingSpinner && (
-        <div className="fixed top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 transform-gpu">
+        <div className="fixed left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 transform-gpu">
           <Svg
             className="z-10 h-10 w-10 animate-spin fill-none stroke-blue-600 stroke-2"
             name="24:outline:arrow-path"
@@ -217,7 +217,7 @@ export default function App() {
               leaveFrom="translate-x-0"
               leaveTo="translate-x-full"
             >
-              <div className="relative ml-auto flex h-full w-full max-w-xs flex-col space-y-4 overflow-y-auto bg-white px-4 pt-4 pb-6 shadow-xl">
+              <div className="relative ml-auto flex h-full w-full max-w-xs flex-col space-y-4 overflow-y-auto bg-white px-4 pb-6 pt-4 shadow-xl">
                 <div className="flex justify-end">
                   <button
                     type="button"
@@ -291,7 +291,7 @@ export default function App() {
 
       {showTimeZonePrompt ? (
         <div
-          className="fixed bottom-2 right-2 left-2 sm:left-auto"
+          className="fixed bottom-2 left-2 right-2 sm:left-auto"
           role="alert"
           aria-live="polite"
         >
