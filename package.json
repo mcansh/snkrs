@@ -82,7 +82,7 @@
     "eslint-plugin-prefer-let": "3.0.1",
     "fs-extra": "11.1.1",
     "gitignore-fs": "2.2.2",
-    "glob": "9.3.4",
+    "glob": "10.2.4",
     "heroicons": "2.0.17",
     "husky": "8.0.3",
     "jest": "29.5.0",
