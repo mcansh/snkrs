@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@headlessui/react": "1.7.13",
-    "@mcansh/remix-fastify": "2.7.0",
+    "@mcansh/remix-fastify": "2.7.3",
     "@mcansh/remix-secure-headers": "0.7.1",
     "@prisma/client": "4.12.0",
     "@reach/alert": "0.18.0",
