@@ -4,7 +4,7 @@ import { createTypedSessionStorage } from "remix-utils";
 import { z } from "zod";
 
 import { prisma } from "./db.server";
-import { env } from "./env";
+import { env } from "./env.server";
 
 let sessionStorage = createCookieSessionStorage({
   cookie: {
