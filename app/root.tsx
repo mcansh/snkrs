@@ -119,7 +119,9 @@ export default function App() {
   let fathomInitialized = React.useRef(false);
 
   let matches = useMatches();
-  let handleBodyClassName = matches.map((match) => match.handle?.bodyClassName);
+  let handleBodyClassName = matches.map(
+    (match) => match.handle?.bodyClassName
+  );
 
   React.useEffect(() => {
     if (fathomInitialized.current) return;
@@ -161,7 +163,7 @@ export default function App() {
         method: "post",
       });
     },
-    [fetcher.submit]
+    [fetcher]
   );
 
   React.useEffect(() => {
@@ -231,6 +233,7 @@ export default function App() {
                 <Link
                   to="/"
                   className="w-full rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
+                  prefetch="intent"
                 >
                   Home
                 </Link>
@@ -239,12 +242,14 @@ export default function App() {
                     <Link
                       to="sneakers/add"
                       className="w-full rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
+                      prefetch="intent"
                     >
                       Add Sneaker
                     </Link>
                     <Link
                       to="profile"
                       className="w-full rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
+                      prefetch="intent"
                     >
                       Edit Account
                     </Link>
@@ -262,12 +267,14 @@ export default function App() {
                     <Link
                       to="login"
                       className="rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
+                      prefetch="intent"
                     >
                       Login
                     </Link>
                     <Link
                       to="join"
                       className="w-full rounded-md border border-transparent bg-rose-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10"
+                      prefetch="intent"
                     >
                       Join
                     </Link>

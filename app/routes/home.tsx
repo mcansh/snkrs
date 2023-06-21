@@ -41,12 +41,14 @@ export default function IndexPage() {
                   <Link
                     to={route("/join")}
                     className="rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
+                    prefetch="intent"
                   >
                     Get started
                   </Link>
                   <Link
                     to={route("/:username", { username: data.demo })}
                     className="rounded-md border border-transparent bg-rose-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10"
+                    prefetch="intent"
                   >
                     View live demo
                   </Link>

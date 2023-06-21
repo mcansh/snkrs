@@ -194,6 +194,7 @@ export default function UserSneakersPage() {
         <Link
           className="text-purple-600 transition-colors duration-150 ease-in-out hover:text-purple-300"
           to={route("/sneakers/add")}
+          prefetch="intent"
         >
           Add a sneaker to your collection
         </Link>
@@ -263,7 +264,7 @@ export default function UserSneakersPage() {
                             </span>
                           </div>
                         </legend>
-                        <div className="px-4 pt-4 pb-2">
+                        <div className="px-4 pb-2 pt-4">
                           <select
                             title="sort"
                             name="sort"
@@ -297,7 +298,7 @@ export default function UserSneakersPage() {
                           </span>
                         </div>
                       </legend>
-                      <div className="px-4 pt-4 pb-2">
+                      <div className="px-4 pb-2 pt-4">
                         <div className="space-y-6">
                           {section.options.map((option) => (
                             <div

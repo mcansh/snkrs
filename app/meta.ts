@@ -5,7 +5,7 @@ export function getPageTitle(title: string) {
   return `${title} | Snkrs`;
 }
 
-export const mergeMeta = <
+export let mergeMeta = <
   Loader extends LoaderFunction | unknown = unknown,
   ParentsLoaders extends Record<string, LoaderFunction> = {}
 >(

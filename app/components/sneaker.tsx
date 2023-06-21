@@ -40,7 +40,11 @@ export function SneakerCard({
           />
         </div>
         <h3 className="mt-4 text-sm text-gray-700">
-          <Link to={route("/sneakers/:sneakerId", { sneakerId: id })}>
+          <Link
+            to={route("/sneakers/:sneakerId", { sneakerId: id })}
+            prefetch="viewport"
+            data-component="SneakerCard"
+          >
             <span className="absolute inset-0" />
             {brand.name} {model}
           </Link>

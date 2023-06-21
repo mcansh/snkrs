@@ -7,7 +7,7 @@ import { prisma } from "~/db.server";
 import Home, { loader as homeLoader } from "./home";
 export { meta } from "./home";
 
-export const loader = async ({ request, ...args }: LoaderArgs) => {
+export let loader = async ({ request, ...args }: LoaderArgs) => {
   let userId = await getUserId(request);
   if (userId) {
     let user = await prisma.user.findUnique({ where: { id: userId } });

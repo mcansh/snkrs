@@ -107,6 +107,7 @@ export default function SneakerPage() {
           to={route("/sneakers/:sneakerId/edit", {
             sneakerId: data.sneaker.id,
           })}
+          prefetch="intent"
           className="inline-block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"
         >
           Edit Sneaker

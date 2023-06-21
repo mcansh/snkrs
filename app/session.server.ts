@@ -106,4 +106,4 @@ export async function getTimeZone(request: Request) {
   return session.get("timeZone") || "UTC";
 }
 
-export const commitSession = typedSessionStorage.commitSession;
+export let commitSession = typedSessionStorage.commitSession;
