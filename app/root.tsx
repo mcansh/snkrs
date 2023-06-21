@@ -42,7 +42,8 @@ export async function loader({ request }: LoaderArgs) {
   });
 }
 
-export let meta: V2_MetaFunction = ({ data }) => {
+export let meta: V2_MetaFunction<typeof loader> = ({ data }) => {
+  if (!data) return [];
   return [
     { title: "Snkrs" },
     { name: "description", content: "show off your sneaker collection" },
