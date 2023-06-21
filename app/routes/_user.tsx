@@ -152,6 +152,7 @@ const sortOptions = [
 
 export let meta: V2_MetaFunction = mergeMeta<typeof loader>(
   ({ data }) => {
+    if (!data) return [];
     let name = possessive(data.user.fullName);
     let description = `${name} Sneaker Collection`;
     return [
@@ -162,6 +163,7 @@ export let meta: V2_MetaFunction = mergeMeta<typeof loader>(
     ];
   },
   ({ data }) => {
+    if (!data) return [];
     let name = possessive(data.user.fullName);
     let description = `${name} Sneaker Collection`;
     return [

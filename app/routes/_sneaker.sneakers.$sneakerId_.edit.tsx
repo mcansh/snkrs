@@ -129,6 +129,7 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
 };
 
 export let meta: V2_MetaFunction = mergeMeta<typeof loader>(({ data }) => {
+  if (!data) return [];
   return [
     {
       title: getPageTitle(

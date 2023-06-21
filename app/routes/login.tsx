@@ -112,7 +112,7 @@ export default function LoginPage() {
     actionData.errors.password;
 
   return (
-    <div className="flex min-h-full flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="flex min-h-full flex-col justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Sign in to your account
@@ -120,7 +120,7 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="rounded-lg bg-white py-8 px-4 shadow sm:px-10">
+        <div className="rounded-lg bg-white px-4 py-8 shadow sm:px-10">
           <Form method="post">
             <fieldset disabled={pendingForm} className="space-y-6">
               <div>
@@ -197,6 +197,7 @@ export default function LoginPage() {
                   <Link
                     to={route("/join")}
                     className="font-medium text-indigo-600 hover:text-indigo-500"
+                    prefetch="intent"
                   >
                     Join
                   </Link>
@@ -206,7 +207,7 @@ export default function LoginPage() {
               <div>
                 <button
                   type="submit"
-                  className="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  className="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
                   Sign in
                 </button>

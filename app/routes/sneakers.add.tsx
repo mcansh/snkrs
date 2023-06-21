@@ -17,7 +17,7 @@ import { sneakerSchema, url_regex } from "~/lib/schemas/sneaker.server";
 import { requireUserId } from "~/session.server";
 import { getPageTitle, mergeMeta } from "~/meta";
 
-export const meta: V2_MetaFunction = mergeMeta(() => {
+export let meta: V2_MetaFunction = mergeMeta(() => {
   return [{ title: getPageTitle("Add a sneaker to your collection") }];
 });
 

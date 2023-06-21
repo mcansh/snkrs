@@ -58,6 +58,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
 };
 
 export let meta: V2_MetaFunction = mergeMeta<typeof loader>(({ data }) => {
+  if (!data) return [];
   let date = formatDate(data.sneaker.purchaseDate, data.timeZone, {
     month: "long",
     day: "numeric",

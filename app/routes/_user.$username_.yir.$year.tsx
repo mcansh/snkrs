@@ -63,6 +63,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
 };
 
 export let meta: V2_MetaFunction = mergeMeta<typeof loader>(({ data }) => {
+  if (!data) return [];
   let sneakers = data.user.sneakers.length === 1 ? "sneaker" : "sneakers";
   let description = `${data.user.username} bought ${data.user.sneakers.length} ${sneakers} in ${data.year}`;
   return [
