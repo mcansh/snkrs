@@ -29,20 +29,24 @@ export async function loader({ request }: LoaderArgs) {
 export async function action({ request }: ActionArgs) {
   let userId = await requireUserId(request);
   let formData = await request.formData();
-  let valid = sneakerSchema.safeParse(formData);
+  let result = sneakerSchema.safeParse(formData);
 
-  if (!valid.success) {
-    return json({ errors: valid.error.flatten().fieldErrors }, { status: 422 });
+  if (!result.success) {
+    console.error(result.error);
+    return json(
+      { errors: result.error.flatten().fieldErrors },
+      { status: 422 }
+    );
   }
 
   let imagePublicId = "";
-  if (valid.data.imagePublicId) {
+  if (result.data.imagePublicId) {
     // image was already uploaded to our cloudinary bucket
-    if (valid.data.imagePublicId.startsWith("shoes/")) {
-      imagePublicId = valid.data.imagePublicId;
-    } else if (url_regex.test(valid.data.imagePublicId)) {
+    if (result.data.imagePublicId.startsWith("shoes/")) {
+      imagePublicId = result.data.imagePublicId;
+    } else if (url_regex.test(result.data.imagePublicId)) {
       // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
-      let res = await cloudinary.v2.uploader.upload(valid.data.imagePublicId, {
+      let res = await cloudinary.v2.uploader.upload(result.data.imagePublicId, {
         resource_type: "image",
         folder: "shoes",
       });
@@ -59,20 +63,20 @@ export async function action({ request }: ActionArgs) {
       brand: {
         connectOrCreate: {
           where: {
-            name: valid.data.brand,
+            name: result.data.brand,
           },
           create: {
-            name: valid.data.brand,
-            slug: slugify(valid.data.brand, { lower: true }),
+            name: result.data.brand,
+            slug: slugify(result.data.brand, { lower: true }),
           },
         },
       },
-      colorway: valid.data.colorway,
-      model: valid.data.model,
-      price: valid.data.price,
-      purchaseDate: valid.data.purchaseDate.toISOString(),
-      retailPrice: valid.data.retailPrice,
-      size: valid.data.size,
+      colorway: result.data.colorway,
+      model: result.data.model,
+      price: result.data.price,
+      purchaseDate: result.data.purchaseDate.toISOString(),
+      retailPrice: result.data.retailPrice,
+      size: result.data.size,
       imagePublicId,
     },
     include: { user: { select: { username: true } }, brand: true },

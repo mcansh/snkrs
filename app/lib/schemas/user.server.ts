@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { zfd } from "zod-form-data";
 
 import reservedUsernames from "./reserved-usernames.json";
 import commonPasswords from "./common-passwords.json";
@@ -30,15 +31,15 @@ export let loginSchema = z.object({
   password: z.string().min(12, "Must be at least 12 characters"),
 });
 
-export let editProfile = z.object({
-  email: z.string().email(),
-  username: z
-    .string()
-    .refine(isAllowedUsername, { message: "Username is reserved" }),
+export let editProfile = zfd.formData({
+  email: zfd.text(z.string().email()),
+  username: zfd.text(
+    z.string().refine(isAllowedUsername, { message: "Username is reserved" })
+  ),
   settings: z.object({
-    showPurchasePrice: z.boolean(),
-    showRetailPrice: z.boolean(),
-    showTotalPrice: z.boolean(),
+    showPurchasePrice: zfd.checkbox(),
+    showRetailPrice: zfd.checkbox(),
+    showTotalPrice: zfd.checkbox(),
   }),
 });
 
