@@ -30,7 +30,7 @@
     "@prisma/client": "^4.16.1",
     "@reach/alert": "^0.18.0",
     "@remix-run/css-bundle": "0.0.0-nightly-a91ddce-20230627",
-    "@remix-run/node": "0.0.0-nightly-a91ddce-20230627",
+    "@remix-run/node": "1.18.0",
     "@remix-run/react": "0.0.0-nightly-a91ddce-20230627",
     "@sentry/node": "^7.56.0",
     "accounting": "^0.4.1",
