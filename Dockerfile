@@ -62,7 +62,7 @@ COPY --from=build /myapp/node_modules/.prisma /myapp/node_modules/.prisma
 COPY --from=build /myapp/build /myapp/build
 COPY --from=build /myapp/public /myapp/public
 
-# TODO: only copied output files, not everything
+# TODO: only copy output files, not everything
 ADD . .
 
 CMD ["sh", "scripts/start_with_migrations.sh"]

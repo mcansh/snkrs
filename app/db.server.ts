@@ -1,3 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 
-export let prisma = new PrismaClient();
+import { singleton } from "./lib/singleton";
+
+export let prisma = singleton("prisma", () => new PrismaClient());

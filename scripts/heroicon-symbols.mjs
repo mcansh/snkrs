@@ -76,11 +76,11 @@ async function compile() {
   await Promise.all([
     fse.writeFile(
       OUTFILE,
-      prettier.format(sprites.toString(), { parser: "html" })
+      await prettier.format(sprites.toString(), { parser: "html" }),
     ),
     fse.writeFile(
       COMPONENT_FILE,
-      prettier.format(component, { parser: "typescript" })
+      await prettier.format(component, { parser: "typescript" }),
     ),
   ]);
 
