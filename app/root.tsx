@@ -119,9 +119,7 @@ export default function App() {
   let fathomInitialized = React.useRef(false);
 
   let matches = useMatches();
-  let handleBodyClassName = matches.map(
-    (match) => match.handle?.bodyClassName
-  );
+  let handleBodyClassName = matches.map((match) => match.handle?.bodyClassName);
 
   React.useEffect(() => {
     if (fathomInitialized.current) return;
@@ -143,7 +141,7 @@ export default function App() {
       setShowPendingSpinner(
         navigation.state !== "idle" &&
           navigation.formMethod !== "post" &&
-          location.pathname !== "/profile"
+          location.pathname !== "/profile",
       );
     }, 500);
 
@@ -163,7 +161,7 @@ export default function App() {
         method: "post",
       });
     },
-    [fetcher]
+    [fetcher],
   );
 
   React.useEffect(() => {
@@ -179,7 +177,7 @@ export default function App() {
     <Document
       bodyClassName={clsx(
         showPendingSpinner ? "opacity-60 cursor-not-allowed" : "",
-        handleBodyClassName
+        handleBodyClassName,
       )}
     >
       {showPendingSpinner && (

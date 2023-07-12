@@ -34,7 +34,7 @@ export let loginSchema = z.object({
 export let editProfile = zfd.formData({
   email: zfd.text(z.string().email()),
   username: zfd.text(
-    z.string().refine(isAllowedUsername, { message: "Username is reserved" })
+    z.string().refine(isAllowedUsername, { message: "Username is reserved" }),
   ),
   settings: z.object({
     showPurchasePrice: zfd.checkbox(),

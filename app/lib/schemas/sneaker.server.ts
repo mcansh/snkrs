@@ -1,16 +1,17 @@
 import accounting from "accounting";
 import { isAfter } from "date-fns";
 import { z } from "zod";
-import { zfd } from "zod-form-data";
 
-const preprocessDate: z.PreprocessEffect<unknown>["transform"] = (data) => {
+export let preprocessDate: z.PreprocessEffect<unknown>["transform"] = (
+  data,
+) => {
   if (typeof data !== "string") return data;
   return new Date(data);
 };
 
-const isReasonableDate: z.RefinementEffect<Date>["refinement"] = (
+export let isReasonableDate: z.RefinementEffect<Date>["refinement"] = (
   date,
-  ctx
+  ctx,
 ) => {
   if (isAfter(date, new Date())) {
     ctx.addIssue({
@@ -20,7 +21,9 @@ const isReasonableDate: z.RefinementEffect<Date>["refinement"] = (
   }
 };
 
-const preprocessPrice: z.PreprocessEffect<unknown>["transform"] = (data) => {
+export let preprocessPrice: z.PreprocessEffect<unknown>["transform"] = (
+  data,
+) => {
   if (typeof data !== "string") return data;
   return accounting.unformat(data) * 100;
 };
@@ -28,17 +31,17 @@ const preprocessPrice: z.PreprocessEffect<unknown>["transform"] = (data) => {
 export let url_regex =
   /[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/gi;
 
-export let sneakerSchema = zfd.formData({
-  model: zfd.text(),
-  colorway: zfd.text(),
-  brand: zfd.text(),
-  size: zfd.numeric(z.number().positive()),
-  imagePublicId: zfd.text(),
-  retailPrice: zfd.numeric(z.preprocess(preprocessPrice, z.number())),
-  price: zfd.numeric(z.preprocess(preprocessPrice, z.number())),
-  purchaseDate: zfd.text(
-    z.preprocess(preprocessDate, z.date()).superRefine(isReasonableDate)
-  ),
+export let sneakerSchema = z.object({
+  model: z.string().min(1, "Required"),
+  colorway: z.string().min(1, "Required"),
+  brand: z.string().min(1, "Required"),
+  size: z.coerce.number().positive(),
+  imagePublicId: z.string().min(1, "Required"),
+  retailPrice: z.preprocess(preprocessPrice, z.number()),
+  price: z.preprocess(preprocessPrice, z.number()),
+  purchaseDate: z
+    .preprocess(preprocessDate, z.date())
+    .superRefine(isReasonableDate),
 });
 
 export type SneakerSchema = z.infer<typeof sneakerSchema>;

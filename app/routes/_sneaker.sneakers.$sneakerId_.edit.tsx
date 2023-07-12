@@ -133,7 +133,7 @@ export let meta: V2_MetaFunction = mergeMeta<typeof loader>(({ data }) => {
   return [
     {
       title: getPageTitle(
-        `Editing ${data.sneaker.brand.name} ${data.sneaker.model} – ${data.sneaker.colorway}`
+        `Editing ${data.sneaker.brand.name} ${data.sneaker.model} – ${data.sneaker.colorway}`,
       ),
     },
   ];
@@ -162,7 +162,7 @@ export default function EditSneakerPage() {
                   <li key={`${errorKey}-${errorValue}`}>
                     {errorKey}: {errorValue}
                   </li>
-                )
+                ),
               )}
             </ul>
           </div>

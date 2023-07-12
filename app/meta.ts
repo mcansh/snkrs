@@ -7,10 +7,10 @@ export function getPageTitle(title: string) {
 
 export let mergeMeta = <
   Loader extends LoaderFunction | unknown = unknown,
-  ParentsLoaders extends Record<string, LoaderFunction> = {}
+  ParentsLoaders extends Record<string, LoaderFunction> = {},
 >(
   overrideFn: V2_MetaFunction<Loader, ParentsLoaders>,
-  appendFn?: V2_MetaFunction<Loader, ParentsLoaders>
+  appendFn?: V2_MetaFunction<Loader, ParentsLoaders>,
 ): V2_MetaFunction => {
   return (args) => {
     // get meta from parent routes

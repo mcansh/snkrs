@@ -10,7 +10,7 @@ export let baseFormatDateOptions: Intl.DateTimeFormatOptions = {
 export function formatDate(
   date: Date | number | string,
   timeZone: string,
-  additionalFormatOptions: Intl.DateTimeFormatOptions = {}
+  additionalFormatOptions: Intl.DateTimeFormatOptions = {},
 ) {
   let formatter = new Intl.DateTimeFormat("en-US", {
     ...baseFormatDateOptions,

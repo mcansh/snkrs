@@ -15,7 +15,7 @@ export let loader = async ({ request, ...args }: LoaderArgs) => {
       return createUserSession(
         request,
         user.id,
-        route("/:username", { username: user.username })
+        route("/:username", { username: user.username }),
       );
     }
   }

@@ -42,14 +42,14 @@ export let action = async ({ request }: ActionArgs) => {
   if (foundUser && foundUser.email === result.data.email) {
     return json(
       { errors: { email: ["A user with this email already exists"] } },
-      { status: 422 }
+      { status: 422 },
     );
   }
 
   if (foundUser && foundUser.username === result.data.username) {
     return json(
       { errors: { username: ["A user with this username already exists"] } },
-      { status: 422 }
+      { status: 422 },
     );
   }
 
@@ -71,7 +71,7 @@ export let action = async ({ request }: ActionArgs) => {
   return createUserSession(
     request,
     newUser.id,
-    redirectTo ?? `/${newUser.username}`
+    redirectTo ?? `/${newUser.username}`,
   );
 };
 
@@ -128,7 +128,7 @@ export default function JoinPage() {
                           "block w-full appearance-none rounded-md border px-3 py-2 shadow-sm focus:outline-none sm:text-sm",
                           error
                             ? "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                            : "border-gray-300 placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500"
+                            : "border-gray-300 placeholder-gray-400 focus:border-indigo-500 focus:ring-indigo-500",
                         )}
                         aria-invalid={error ? true : undefined}
                         aria-errormessage={

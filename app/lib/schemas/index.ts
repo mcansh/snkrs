@@ -8,7 +8,7 @@ type FormErrors<T extends z.ZodTypeAny> = {
 
 export async function getFormData<T extends z.ZodTypeAny>(
   request: Request,
-  schema: T
+  schema: T,
 ): Promise<
   | { success: false; errors: FormErrors<T> }
   | { success: true; data: z.infer<T> }
@@ -28,7 +28,7 @@ export async function getFormData<T extends z.ZodTypeAny>(
           [key]: Array.isArray(value) ? value : [value],
         };
       },
-      {}
+      {},
     );
 
     return { success: false, errors };

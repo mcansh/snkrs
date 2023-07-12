@@ -10,6 +10,7 @@ import {
 import slugify from "slugify";
 import { NumericFormat } from "react-number-format";
 import { route } from "routes-gen";
+import { parse } from "@conform-to/zod";
 
 import { prisma } from "~/db.server";
 import { cloudinary } from "~/lib/cloudinary.server";
@@ -29,27 +30,31 @@ export async function loader({ request }: LoaderArgs) {
 export async function action({ request }: ActionArgs) {
   let userId = await requireUserId(request);
   let formData = await request.formData();
-  let result = sneakerSchema.safeParse(formData);
 
-  if (!result.success) {
-    console.error(result.error);
-    return json(
-      { errors: result.error.flatten().fieldErrors },
-      { status: 422 }
-    );
+  let submission = parse(formData, { schema: sneakerSchema });
+
+  if (submission.intent !== "submit") {
+    return json({ status: "idle", submission } as const);
+  }
+
+  if (!submission.value) {
+    return json({ status: "error", submission } as const, { status: 422 });
   }
 
   let imagePublicId = "";
-  if (result.data.imagePublicId) {
+  if (submission.value.imagePublicId) {
     // image was already uploaded to our cloudinary bucket
-    if (result.data.imagePublicId.startsWith("shoes/")) {
-      imagePublicId = result.data.imagePublicId;
-    } else if (url_regex.test(result.data.imagePublicId)) {
+    if (submission.value.imagePublicId.startsWith("shoes/")) {
+      imagePublicId = submission.value.imagePublicId;
+    } else if (url_regex.test(submission.value.imagePublicId)) {
       // image is an url to an external image and we need to send it off to cloudinary to add it to our bucket
-      let res = await cloudinary.v2.uploader.upload(result.data.imagePublicId, {
-        resource_type: "image",
-        folder: "shoes",
-      });
+      let res = await cloudinary.v2.uploader.upload(
+        submission.value.imagePublicId,
+        {
+          resource_type: "image",
+          folder: "shoes",
+        },
+      );
 
       imagePublicId = res.public_id;
     } else {
@@ -63,20 +68,20 @@ export async function action({ request }: ActionArgs) {
       brand: {
         connectOrCreate: {
           where: {
-            name: result.data.brand,
+            name: submission.value.brand,
           },
           create: {
-            name: result.data.brand,
-            slug: slugify(result.data.brand, { lower: true }),
+            name: submission.value.brand,
+            slug: slugify(submission.value.brand, { lower: true }),
           },
         },
       },
-      colorway: result.data.colorway,
-      model: result.data.model,
-      price: result.data.price,
-      purchaseDate: result.data.purchaseDate.toISOString(),
-      retailPrice: result.data.retailPrice,
-      size: result.data.size,
+      colorway: submission.value.colorway,
+      model: submission.value.model,
+      price: submission.value.price,
+      purchaseDate: submission.value.purchaseDate.toISOString(),
+      retailPrice: submission.value.retailPrice,
+      size: submission.value.size,
       imagePublicId,
     },
     include: { user: { select: { username: true } }, brand: true },
@@ -96,14 +101,16 @@ export default function NewSneakerPage() {
   return (
     <main className="container mx-auto h-full p-4 pb-6">
       <h2 className="py-4 text-lg">Add a sneaker to your collection</h2>
-      {actionData?.errors ? (
+      {actionData?.submission.error ? (
         <div className="mb-4 rounded bg-red-500 p-4 text-white">
           <ul className="list-inside list-disc">
-            {Object.entries(actionData.errors).map(([errorKey, errorValue]) => (
-              <li key={`${errorKey}-${errorValue}`}>
-                {errorKey}: {errorValue}
-              </li>
-            ))}
+            {Object.entries(actionData.submission.error).map(
+              ([errorKey, errorValue]) => (
+                <li key={`${errorKey}-${errorValue}`}>
+                  {errorKey}: {errorValue}
+                </li>
+              ),
+            )}
           </ul>
         </div>
       ) : null}

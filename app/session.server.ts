@@ -37,7 +37,7 @@ export function getSession(request: Request) {
 let USER_SESSION_KEY = "userId" as const;
 
 export async function getUserId(
-  request: Request
+  request: Request,
 ): Promise<string | undefined | null> {
   let session = await getSession(request);
   return session.get(USER_SESSION_KEY);
@@ -53,7 +53,7 @@ export async function getUser(request: Request): Promise<User | undefined> {
 
 export async function requireUserId(
   request: Request,
-  redirectTo: string = request.url
+  redirectTo: string = request.url,
 ): Promise<string> {
   let userId = await getUserId(request);
   if (!userId) {
@@ -66,7 +66,7 @@ export async function requireUserId(
 
 export async function requireUser(
   request: Request,
-  redirectTo: string = request.url
+  redirectTo: string = request.url,
 ): Promise<User> {
   let userId = await requireUserId(request, redirectTo);
   let user = await prisma.user.findUnique({ where: { id: userId } });
@@ -81,7 +81,7 @@ export async function requireUser(
 export async function createUserSession(
   request: Request,
   userId: string,
-  redirectTo: string
+  redirectTo: string,
 ) {
   let session = await getSession(request);
   session.set(USER_SESSION_KEY, userId);

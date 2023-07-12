@@ -115,7 +115,7 @@ export default function ProfilePage() {
       ? "error"
       : navigation.state === "submitting"
       ? "loading"
-      : navigation.state
+      : navigation.state,
   );
 
   React.useEffect(() => {
@@ -124,7 +124,7 @@ export default function ProfilePage() {
         ? "error"
         : navigation.state === "submitting"
         ? "loading"
-        : navigation.state
+        : navigation.state,
     );
   }, [navigation.state, actionData?.errors]);
 

@@ -64,7 +64,7 @@ export let action = async ({ request }: ActionArgs) => {
   if (!foundUser) {
     return json(
       { errors: { email: ["Invalid email or password"] } },
-      { status: 422 }
+      { status: 422 },
     );
   }
 
@@ -73,14 +73,14 @@ export let action = async ({ request }: ActionArgs) => {
   if (!validCredentials) {
     return json(
       { errors: { email: ["Invalid email or password"] } },
-      { status: 422 }
+      { status: 422 },
     );
   }
 
   return createUserSession(
     request,
     foundUser.id,
-    redirectTo ?? `/${foundUser.username}`
+    redirectTo ?? `/${foundUser.username}`,
   );
 };
 

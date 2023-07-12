@@ -61,7 +61,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
           ? await sessionStorage.commitSession(session)
           : "",
       },
-    }
+    },
   );
 };
 

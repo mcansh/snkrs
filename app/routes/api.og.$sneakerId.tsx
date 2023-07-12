@@ -97,7 +97,7 @@ export async function loader({ params }: DataFunctionArgs) {
         <div style={{ fontSize: 20, fontWeight: 400 }}>{sneaker.colorway}</div>
       </div>
     </div>,
-    options
+    options,
   );
 
   return new Response(svg, {

@@ -13,14 +13,14 @@ export function getImageURLs(publicId: string) {
             width: size,
             height: size,
           },
-        })} ${size}w`
+        })} ${size}w`,
     )
     .join(", ");
 }
 
 export function getCloudinaryURL(
   publicId: string,
-  transformations: TransformerOption
+  transformations: TransformerOption,
 ) {
   let url = buildUrl(publicId, {
     cloud: {

@@ -12,6 +12,6 @@ module.exports = {
   ignorePatterns: ["!.*.js"],
 
   rules: {
-    'prefer-const': 'off'
-  }
+    "prefer-const": "off",
+  },
 };

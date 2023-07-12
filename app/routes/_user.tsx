@@ -137,7 +137,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
           ? await sessionStorage.commitSession(session)
           : "",
       },
-    }
+    },
   );
 };
 
@@ -171,7 +171,7 @@ export let meta: V2_MetaFunction = mergeMeta<typeof loader>(
       { name: "twitter:title", content: description },
       { name: "twitter:description", content: description },
     ];
-  }
+  },
 );
 
 export default function UserSneakersPage() {

@@ -103,7 +103,7 @@ export let meta: V2_MetaFunction = mergeMeta<typeof loader>(
       { name: "twitter:image", content: data.ogUrl },
       { name: "twitter:image:alt", content: data.title },
     ];
-  }
+  },
 );
 
 export default function SneakerPage() {

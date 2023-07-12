@@ -9,6 +9,6 @@ export let loader = ({ params }: LoaderArgs) => {
     route("/:username/yir/:year", {
       username: params.username,
       year: new Date().getFullYear().toString(),
-    })
+    }),
   );
 };
