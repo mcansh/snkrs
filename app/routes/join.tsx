@@ -10,7 +10,7 @@ import {
 } from "@remix-run/react";
 import { Alert } from "@reach/alert";
 import clsx from "clsx";
-import { route } from "routes-gen";
+import { $path } from "remix-routes";
 
 import { prisma } from "~/db.server";
 import { registerSchema } from "~/lib/schemas/user.server";
@@ -160,7 +160,7 @@ export default function JoinPage() {
                 </div>
                 <div className="text-sm">
                   <Link
-                    to={route("/login")}
+                    to={$path("/login")}
                     className="font-medium text-indigo-600 hover:text-indigo-500"
                     prefetch="intent"
                   >

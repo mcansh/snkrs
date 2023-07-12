@@ -11,7 +11,6 @@ import {
 import { format, parseISO } from "date-fns";
 import slugify from "slugify";
 import { NumericFormat } from "react-number-format";
-import invariant from "tiny-invariant";
 
 import { prisma } from "~/db.server";
 import { sneakerSchema, url_regex } from "~/lib/schemas/sneaker.server";
@@ -20,7 +19,11 @@ import { requireUserId } from "~/session.server";
 import { getPageTitle, mergeMeta } from "~/meta";
 
 export let loader = async ({ params, request }: DataFunctionArgs) => {
-  invariant(params.sneakerId);
+    if (!params.sneakerId) {
+    throw new Response("Not Found", {status: 404,statusText: "Not Found",
+    });
+  }
+
   let userId = await requireUserId(request);
 
   let sneaker = await prisma.sneaker.findUnique({
@@ -55,11 +58,14 @@ export let loader = async ({ params, request }: DataFunctionArgs) => {
 
 export let action = async ({ request, params }: DataFunctionArgs) => {
   let userId = await requireUserId(request);
-  let { sneakerId } = params;
-  invariant(sneakerId);
+
+    if (!params.sneakerId) {
+    throw new Response("Not Found", {status: 404,statusText: "Not Found",
+    });
+  }
 
   let originalSneaker = await prisma.sneaker.findUnique({
-    where: { id: sneakerId },
+    where: { id: params.sneakerId },
     select: {
       userId: true,
       imagePublicId: true,
@@ -67,7 +73,7 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
   });
 
   if (!originalSneaker) {
-    throw new Response(`No sneaker found with id ${sneakerId}`, {
+    throw new Response(`No sneaker found with id ${params.sneakerId}`, {
       status: 404,
       statusText: "Not Found",
     });
@@ -104,7 +110,7 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
   }
 
   await prisma.sneaker.update({
-    where: { id: sneakerId },
+    where: { id: params.sneakerId },
     data: {
       brand: {
         connectOrCreate: {

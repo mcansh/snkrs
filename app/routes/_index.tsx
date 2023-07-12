@@ -1,5 +1,5 @@
 import type { LoaderArgs } from "@remix-run/node";
-import { route } from "routes-gen";
+import { $path } from "remix-routes";
 
 import { getUserId, createUserSession } from "~/session.server";
 import { prisma } from "~/db.server";
@@ -15,7 +15,7 @@ export let loader = async ({ request, ...args }: LoaderArgs) => {
       return createUserSession(
         request,
         user.id,
-        route("/:username", { username: user.username }),
+        $path("/:username", { username: user.username }),
       );
     }
   }

@@ -4,15 +4,19 @@ import type { V2_MetaFunction } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { endOfYear, startOfYear } from "date-fns";
-import invariant from "tiny-invariant";
+
 
 import { SneakerCard } from "~/components/sneaker";
 import { prisma } from "~/db.server";
 import { getPageTitle, mergeMeta } from "~/meta";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
-  invariant(params.year, "year is required");
-  invariant(params.username, "username is required");
+
+    if (!params.year || !params.username) {
+    throw new Response("Not Found", {status: 404,statusText: "Not Found",
+    });
+  }
+
   let url = new URL(request.url);
   let year = parseInt(params.year, 10);
 

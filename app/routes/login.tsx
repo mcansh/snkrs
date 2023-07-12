@@ -9,7 +9,7 @@ import {
   useNavigation,
 } from "@remix-run/react";
 import { Alert } from "@reach/alert";
-import { route } from "routes-gen";
+import { $path } from "remix-routes";
 
 import { verify } from "~/lib/auth.server";
 import { prisma } from "~/db.server";
@@ -195,7 +195,7 @@ export default function LoginPage() {
                 </div>
                 <div className="text-sm">
                   <Link
-                    to={route("/join")}
+                    to={$path("/join")}
                     className="font-medium text-indigo-600 hover:text-indigo-500"
                     prefetch="intent"
                   >

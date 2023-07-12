@@ -1,12 +1,14 @@
 import type { LoaderArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import { route } from "routes-gen";
-import invariant from "tiny-invariant";
+import { $path } from "remix-routes";
 
 export let loader = ({ params }: LoaderArgs) => {
-  invariant(params.username, "username is required");
+  if (!params.username) {
+    throw new Response("Not Found", {status: 404,statusText: "Not Found",
+    });
+  }
   return redirect(
-    route("/:username/yir/:year", {
+    $path("/:username/yir/:year", {
       username: params.username,
       year: new Date().getFullYear().toString(),
     }),

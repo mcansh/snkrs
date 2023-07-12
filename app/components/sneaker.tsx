@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { Link } from "@remix-run/react";
-import { route } from "routes-gen";
+import { $path } from "remix-routes";
 import type { SerializeFrom } from "@remix-run/node";
 
 import { getCloudinaryURL, getImageURLs } from "~/lib/get-cloudinary-url";
@@ -41,7 +41,7 @@ export function SneakerCard({
         </div>
         <h3 className="mt-4 text-sm text-gray-700">
           <Link
-            to={route("/sneakers/:sneakerId", { sneakerId: id })}
+            to={$path("/sneakers/:sneakerId", { sneakerId: id })}
             prefetch="viewport"
             data-component="SneakerCard"
           >

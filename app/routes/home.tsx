@@ -2,7 +2,7 @@ import type { LoaderArgs } from "@remix-run/node";
 import type { V2_MetaFunction } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
-import { route } from "routes-gen";
+import { $path } from "remix-routes";
 
 import screenshotUrl from "~/assets/screenshot.jpg";
 import { env } from "~/env.server";
@@ -39,14 +39,14 @@ export default function IndexPage() {
                 </p>
                 <div className="mt-12 flex flex-col space-y-4 sm:w-full sm:max-w-lg sm:flex-row sm:space-x-4 sm:space-y-0">
                   <Link
-                    to={route("/join")}
+                    to={$path("/join")}
                     className="rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
                     prefetch="intent"
                   >
                     Get started
                   </Link>
                   <Link
-                    to={route("/:username", { username: data.demo })}
+                    to={$path("/:username", { username: data.demo })}
                     className="rounded-md border border-transparent bg-rose-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10"
                     prefetch="intent"
                   >

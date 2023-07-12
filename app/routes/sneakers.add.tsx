@@ -9,7 +9,7 @@ import {
 } from "@remix-run/react";
 import slugify from "slugify";
 import { NumericFormat } from "react-number-format";
-import { route } from "routes-gen";
+import { $path } from "remix-routes";
 import { parse } from "@conform-to/zod";
 
 import { prisma } from "~/db.server";
@@ -87,7 +87,7 @@ export async function action({ request }: ActionArgs) {
     include: { user: { select: { username: true } }, brand: true },
   });
 
-  return redirect(route("/sneakers/:sneakerId", { sneakerId: sneaker.id }));
+  return redirect($path("/sneakers/:sneakerId", { sneakerId: sneaker.id }));
 }
 
 export default function NewSneakerPage() {

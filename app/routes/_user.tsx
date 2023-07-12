@@ -12,7 +12,7 @@ import {
 } from "@remix-run/react";
 import type { Prisma } from "@prisma/client";
 import { Dialog, Transition } from "@headlessui/react";
-import { route } from "routes-gen";
+import { $path } from "remix-routes";
 
 import { prisma } from "~/db.server";
 import { Svg } from "~/components/heroicons";
@@ -193,7 +193,7 @@ export default function UserSneakersPage() {
         <h2 className="mb-2 text-2xl font-bold">Let&apos;s Get Started</h2>
         <Link
           className="text-purple-600 transition-colors duration-150 ease-in-out hover:text-purple-300"
-          to={route("/sneakers/add")}
+          to={$path("/sneakers/add")}
           prefetch="intent"
         >
           Add a sneaker to your collection

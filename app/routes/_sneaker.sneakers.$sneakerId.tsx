@@ -2,8 +2,7 @@ import type { LoaderArgs } from "@remix-run/node";
 import type { V2_MetaFunction } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
-import invariant from "tiny-invariant";
-import { route } from "routes-gen";
+import { $path } from "remix-routes";
 
 import { copy } from "~/lib/copy";
 import { prisma } from "~/db.server";
@@ -12,7 +11,10 @@ import { getPageTitle, mergeMeta } from "~/meta";
 import { formatDate } from "~/lib/format-date";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
-  invariant(params.sneakerId, "sneakerID is required");
+  if (!params.sneakerId) {
+    throw new Response("Not Found", {status: 404,statusText: "Not Found",
+    });
+  }
 
   let userId = await getUserId(request);
 
@@ -104,8 +106,7 @@ export default function SneakerPage() {
       </button>
       {data.userCreatedSneaker && (
         <Link
-          to={route("/sneakers/:sneakerId/edit", {
-            sneakerId: data.sneaker.id,
+          to={$path("/sneakers/:sneakerId/edit", {sneakerId: data.sneaker.id,
           })}
           prefetch="intent"
           className="inline-block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"

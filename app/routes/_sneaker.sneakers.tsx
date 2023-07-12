@@ -2,8 +2,7 @@ import type { LoaderArgs } from "@remix-run/node";
 import type { V2_MetaFunction } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import { Link, Outlet, useLoaderData } from "@remix-run/react";
-import invariant from "tiny-invariant";
-import { route } from "routes-gen";
+import { $path } from "remix-routes";
 
 import { formatDate } from "~/lib/format-date";
 import { getCloudinaryURL, getImageURLs } from "~/lib/get-cloudinary-url";
@@ -13,7 +12,10 @@ import { getTimeZone, getUserId } from "~/session.server";
 import { getPageTitle, mergeMeta } from "~/meta";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
-  invariant(params.sneakerId, "sneakerID is required");
+    if (!params.sneakerId) {
+    throw new Response("Not Found", {status: 404,statusText: "Not Found",
+    });
+  }
 
   let userId = await getUserId(request);
   let url = new URL(request.url);
@@ -164,7 +166,7 @@ export default function SneakerPage() {
               </p>
             )}
             <Link
-              to={route("/:username/yir/:year", {
+              to={$path("/:username/yir/:year", {
                 username: data.sneaker.user.username,
                 year: data.purchaseYear.toString(),
               })}
