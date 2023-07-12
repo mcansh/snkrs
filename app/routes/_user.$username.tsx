@@ -6,15 +6,14 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "~/db.server";
 import { SneakerCard } from "~/components/sneaker";
 import { getUserId, sessionStorage } from "~/session.server";
+import { invariantResponse } from "~/lib/http.server";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
   let session = await sessionStorage.getSession(request.headers.get("Cookie"));
   let url = new URL(request.url);
   let userId = await getUserId(request);
 
-  if (!params.username) {
-    throw new Response(null, { status: 404 });
-  }
+  invariantResponse(params.username, 404);
 
   let selectedBrands = url.searchParams.getAll("brand");
   let sortQuery = url.searchParams.get("sort");
@@ -36,12 +35,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
     },
   });
 
-  if (!user) {
-    throw new Response("This user doesn't exist", {
-      status: 404,
-      statusText: "Not Found",
-    });
-  }
+  invariantResponse(user, 404, "User not found");
 
   let sessionUser = userId
     ? await prisma.user.findUnique({

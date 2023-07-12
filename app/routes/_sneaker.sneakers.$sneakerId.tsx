@@ -9,12 +9,10 @@ import { prisma } from "~/db.server";
 import { getTimeZone, getUserId } from "~/session.server";
 import { getPageTitle, mergeMeta } from "~/meta";
 import { formatDate } from "~/lib/format-date";
+import { invariantResponse } from "~/lib/http.server";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
-  if (!params.sneakerId) {
-    throw new Response("Not Found", {status: 404,statusText: "Not Found",
-    });
-  }
+  invariantResponse(params.sneakerId, 404);
 
   let userId = await getUserId(request);
 
@@ -32,12 +30,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
     },
   });
 
-  if (!sneaker) {
-    throw new Response(`Sneaker not found with id ${params.sneakerId}`, {
-      status: 404,
-      statusText: "Not Found",
-    });
-  }
+  invariantResponse(sneaker, 404, "Sneaker not found");
 
   let userCreatedSneaker = sneaker.user.id === userId;
 
@@ -106,7 +99,8 @@ export default function SneakerPage() {
       </button>
       {data.userCreatedSneaker && (
         <Link
-          to={$path("/sneakers/:sneakerId/edit", {sneakerId: data.sneaker.id,
+          to={$path("/sneakers/:sneakerId/edit", {
+            sneakerId: data.sneaker.id,
           })}
           prefetch="intent"
           className="inline-block text-blue-600 transition-colors duration-75 ease-in-out hover:text-blue-900 hover:underline"

@@ -20,6 +20,7 @@ import { getUserId, sessionStorage } from "~/session.server";
 import { possessive } from "~/lib/possessive";
 import { formatMoney } from "~/lib/format-money";
 import { getPageTitle, mergeMeta } from "~/meta";
+import { invariantResponse } from "~/lib/http.server";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
   let session = await sessionStorage.getSession(request.headers.get("Cookie"));
@@ -33,10 +34,8 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   let year = params.year ? Number(params.year) : null;
 
   let { user, brands, sessionUser } = await prisma.$transaction(async (tx) => {
-    if (!params.username) {
-      throw new Response("This user doesn't exist", { status: 404 });
-    }
-    let user = await prisma.user.findUnique({
+    invariantResponse(params.username, 404);
+    let user = await tx.user.findUnique({
       where: { username: params.username },
       select: {
         username: true,
@@ -55,21 +54,16 @@ export let loader = async ({ params, request }: LoaderArgs) => {
       },
     });
 
-    if (!user) {
-      throw new Response("This user doesn't exist", {
-        status: 404,
-        statusText: "Not Found",
-      });
-    }
+    invariantResponse(user, 404, "User not found");
 
-    let brands = await prisma.brand.findMany({
+    let brands = await tx.brand.findMany({
       select: { slug: true, name: true },
       orderBy: { name: "asc" },
       where: { sneakers: { some: { userId: user.id } } },
     });
 
     let sessionUser = userId
-      ? await prisma.user.findUnique({
+      ? await tx.user.findUnique({
           where: { id: userId },
           select: { givenName: true, id: true },
         })

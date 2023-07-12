@@ -9,11 +9,10 @@ import interRegularFontUrl from "~/styles/fonts/Inter-Regular.woff";
 import interBoldFontUrl from "~/styles/fonts/Inter-Bold.woff";
 import { prisma } from "~/db.server";
 import { getCloudinaryURL } from "~/lib/get-cloudinary-url";
+import { invariantResponse } from "~/lib/http.server";
 
 export async function loader({ params }: DataFunctionArgs) {
-  if (!params.sneakerId) {
-    throw new Response("Not Found", { status: 404 });
-  }
+  invariantResponse(params.sneakerId, 404);
 
   let sneaker = await prisma.sneaker.findUnique({
     where: { id: params.sneakerId },
@@ -24,9 +23,7 @@ export async function loader({ params }: DataFunctionArgs) {
     },
   });
 
-  if (!sneaker) {
-    throw new Response("Not Found", { status: 404 });
-  }
+  invariantResponse(sneaker, 404);
 
   let [inter, interBold] = await Promise.all([
     fsp.readFile(path.join(process.cwd(), "public", interRegularFontUrl)),

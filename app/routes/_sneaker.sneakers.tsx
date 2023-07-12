@@ -10,12 +10,10 @@ import { formatMoney } from "~/lib/format-money";
 import { prisma } from "~/db.server";
 import { getTimeZone, getUserId } from "~/session.server";
 import { getPageTitle, mergeMeta } from "~/meta";
+import { invariantResponse } from "~/lib/http.server";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
-    if (!params.sneakerId) {
-    throw new Response("Not Found", {status: 404,statusText: "Not Found",
-    });
-  }
+  invariantResponse(params.sneakerId, 404);
 
   let userId = await getUserId(request);
   let url = new URL(request.url);
@@ -35,12 +33,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
     },
   });
 
-  if (!sneaker) {
-    throw new Response(`Sneaker not found with id ${params.sneakerId}`, {
-      status: 404,
-      statusText: "Not Found",
-    });
-  }
+  invariantResponse(sneaker, 404, "Sneaker not found");
 
   let userCreatedSneaker = sneaker.user.id === userId;
 

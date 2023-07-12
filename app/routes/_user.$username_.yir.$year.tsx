@@ -5,17 +5,14 @@ import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { endOfYear, startOfYear } from "date-fns";
 
-
 import { SneakerCard } from "~/components/sneaker";
 import { prisma } from "~/db.server";
 import { getPageTitle, mergeMeta } from "~/meta";
+import { invariantResponse } from "~/lib/http.server";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
-
-    if (!params.year || !params.username) {
-    throw new Response("Not Found", {status: 404,statusText: "Not Found",
-    });
-  }
+  invariantResponse(params.year, 404);
+  invariantResponse(params.username, 404);
 
   let url = new URL(request.url);
   let year = parseInt(params.year, 10);
@@ -24,12 +21,11 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   let start = startOfYear(date);
   let end = endOfYear(date);
 
-  if (year > new Date().getFullYear()) {
-    throw new Response("Requested year is in the future", {
-      status: 404,
-      statusText: "Not Found",
-    });
-  }
+  invariantResponse(
+    year > new Date().getFullYear(),
+    418,
+    "Requested year is in the future",
+  );
 
   let selectedBrands = url.searchParams.getAll("brand");
   let sortQuery = url.searchParams.get("sort");
@@ -56,12 +52,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
     },
   });
 
-  if (!user) {
-    throw new Response("User not found", {
-      status: 404,
-      statusText: "Not Found",
-    });
-  }
+  invariantResponse(user, 404, "User not found");
 
   return json({ user, year });
 };

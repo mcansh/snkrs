@@ -2,11 +2,10 @@ import type { LoaderArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { $path } from "remix-routes";
 
+import { invariantResponse } from "~/lib/http.server";
+
 export let loader = ({ params }: LoaderArgs) => {
-  if (!params.username) {
-    throw new Response("Not Found", {status: 404,statusText: "Not Found",
-    });
-  }
+  invariantResponse(params.username, 404);
   return redirect(
     $path("/:username/yir/:year", {
       username: params.username,

@@ -17,12 +17,10 @@ import { sneakerSchema, url_regex } from "~/lib/schemas/sneaker.server";
 import { cloudinary } from "~/lib/cloudinary.server";
 import { requireUserId } from "~/session.server";
 import { getPageTitle, mergeMeta } from "~/meta";
+import { invariantResponse } from "~/lib/http.server";
 
 export let loader = async ({ params, request }: DataFunctionArgs) => {
-    if (!params.sneakerId) {
-    throw new Response("Not Found", {status: 404,statusText: "Not Found",
-    });
-  }
+  invariantResponse(params.sneakerId, 404);
 
   let userId = await requireUserId(request);
 
@@ -34,21 +32,15 @@ export let loader = async ({ params, request }: DataFunctionArgs) => {
     },
   });
 
-  if (!sneaker) {
-    throw new Response(`No sneaker found with id ${params.sneakerId}`, {
-      status: 404,
-      statusText: "Not Found",
-    });
-  }
+  invariantResponse(sneaker, 404, "Sneaker not found");
 
   let userCreatedSneaker = sneaker.user.id === userId;
 
-  if (!userCreatedSneaker) {
-    throw new Response("You don't have permission to edit this sneaker", {
-      status: 403,
-      statusText: "Forbidden",
-    });
-  }
+  invariantResponse(
+    userCreatedSneaker,
+    403,
+    "You don't have permission to edit this sneaker",
+  );
 
   return json({
     id: params.sneakerId,
@@ -59,10 +51,7 @@ export let loader = async ({ params, request }: DataFunctionArgs) => {
 export let action = async ({ request, params }: DataFunctionArgs) => {
   let userId = await requireUserId(request);
 
-    if (!params.sneakerId) {
-    throw new Response("Not Found", {status: 404,statusText: "Not Found",
-    });
-  }
+  invariantResponse(params.sneakerId, 404);
 
   let originalSneaker = await prisma.sneaker.findUnique({
     where: { id: params.sneakerId },
@@ -72,19 +61,12 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
     },
   });
 
-  if (!originalSneaker) {
-    throw new Response(`No sneaker found with id ${params.sneakerId}`, {
-      status: 404,
-      statusText: "Not Found",
-    });
-  }
-
-  if (originalSneaker.userId !== userId) {
-    throw new Response("You don't have permission to edit this sneaker", {
-      status: 403,
-      statusText: "Forbidden",
-    });
-  }
+  invariantResponse(originalSneaker, 404, "Sneaker not found");
+  invariantResponse(
+    originalSneaker.userId !== userId,
+    403,
+    "You don't have permission to edit this sneaker",
+  );
 
   let formData = await request.formData();
   let valid = sneakerSchema.safeParse(formData);
