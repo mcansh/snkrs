@@ -27,6 +27,7 @@ import interStylesHref from "./styles/inter.css";
 import { Svg } from "./components/heroicons";
 import { Document } from "./components/document";
 import { env } from "./env.server";
+import { Button } from "./components/ui/button";
 
 export async function loader({ request }: LoaderArgs) {
   let user = await getUser(request);
@@ -228,54 +229,39 @@ export default function App() {
                     <Svg className="h-6 w-6" name="24:solid:x-mark" />
                   </button>
                 </div>
-                <Link
-                  to="/"
-                  className="w-full rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
-                  prefetch="intent"
-                >
-                  Home
-                </Link>
+                <Button asChild variant="secondary">
+                  <Link to="/">Home</Link>
+                </Button>
                 {data.user ? (
                   <>
-                    <Link
-                      to="sneakers/add"
-                      className="w-full rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
-                      prefetch="intent"
-                    >
-                      Add Sneaker
-                    </Link>
-                    <Link
-                      to="profile"
-                      className="w-full rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
-                      prefetch="intent"
-                    >
-                      Edit Account
-                    </Link>
+                    <Button asChild>
+                      <Link to="sneakers/add" prefetch="intent">
+                        Add Sneaker
+                      </Link>
+                    </Button>
+                    <Button asChild>
+                      <Link to="profile" prefetch="intent">
+                        Edit Account
+                      </Link>
+                    </Button>
                     <Form reloadDocument method="post" action="logout">
-                      <button
-                        type="submit"
-                        className="w-full rounded-md border border-transparent bg-rose-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10"
-                      >
+                      <Button type="submit" variant="destructive">
                         Logout
-                      </button>
+                      </Button>
                     </Form>
                   </>
                 ) : (
                   <>
-                    <Link
-                      to="login"
-                      className="rounded-md border border-transparent bg-indigo-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:px-10"
-                      prefetch="intent"
-                    >
-                      Login
-                    </Link>
-                    <Link
-                      to="join"
-                      className="w-full rounded-md border border-transparent bg-rose-500 px-5 py-3 text-center text-base font-medium text-white shadow hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 sm:px-10"
-                      prefetch="intent"
-                    >
-                      Join
-                    </Link>
+                    <Button asChild variant="default">
+                      <Link to="login" prefetch="intent">
+                        Login
+                      </Link>
+                    </Button>
+                    <Button asChild variant="indigo">
+                      <Link to="join" prefetch="intent">
+                        Join
+                      </Link>
+                    </Button>
                   </>
                 )}
               </div>
@@ -317,18 +303,17 @@ export default function App() {
                 </p>
               </div>
               <div className="flex-shrink-0 space-x-2">
-                <button
+                <Button
+                  variant="indigo"
                   type="button"
-                  className="inline-flex items-center rounded border border-transparent bg-indigo-500 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                   onClick={() => {
-                    let timeZone =
-                      Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    let { timeZone } = Intl.DateTimeFormat().resolvedOptions();
                     updateTimeZone(timeZone);
                     setShowTimeZonePrompt(false);
                   }}
                 >
                   Yes
-                </button>
+                </Button>
                 <button
                   type="button"
                   className="inline-flex items-center rounded border border-transparent bg-rose-500 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"

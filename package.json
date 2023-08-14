@@ -14,7 +14,7 @@
     "generate:routes": "remix-routes",
     "generate": "run-p generate:*",
     "lint": "eslint --cache --ignore-path .gitignore --no-error-on-unmatched-pattern .",
-    "format": "prettier --ignore-path .gitignore --ignore-unknown --write .",
+    "format": "prettier --ignore-path .gitignore --ignore-path .prettierignore --ignore-unknown --write .",
     "test": "jest",
     "typecheck": "tsc",
     "validate": "run-p lint typecheck test",
