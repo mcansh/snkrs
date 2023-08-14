@@ -18,6 +18,6 @@ module.exports = {
     let escapedFileNames = filenames
       .map((filename) => `"${isWin ? filename : escape([filename])}"`)
       .join(" ");
-    return [`prettier --write ${escapedFileNames}`];
+    return [`prettier --ignore-unknown --write ${escapedFileNames}`];
   },
 };

@@ -16,9 +16,9 @@ import {
 import { cssBundleHref } from "@remix-run/css-bundle";
 import * as Fathom from "fathom-client";
 import clsx from "clsx";
-import appStylesHref from "tailwindcss/tailwind.css";
 import { Dialog, Transition } from "@headlessui/react";
 
+import appStylesHref from "~/styles/global.css";
 import screenshotUrl from "~/assets/screenshot.jpg";
 
 import { useMatches } from "./lib/use-matches";
@@ -356,7 +356,7 @@ export function ErrorBoundary() {
           title="Shoot..."
           bodyClassName="min-h-screen w-[90%] max-w-5xl mx-auto pt-20 space-y-4 font-mono text-center text-white bg-blue-bsod"
         >
-          <h1 className="inline-block bg-white text-3xl font-bold text-blue-bsod">
+          <h1 className="text-blue-bsod inline-block bg-white text-3xl font-bold">
             Uncaught Exception!
           </h1>
           <p>
@@ -379,7 +379,7 @@ export function ErrorBoundary() {
         title={`${error.status} ${error.statusText}`}
         bodyClassName="w-[90%] max-w-5xl mx-auto pt-20 space-y-4 font-mono text-center text-white bg-blue-bsod"
       >
-        <h1 className="inline-block bg-white text-3xl font-bold text-blue-bsod">
+        <h1 className="text-blue-bsod inline-block bg-white text-3xl font-bold">
           {error.status} {error.statusText}
         </h1>
       </Document>
@@ -391,7 +391,7 @@ export function ErrorBoundary() {
       title="Oops!"
       bodyClassName="w-[90%] max-w-5xl mx-auto pt-20 space-y-4 font-mono text-center text-white bg-blue-bsod"
     >
-      <h1 className="inline-block bg-white text-3xl font-bold text-blue-bsod">
+      <h1 className="text-blue-bsod inline-block bg-white text-3xl font-bold">
         Oops!
       </h1>
       <p>Something went wrong</p>
