@@ -109,7 +109,7 @@ export default function SneakerPage() {
   return (
     <main className="container mx-auto h-full p-4 pb-6">
       <div className="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-2 sm:gap-8">
-        <div className="aspect-h-1 aspect-w-1 relative w-full overflow-hidden rounded-lg bg-gray-100">
+        <div className="aspect-h-1 aspect-w-1 relative grid w-full place-items-center overflow-hidden rounded-lg">
           <img
             src={getCloudinaryURL(data.sneaker.imagePublicId, {
               resize: { type: "pad", width: 200, height: 200 },
@@ -119,6 +119,7 @@ export default function SneakerPage() {
             alt={data.title}
             height={480}
             width={480}
+            className="rounded-lg bg-gray-100"
           />
         </div>
         <div className="flex flex-col justify-between">
