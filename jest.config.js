@@ -7,7 +7,7 @@ module.exports = {
   },
   coverageDirectory: "./coverage/",
   collectCoverage: true,
-  setupFilesAfterEnv: ["@testing-library/jest-dom/extend-expect"],
+  setupFilesAfterEnv: ["@testing-library/jest-dom"],
   moduleDirectories: ["node_modules", "./"],
   moduleNameMapper: {
     "^~/(.*)$": "<rootDir>/app/$1",
