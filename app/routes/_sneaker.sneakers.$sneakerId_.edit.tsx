@@ -63,13 +63,13 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
 
   invariantResponse(originalSneaker, 404, "Sneaker not found");
   invariantResponse(
-    originalSneaker.userId !== userId,
+    originalSneaker.userId === userId,
     403,
     "You don't have permission to edit this sneaker",
   );
 
   let formData = await request.formData();
-  let valid = sneakerSchema.safeParse(formData);
+  let valid = sneakerSchema.safeParse(Object.fromEntries(formData));
 
   if (!valid.success) {
     return json({ errors: valid.error.flatten().fieldErrors }, { status: 422 });

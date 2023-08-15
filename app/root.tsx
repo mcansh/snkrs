@@ -245,7 +245,11 @@ export default function App() {
                       </Link>
                     </Button>
                     <Form reloadDocument method="post" action="logout">
-                      <Button type="submit" variant="destructive">
+                      <Button
+                        type="submit"
+                        variant="destructive"
+                        className="w-full"
+                      >
                         Logout
                       </Button>
                     </Form>
