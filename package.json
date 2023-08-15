@@ -5,7 +5,7 @@
     "predev": "run-s clean build:icons",
     "dev": "run-p dev:*",
     "dev:routes": "npm run generate:routes -- --watch",
-    "dev:remix": "cross-env TZ=UTC remix dev",
+    "dev:remix": "cross-env TZ=UTC remix dev --command \"node ./server.mjs\"",
     "prebuild": "npm run clean",
     "build": "cross-env NODE_ENV=production run-s build:*",
     "build:icons": "node scripts/heroicon-symbols.mjs",
