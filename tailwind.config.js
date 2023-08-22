@@ -11,13 +11,13 @@ module.exports = {
       },
     },
     extend: {
-      backgroundImage({theme}) {
-        let color = theme("colors.indigo.500")
-        let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4.95 10"><rect fill="white" width="4.95" height="10" /><polygon fill="${color}" points="1.41 4.67 2.48 3.18 3.54 4.67 1.41 4.67" /><polygon fill="${color}" points="3.54 5.33 2.48 6.82 1.41 5.33 3.54 5.33" /></svg>`
-        let base64 = Buffer.from(svg).toString("base64")
+      backgroundImage({ theme }) {
+        let color = theme("colors.indigo.500");
+        let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4.95 10"><rect fill="white" width="4.95" height="10" /><polygon fill="${color}" points="1.41 4.67 2.48 3.18 3.54 4.67 1.41 4.67" /><polygon fill="${color}" points="3.54 5.33 2.48 6.82 1.41 5.33 3.54 5.33" /></svg>`;
+        let base64 = Buffer.from(svg).toString("base64");
         return {
           select: "url(data:image/svg+xml;base64," + base64 + ")",
-        }
+        };
       },
       colors: {
         border: "hsl(var(--border))",

@@ -409,7 +409,7 @@ function SortSelect({ currentSort }: { currentSort: Prisma.SortOrder }) {
     <select
       title="sort"
       name="sort"
-      className="w-[180px] appearance-none rounded-lg border border-gray-300 px-4 py-2 text-indigo-600 focus:ring-indigo-500 bg-select bg-no-repeat bg-[95%_50%]"
+      className="w-[180px] appearance-none rounded-lg border border-gray-300 bg-select bg-[95%_50%] bg-no-repeat px-4 py-2 text-indigo-600 focus:ring-indigo-500"
       defaultValue={currentSort}
     >
       {sortOptions.map((option) => (
