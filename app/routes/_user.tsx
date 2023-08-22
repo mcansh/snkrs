@@ -122,7 +122,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
           }),
         },
       ],
-      sort: sortQuery === "asc" ? "asc" : "desc",
+      sort,
       sessionUser,
     },
     {
@@ -259,21 +259,7 @@ export default function UserSneakersPage() {
                           </div>
                         </legend>
                         <div className="px-4 pb-2 pt-4">
-                          <select
-                            title="sort"
-                            name="sort"
-                            className="w-full rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            defaultValue={data.sort}
-                          >
-                            {sortOptions.map((option) => (
-                              <option
-                                key={`${option.label}-${option.value}`}
-                                value={option.value}
-                              >
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
+                          <SortSelect currentSort={data.sort} />
                         </div>
                       </fieldset>
                     </legend>
@@ -372,20 +358,7 @@ export default function UserSneakersPage() {
                       Sort
                     </legend>
                     <div className="space-y-3 pt-6">
-                      <select
-                        title="sort"
-                        name="sort"
-                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                      >
-                        {sortOptions.map((option) => (
-                          <option
-                            key={`${option.label}-${option.value}`}
-                            value={option.value}
-                          >
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
+                      <SortSelect currentSort={data.sort} />
                     </div>
                   </fieldset>
                 </div>
@@ -428,5 +401,22 @@ export default function UserSneakersPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+function SortSelect({ currentSort }: { currentSort: Prisma.SortOrder }) {
+  return (
+    <select
+      title="sort"
+      name="sort"
+      className="w-[180px] appearance-none rounded-lg border border-gray-300 bg-select bg-[95%_50%] bg-no-repeat px-4 py-2 text-indigo-600 focus:ring-indigo-500"
+      defaultValue={currentSort}
+    >
+      {sortOptions.map((option) => (
+        <option key={`${option.label}-${option.value}`} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
   );
 }

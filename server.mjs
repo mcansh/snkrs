@@ -5,7 +5,7 @@ import { remixFastifyPlugin } from "@mcansh/remix-fastify";
 import * as Sentry from "@sentry/node";
 import { installGlobals } from "@remix-run/node";
 
-installGlobals()
+installGlobals();
 
 let MODE = process.env.NODE_ENV || "production";
 
