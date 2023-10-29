@@ -1,6 +1,6 @@
 import * as React from "react";
-import type { HeadersFunction, LoaderArgs } from "@remix-run/node";
-import type { V2_MetaFunction } from "@remix-run/react";
+import type { HeadersFunction, LoaderFunctionArgs } from "@remix-run/node";
+import type { MetaFunction } from "@remix-run/react";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
@@ -22,7 +22,7 @@ import { formatMoney } from "~/lib/format-money";
 import { getPageTitle, mergeMeta } from "~/meta";
 import { invariantResponse } from "~/lib/http.server";
 
-export let loader = async ({ params, request }: LoaderArgs) => {
+export let loader = async ({ params, request }: LoaderFunctionArgs) => {
   let session = await sessionStorage.getSession(request.headers.get("Cookie"));
   let url = new URL(request.url);
   let userId = await getUserId(request);
@@ -144,7 +144,7 @@ const sortOptions = [
   { value: "asc", label: "Oldest first" },
 ];
 
-export let meta: V2_MetaFunction = mergeMeta<typeof loader>(
+export let meta: MetaFunction = mergeMeta<typeof loader>(
   ({ data }) => {
     if (!data) return [];
     let name = possessive(data.user.fullName);

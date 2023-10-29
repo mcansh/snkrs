@@ -1,6 +1,6 @@
 import * as React from "react";
-import type { LinksFunction, LoaderArgs } from "@remix-run/node";
-import type { V2_MetaFunction } from "@remix-run/react";
+import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
+import type { MetaFunction } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import {
   Form,
@@ -29,7 +29,7 @@ import { Document } from "./components/document";
 import { env } from "./env.server";
 import { Button } from "./components/ui/button";
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   let user = await getUser(request);
   let session = await getSession(request);
   return json({
@@ -43,7 +43,7 @@ export async function loader({ request }: LoaderArgs) {
   });
 }
 
-export let meta: V2_MetaFunction<typeof loader> = ({ data }) => {
+export let meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [];
   return [
     { title: "Snkrs" },

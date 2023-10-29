@@ -1,6 +1,6 @@
 import * as React from "react";
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
-import type { V2_MetaFunction } from "@remix-run/react";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
+import type { MetaFunction } from "@remix-run/react";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
@@ -40,7 +40,7 @@ let colors = {
   },
 };
 
-export let loader = async ({ request }: LoaderArgs) => {
+export let loader = async ({ request }: LoaderFunctionArgs) => {
   let user = await requireUser(request);
   let userSettings = await prisma.settings.findUnique({
     where: { userId: user.id },
@@ -61,7 +61,7 @@ export let loader = async ({ request }: LoaderArgs) => {
   });
 };
 
-export let action = async ({ request }: ActionArgs) => {
+export let action = async ({ request }: ActionFunctionArgs) => {
   let userId = await requireUserId(request);
   let formData = await request.formData();
   let valid = editProfile.safeParse(formData);
@@ -95,7 +95,7 @@ export let action = async ({ request }: ActionArgs) => {
   return redirect("/profile");
 };
 
-export let meta: V2_MetaFunction = mergeMeta(() => {
+export let meta: MetaFunction = mergeMeta(() => {
   return [{ title: getPageTitle("Edit Profile") }];
 });
 

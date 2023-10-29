@@ -1,6 +1,6 @@
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
 import type { User } from "@prisma/client";
-import { createTypedSessionStorage } from "remix-utils";
+import { createTypedSessionStorage } from "remix-utils/typed-session";
 import { z } from "zod";
 
 import { prisma } from "./db.server";

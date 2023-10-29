@@ -1,4 +1,4 @@
-import type { LoaderArgs, SerializeFrom } from "@remix-run/node";
+import type { LoaderFunctionArgs, SerializeFrom } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import type { Prisma } from "@prisma/client";
@@ -8,7 +8,7 @@ import { SneakerCard } from "~/components/sneaker";
 import { getUserId, sessionStorage } from "~/session.server";
 import { invariantResponse } from "~/lib/http.server";
 
-export let loader = async ({ params, request }: LoaderArgs) => {
+export let loader = async ({ params, request }: LoaderFunctionArgs) => {
   let session = await sessionStorage.getSession(request.headers.get("Cookie"));
   let url = new URL(request.url);
   let userId = await getUserId(request);

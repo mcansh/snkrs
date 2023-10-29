@@ -6,7 +6,7 @@ import kleur from "kleur";
 import Gitignore from "gitignore-fs";
 import { globSync } from "glob";
 
-import remixConfig from "../remix.config.mjs";
+import remixConfig from "../remix.config.js";
 
 async function clean() {
   let cwd = process.cwd();

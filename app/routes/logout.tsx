@@ -1,16 +1,16 @@
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form } from "@remix-run/react";
 
 import { getUserId, logout } from "~/session.server";
 
-export let loader = async ({ request }: LoaderArgs) => {
+export let loader = async ({ request }: LoaderFunctionArgs) => {
   let user = await getUserId(request);
   if (!user) return redirect("/");
   return json(null);
 };
 
-export let action = async ({ request }: ActionArgs) => {
+export let action = async ({ request }: ActionFunctionArgs) => {
   return logout(request);
 };
 

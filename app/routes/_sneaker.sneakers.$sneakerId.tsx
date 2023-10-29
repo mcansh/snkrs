@@ -1,5 +1,5 @@
-import type { LoaderArgs } from "@remix-run/node";
-import type { V2_MetaFunction } from "@remix-run/react";
+import type { LoaderFunctionArgs } from "@remix-run/node";
+import type { MetaFunction } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { $path } from "remix-routes";
@@ -11,7 +11,7 @@ import { getPageTitle, mergeMeta } from "~/meta";
 import { formatDate } from "~/lib/format-date";
 import { invariantResponse } from "~/lib/http.server";
 
-export let loader = async ({ params, request }: LoaderArgs) => {
+export let loader = async ({ params, request }: LoaderFunctionArgs) => {
   invariantResponse(params.sneakerId, 404);
 
   let userId = await getUserId(request);
@@ -52,7 +52,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   });
 };
 
-export let meta: V2_MetaFunction = mergeMeta<typeof loader>(({ data }) => {
+export let meta: MetaFunction = mergeMeta<typeof loader>(({ data }) => {
   if (!data) return [];
   let date = formatDate(data.sneaker.purchaseDate, data.timeZone, {
     month: "long",

@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
-import type { LoaderArgs } from "@remix-run/node";
-import type { V2_MetaFunction } from "@remix-run/react";
+import type { LoaderFunctionArgs } from "@remix-run/node";
+import type { MetaFunction } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import { endOfYear, startOfYear } from "date-fns";
@@ -10,7 +10,7 @@ import { prisma } from "~/db.server";
 import { getPageTitle, mergeMeta } from "~/meta";
 import { invariantResponse } from "~/lib/http.server";
 
-export let loader = async ({ params, request }: LoaderArgs) => {
+export let loader = async ({ params, request }: LoaderFunctionArgs) => {
   invariantResponse(params.year, 404);
   invariantResponse(params.username, 404);
 
@@ -57,7 +57,7 @@ export let loader = async ({ params, request }: LoaderArgs) => {
   return json({ user, year });
 };
 
-export let meta: V2_MetaFunction = mergeMeta<typeof loader>(({ data }) => {
+export let meta: MetaFunction = mergeMeta<typeof loader>(({ data }) => {
   if (!data) return [];
   let sneakers = data.user.sneakers.length === 1 ? "sneaker" : "sneakers";
   let description = `${data.user.username} bought ${data.user.sneakers.length} ${sneakers} in ${data.year}`;

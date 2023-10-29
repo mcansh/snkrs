@@ -1,5 +1,5 @@
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
-import type { V2_MetaFunction } from "@remix-run/react";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
+import type { MetaFunction } from "@remix-run/react";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
@@ -20,13 +20,13 @@ import type { RouteHandle } from "~/lib/use-matches";
 import { getPageTitle, mergeMeta } from "~/meta";
 import { getFormData } from "~/lib/schemas";
 
-export let loader = async ({ request }: LoaderArgs) => {
+export let loader = async ({ request }: LoaderFunctionArgs) => {
   let userId = await getUserId(request);
   if (userId) return redirect("/");
   return json(null);
 };
 
-export let action = async ({ request }: ActionArgs) => {
+export let action = async ({ request }: ActionFunctionArgs) => {
   let result = await getFormData(request, registerSchema);
 
   if (!result.success) {
@@ -75,7 +75,7 @@ export let action = async ({ request }: ActionArgs) => {
   );
 };
 
-export let meta: V2_MetaFunction = mergeMeta(() => {
+export let meta: MetaFunction = mergeMeta(() => {
   return [{ title: getPageTitle("Join") }];
 });
 

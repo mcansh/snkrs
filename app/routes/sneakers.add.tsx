@@ -1,5 +1,5 @@
-import type { ActionArgs, LoaderArgs } from "@remix-run/node";
-import type { V2_MetaFunction } from "@remix-run/react";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
+import type { MetaFunction } from "@remix-run/react";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
@@ -18,16 +18,16 @@ import { sneakerSchema, url_regex } from "~/lib/schemas/sneaker.server";
 import { requireUserId } from "~/session.server";
 import { getPageTitle, mergeMeta } from "~/meta";
 
-export let meta: V2_MetaFunction = mergeMeta(() => {
+export let meta: MetaFunction = mergeMeta(() => {
   return [{ title: getPageTitle("Add a sneaker to your collection") }];
 });
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   await requireUserId(request);
   return json(null);
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   let userId = await requireUserId(request);
   let formData = await request.formData();
 

@@ -1,5 +1,5 @@
 import type { LoaderFunction } from "@remix-run/node";
-import type { V2_MetaDescriptor, V2_MetaFunction } from "@remix-run/react";
+import type { MetaDescriptor, MetaFunction } from "@remix-run/react";
 
 export function getPageTitle(title: string) {
   return `${title} | Snkrs`;
@@ -9,12 +9,12 @@ export let mergeMeta = <
   Loader extends LoaderFunction | unknown = unknown,
   ParentsLoaders extends Record<string, LoaderFunction> = {},
 >(
-  overrideFn: V2_MetaFunction<Loader, ParentsLoaders>,
-  appendFn?: V2_MetaFunction<Loader, ParentsLoaders>,
-): V2_MetaFunction => {
+  overrideFn: MetaFunction<Loader, ParentsLoaders>,
+  appendFn?: MetaFunction<Loader, ParentsLoaders>,
+): MetaFunction => {
   return (args) => {
     // get meta from parent routes
-    let mergedMeta = args.matches.reduce<V2_MetaDescriptor[]>((acc, match) => {
+    let mergedMeta = args.matches.reduce<MetaDescriptor[]>((acc, match) => {
       return acc.concat(match.meta || []);
     }, []);
 

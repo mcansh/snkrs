@@ -1,5 +1,5 @@
-import type { LoaderArgs } from "@remix-run/node";
-import type { V2_MetaFunction } from "@remix-run/react";
+import type { LoaderFunctionArgs } from "@remix-run/node";
+import type { MetaFunction } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { $path } from "remix-routes";
@@ -9,11 +9,11 @@ import { env } from "~/env.server";
 import { getPageTitle, mergeMeta } from "~/meta";
 import { Button } from "~/components/ui/button";
 
-export let loader = async (_args: LoaderArgs) => {
+export let loader = async (_args: LoaderFunctionArgs) => {
   return json({ demo: env.DEFAULT_USER });
 };
 
-export let meta: V2_MetaFunction = mergeMeta(() => {
+export let meta: MetaFunction = mergeMeta(() => {
   return [{ title: getPageTitle("Home") }];
 });
 

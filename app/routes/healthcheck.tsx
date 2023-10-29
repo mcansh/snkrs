@@ -1,12 +1,12 @@
-import type { LoaderArgs, RouteComponent } from "@remix-run/node";
-import type { V2_MetaFunction } from "@remix-run/react";
+import type { LoaderFunctionArgs, RouteComponent } from "@remix-run/node";
+import type { MetaFunction } from "@remix-run/react";
 import { json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 
 import { prisma } from "~/db.server";
 import { getPageTitle, mergeMeta } from "~/meta";
 
-let loader = async (_args: LoaderArgs) => {
+let loader = async (_args: LoaderFunctionArgs) => {
   try {
     await prisma.user.count();
     return json({ ok: true });
@@ -16,7 +16,7 @@ let loader = async (_args: LoaderArgs) => {
   }
 };
 
-let meta: V2_MetaFunction = mergeMeta(() => {
+let meta: MetaFunction = mergeMeta(() => {
   return [{ title: getPageTitle("Health Check") }];
 });
 

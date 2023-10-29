@@ -1,5 +1,5 @@
 import type { DataFunctionArgs } from "@remix-run/node";
-import type { V2_MetaFunction } from "@remix-run/react";
+import type { MetaFunction } from "@remix-run/react";
 import { json, redirect } from "@remix-run/node";
 import {
   Form,
@@ -116,7 +116,7 @@ export let action = async ({ request, params }: DataFunctionArgs) => {
   return redirect(request.url);
 };
 
-export let meta: V2_MetaFunction = mergeMeta<typeof loader>(({ data }) => {
+export let meta: MetaFunction = mergeMeta<typeof loader>(({ data }) => {
   if (!data) return [];
   return [
     {
