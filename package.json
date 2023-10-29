@@ -108,5 +108,8 @@
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.2",
     "typescript-remix-routes-plugin": "1.0.1"
+  },
+  "engines": {
+    "node": ">18"
   }
 }
