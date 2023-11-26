@@ -1,8 +1,8 @@
-let { quote: escape } = require("shell-quote");
+import { quote as escape } from "shell-quote";
 
 let isWin = process.platform === "win32";
 
-module.exports = {
+export default {
   "**/*.{js,jsx,ts,tsx,mjs,cjs,mts,cts}": (filenames) => {
     let escapedFileNames = filenames
       .map((filename) => `"${isWin ? filename : escape([filename])}"`)

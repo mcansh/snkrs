@@ -1,8 +1,6 @@
-/* eslint global-require: "off" */
+import defaultTheme from "tailwindcss/defaultTheme";
 
-let defaultTheme = require("tailwindcss/defaultTheme");
-
-module.exports = {
+export default {
   content: ["./app/**/*.{js,ts,tsx,md,mdx}", "./remix.config.js"],
   darkMode: "media",
   theme: {

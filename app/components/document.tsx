@@ -8,6 +8,8 @@ import {
   useLocation,
 } from "@remix-run/react";
 
+import { ClientHintCheck } from "~/lib/client-hints";
+
 export function Document({
   children,
   bodyClassName,
@@ -36,6 +38,7 @@ export function Document({
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
+        <ClientHintCheck />
       </body>
     </html>
   );

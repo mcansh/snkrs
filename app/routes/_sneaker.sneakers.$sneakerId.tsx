@@ -6,10 +6,11 @@ import { $path } from "remix-routes";
 
 import { copy } from "~/lib/copy";
 import { prisma } from "~/db.server";
-import { getTimeZone, getUserId } from "~/session.server";
+import { getUserId } from "~/session.server";
 import { getPageTitle, mergeMeta } from "~/meta";
 import { formatDate } from "~/lib/format-date";
 import { invariantResponse } from "~/lib/http.server";
+import { getHints } from "~/lib/client-hints";
 
 export let loader = async ({ params, request }: LoaderArgs) => {
   invariantResponse(params.sneakerId, 404);
@@ -38,9 +39,11 @@ export let loader = async ({ params, request }: LoaderArgs) => {
     where: { userId: sneaker.user.id },
   });
 
+  let { timeZone } = getHints(request);
+
   return json({
     id: params.sneakerId,
-    timeZone: await getTimeZone(request),
+    timeZone,
     userCreatedSneaker,
     title: `${sneaker.brand.name} ${sneaker.model} – ${sneaker.colorway}`,
     purchaseYear: new Date(sneaker.purchaseDate).getFullYear(),

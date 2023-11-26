@@ -12,7 +12,7 @@ export default {
   serverDependenciesToBundle: ["ts-extras"],
   postcss: true,
   tailwind: true,
-  serverModuleFormat: "cjs",
+  serverModuleFormat: "esm",
   future: {
     v2_dev: true,
     v2_errorBoundary: true,

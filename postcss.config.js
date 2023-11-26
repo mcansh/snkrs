@@ -1,9 +1,7 @@
-/* eslint global-require: "off" */
-
-module.exports = {
-  plugins: [
-    require("autoprefixer"),
-    require("tailwindcss"),
-    require("postcss-100vh-fix"),
-  ],
+export default {
+  plugins: {
+    autoprefixer: {},
+    tailwindcss: {},
+    "postcss-100vh-fix": {},
+  },
 };
